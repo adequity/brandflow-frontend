@@ -1,0 +1,6 @@
+/* 📄 /frontend/src/index.css */
+/* 이 파일은 /frontend/src/ 폴더 안에 위치합니다. */
+/* Tailwind CSS를 사용하기 위한 기본 설정입니다. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
