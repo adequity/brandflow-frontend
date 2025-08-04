@@ -3,18 +3,21 @@ import cors from 'cors';
 import bcrypt from 'bcrypt';
 import sequelize from './config/db.js';
 import './models/index.js';
+import 'dotenv/config'; // dotenv를 import 합니다.
 
 // API 라우터 임포트
 import authRoutes from './api/auth.js';
 import userRoutes from './api/users.js';
 import campaignRoutes from './api/campaigns.js';
-import postRoutes from './api/posts.js'; // ⭐️ [추가] posts.js 라우터 임포트
+import postRoutes from './api/posts.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ⭐️ [수정] CORS 옵션을 환경 변수에서 읽어오도록 변경
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  // FRONTEND_URL 환경 변수가 있으면 그 값을 사용하고, 없으면 로컬 주소를 기본값으로 사용
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
 };
 
@@ -25,7 +28,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/campaigns', campaignRoutes);
-app.use('/api/posts', postRoutes); // ⭐️ [추가] /api/posts 경로로 들어오는 요청 연결
+app.use('/api/posts', postRoutes);
 
 app.get('/', (req, res) => {
   res.send('BrandFlow 백엔드 서버가 정상적으로 동작하고 있습니다.');
@@ -33,10 +36,10 @@ app.get('/', (req, res) => {
 
 async function startServer() {
   try {
-    // ⭐️ [수정] alter: true 옵션을 완전히 제거합니다.
-    // 배포 환경에서는 모델과 DB가 일치해야 하므로 sync()만 호출합니다.
+    // ⭐️ [수정] 배포 환경에서는 sync()만 호출하여 DB 구조를 변경하지 않습니다.
     await sequelize.sync(); 
     console.log('✅ 데이터베이스 연결 완료.');
+
     const { User } = sequelize.models;
     const userCount = await User.count();
     if (userCount === 0) {
@@ -50,7 +53,7 @@ async function startServer() {
         });
         console.log('✅ 초기 슈퍼 어드민 계정 생성 완료.');
     }
-    
+
     app.listen(PORT, () => {
       console.log(`✅ 서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
     });
