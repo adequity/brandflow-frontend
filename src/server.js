@@ -34,8 +34,9 @@ app.get('/', (req, res) => {
 async function startServer() {
   try {
     // ⭐️ [수정] alter: true 옵션을 완전히 제거합니다.
+    // 배포 환경에서는 모델과 DB가 일치해야 하므로 sync()만 호출합니다.
     await sequelize.sync(); 
-    console.log('✅ 데이터베이스 연결 완료.');    
+    console.log('✅ 데이터베이스 연결 완료.');
     const { User } = sequelize.models;
     const userCount = await User.count();
     if (userCount === 0) {
