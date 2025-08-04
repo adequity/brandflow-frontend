@@ -1,22 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // 필요한 컴포넌트들을 import 합니다.
-import StatusBadge from '../common/StatusBadge';
-import EditModal from '../modals/EditModal';
-import DeleteModal from '../modals/DeleteModal';
-import OutlineRegisterModal from '../modals/OutlineRegisterModal';
-import TopicRegisterModal from '../modals/TopicRegisterModal';
-import LinkRegisterModal from '../modals/LinkRegisterModal';
+import StatusBadge from '../components/common/StatusBadge';
+import EditModal from '../components/modals/EditModal';
+import DeleteModal from '../components/modals/DeleteModal';
+import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
+import TopicRegisterModal from '../components/modals/TopicRegisterModal';
+import LinkRegisterModal from '../components/modals/LinkRegisterModal';
 
-const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
-    const [posts, setPosts] = useState(campaign.posts || []);
+const CampaignDetailPage = () => {
+    const { campaignId } = useParams();
+    const navigate = useNavigate();
     
-    useEffect(() => {
-        setPosts(campaign.posts || []);
-    }, [campaign]);
-
+    const [campaign, setCampaign] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [posts, setPosts] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]);
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -26,7 +27,24 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
     const [modalType, setModalType] = useState('topic');
     const [selectedPost, setSelectedPost] = useState(null);
 
-    // --- 핸들러 함수들 ---
+    const fetchCampaignDetail = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const response = await axios.get(`http://localhost:5000/api/campaigns/${campaignId}`);
+            setCampaign(response.data);
+            setPosts(response.data.Posts || []);
+        } catch (error) {
+            console.error("캠페인 상세 정보 로딩 실패:", error);
+            setCampaign(null); // 에러 발생 시 campaign을 null로 설정
+        } finally {
+            setIsLoading(false);
+        }
+    }, [campaignId]);
+
+    useEffect(() => {
+        fetchCampaignDetail();
+    }, [fetchCampaignDetail]);
+
     const handleRowSelect = (id) => { setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [id]); };
     const handleSelectAll = (e) => { setSelectedRows(e.target.checked ? posts.map(p => p.id) : []); };
     const openEditModal = (post, type) => { setSelectedPost(post); setModalType(type); setEditModalOpen(true); };
@@ -42,7 +60,7 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
         }
         try {
             await axios.put(`http://localhost:5000/api/posts/${postToUpdate.id}`, payload);
-            await onDataChange();
+            fetchCampaignDetail();
         } catch (error) { alert('재요청 실패'); }
         setEditModalOpen(false); setSelectedPost(null);
     };
@@ -51,19 +69,17 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
         const postId = selectedRows[0];
         try {
             await axios.put(`http://localhost:5000/api/posts/${postId}`, { outline: outlineContent, outlineStatus: '목차 승인 대기' });
-            await onDataChange();
+            fetchCampaignDetail();
         } catch (error) { alert('목차 등록 실패'); }
         setOutlineModalOpen(false); setSelectedRows([]);
     };
 
     const handleRegisterTopic = async (topicTitle) => {
         try {
-            await axios.post(`http://localhost:5000/api/campaigns/${campaign.id}/posts`, { title: topicTitle });
+            await axios.post(`http://localhost:5000/api/campaigns/${campaignId}/posts`, { title: topicTitle });
             alert('새로운 주제가 성공적으로 등록되었습니다.');
-            await onDataChange(); 
-            onBack(); 
+            fetchCampaignDetail();
         } catch (error) { 
-            console.error("주제 등록 실패:", error);
             alert('주제 등록에 실패했습니다.'); 
         }
         setTopicModalOpen(false);
@@ -73,7 +89,7 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
         const postId = selectedRows[0];
         try {
             await axios.put(`http://localhost:5000/api/posts/${postId}`, { publishedUrl: url });
-            await onDataChange();
+            fetchCampaignDetail();
         } catch(error) { alert('링크 등록 실패'); }
         setLinkModalOpen(false); setSelectedRows([]);
     };
@@ -81,7 +97,7 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
     const handleConfirmDelete = async () => { 
         try {
             await axios.delete(`http://localhost:5000/api/posts/${selectedPost.id}`);
-            await onDataChange();
+            fetchCampaignDetail();
         } catch (error) { alert('삭제 실패'); }
         setDeleteModalOpen(false); setSelectedPost(null); 
     };
@@ -89,12 +105,19 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
     const canRegisterOutline = selectedRows.length === 1 && posts.find(p => p.id === selectedRows[0])?.topicStatus === '주제 승인' && !posts.find(p => p.id === selectedRows[0])?.outline;
     const canRegisterLink = selectedRows.length === 1;
 
+    if (isLoading) {
+        return <div className="p-6">캠페인 상세 정보를 불러오는 중...</div>;
+    }
+    
+    if (!campaign) {
+        return <div className="p-6">캠페인 정보를 찾을 수 없습니다.</div>;
+    }
+
     return (
         <div className="p-6 h-full flex flex-col">
             <div className="flex-shrink-0">
-                <button onClick={onBack} className="text-sm text-blue-600 hover:underline mb-2">&larr; 전체 캠페인 목록으로</button>
+                <button onClick={() => navigate('/admin/campaigns')} className="text-sm text-blue-600 hover:underline mb-2">&larr; 전체 캠페인 목록으로</button>
                 <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
-                {/* ⭐️ [수정] 담당자 이름을 표시하는 부분을 추가합니다. */}
                 <p className="text-gray-600 mt-1">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
             </div>
             <div className="flex-grow bg-white p-6 rounded-xl border border-gray-200 flex flex-col mt-4">
@@ -129,7 +152,7 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
                                     <td className="p-2">{post.outline ? <div className="flex items-center justify-between"><span className="text-xs truncate max-w-xs">{post.outline}</span><button onClick={() => openEditModal(post, 'outline')} className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"><Edit size={14} /></button></div> : '-'}</td>
                                     <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
                                     <td className="p-2">{post.publishedUrl ? <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline"><LinkIcon size={14} className="inline"/></a> : '-'}</td>
-                                    <td className="p-2 text-xs text-gray-600">{new Date(post.creationTime).toLocaleString()}</td>
+                                    <td className="p-2 text-xs text-gray-600">{new Date(post.createdAt).toLocaleString()}</td>
                                     <td className="p-2"><div className="flex items-center space-x-2"><button onClick={() => openEditModal(post, 'topic')} className="text-gray-400 hover:text-blue-600"><Edit size={16} /></button><button onClick={() => handleDeleteClick(post)} className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button></div></td>
                                 </tr>
                             ))}
@@ -153,4 +176,4 @@ const CampaignDetail = ({ campaign, onBack, onDataChange }) => {
     );
 };
 
-export default CampaignDetail;
+export default CampaignDetailPage;

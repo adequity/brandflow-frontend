@@ -1,11 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Plus, Search } from 'lucide-react';
-import NewCampaignModal from '../modals/NewCampaignModal';
+import NewCampaignModal from '../components/modals/NewCampaignModal';
 
-const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign }) => {
+// ⭐️ [수정] loggedInUser를 prop으로 받습니다.
+const CampaignListPage = ({ users, loggedInUser }) => {
+    const [campaigns, setCampaigns] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const navigate = useNavigate();
+
+    const fetchCampaigns = useCallback(async () => {
+        if (!loggedInUser) return; // 로그인 정보가 없으면 실행하지 않음
+
+        setIsLoading(true);
+        try {
+            // ⭐️ [수정] API 요청 시 쿼리 파라미터로 관리자 정보를 전달합니다.
+            const response = await axios.get('http://localhost:5000/api/campaigns', {
+                params: {
+                    adminId: loggedInUser.id,
+                    adminRole: loggedInUser.role
+                }
+            });
+            setCampaigns(response.data);
+        } catch (error) {
+            console.error("캠페인 목록 로딩 실패:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [loggedInUser]); // loggedInUser가 바뀔 때마다 함수를 재생성
+
+    useEffect(() => {
+        fetchCampaigns();
+    }, [fetchCampaigns]);
 
     const handleSaveCampaign = async (campaignData) => {
         try {
@@ -15,23 +44,19 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign }) => {
                 userId: campaignData.clientId,
                 managerId: campaignData.managerId
             };
-            const response = await axios.post('http://localhost:5000/api/campaigns', payload);
-            
-            const manager = users.find(u => u.id === parseInt(campaignData.managerId));
-            const newCampaign = { 
-                ...response.data, 
-                posts: [], 
-                Manager: manager // ⭐️ [수정] User 대신 Manager로 응답을 구성합니다.
-            };
-            setCampaigns(prevCampaigns => [...prevCampaigns, newCampaign]);
+            await axios.post('http://localhost:5000/api/campaigns', payload);
             setModalOpen(false);
+            fetchCampaigns(); // 저장 후 목록을 다시 불러옵니다.
         } catch (error) {
-            console.error("캠페인 생성 실패:", error);
             alert("캠페인 생성에 실패했습니다.");
         }
     };
-
+    
     const filteredCampaigns = (campaigns || []).filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    if (isLoading) {
+        return <div className="p-6">캠페인 목록을 불러오는 중...</div>;
+    }
 
     return (
         <div className="p-6">
@@ -58,14 +83,14 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign }) => {
                     </thead>
                     <tbody>
                         {filteredCampaigns.map(campaign => {
-                            const posts = campaign.posts || [];
+                            const posts = campaign.Posts || [];
                             const completedCount = posts.filter(p => p.publishedUrl).length;
                             const totalCount = posts.length;
                             return (
-                                <tr key={campaign.id} className="bg-white border-b hover:bg-gray-50 cursor-pointer" onClick={() => onSelectCampaign(campaign.id)}>
+                                <tr key={campaign.id} className="bg-white border-b hover:bg-gray-50 cursor-pointer" 
+                                    onClick={() => navigate(`/admin/campaigns/${campaign.id}`)}>
                                     <th scope="row" className="px-6 py-4 font-medium text-gray-900">{campaign.name}</th>
                                     <td className="px-6 py-4">{campaign.client}</td>
-                                    {/* ⭐️ [수정] campaign.User?.name을 campaign.Manager?.name으로 변경합니다. */}
                                     <td className="px-6 py-4">{campaign.Manager?.name || 'N/A'}</td>
                                     <td className="px-6 py-4 font-medium">{`${completedCount}/${totalCount}`}</td>
                                     <td className="px-6 py-4">{new Date(campaign.updatedAt).toLocaleDateString()}</td>
@@ -80,4 +105,4 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign }) => {
     );
 };
 
-export default CampaignList;
+export default CampaignListPage;

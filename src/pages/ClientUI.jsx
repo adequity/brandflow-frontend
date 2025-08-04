@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Home, FileText, ChevronDown, ArrowRight, LogOut, XCircle, CheckCircle, MessageSquare, Search } from 'lucide-react';
+import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search } from 'lucide-react';
 
 // --- HELPER COMPONENTS ---
 const StatusBadge = ({ status }) => {
@@ -14,7 +14,18 @@ const StatusBadge = ({ status }) => {
     return <span className={`${baseClasses} ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
 };
 
-// --- CLIENT-SIDE COMPONENTS (이하 컴포넌트들은 변경 없음) ---
+// ⭐️ [추가] URL을 올바른 형식으로 만들어주는 헬퍼 함수
+const formatUrl = (url) => {
+    if (!url) return '#'; // URL이 없으면 아무데도 이동하지 않도록 처리
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+    // 'http'가 없으면 자동으로 프로토콜을 붙여줍니다.
+    return `//${url}`;
+};
+
+
+// --- CLIENT-SIDE COMPONENTS ---
 const ClientSidebar = ({ activePage, setActivePage }) => {
     const menuItems = [ { id: 'dashboard', label: '대시보드', icon: <Home size={20} /> }, { id: 'campaigns', label: '캠페인 목록', icon: <FileText size={20} /> }];
     return ( <div className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0"><div className="h-16 flex items-center px-6 border-b border-gray-200"><h1 className="text-xl font-bold text-blue-600">BrandFlow</h1></div><nav className="flex-1 px-4 py-6 space-y-2">{menuItems.map(item => ( <div key={item.id} role="button" tabIndex={0} onClick={() => setActivePage(item.id, null)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActivePage(item.id, null); }} className={`w-full flex items-center px-4 py-2.5 text-sm font-medium rounded-lg transition-colors cursor-pointer ${activePage === item.id ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>{item.icon}<span className="ml-3">{item.label}</span></div> ))}</nav></div> );
@@ -42,7 +53,7 @@ const ClientHeader = ({ user, onLogout, title }) => {
 };
 
 const ClientDashboard = ({ user, campaigns, setActivePage }) => {
-    const allPosts = (campaigns || []).flatMap(c => c.posts || []);
+    const allPosts = (campaigns || []).flatMap(c => c.Posts || []);
     const pendingTopics = allPosts.filter(p => p.topicStatus === '주제 승인 대기').length;
     const pendingOutlines = allPosts.filter(p => p.outlineStatus === '목차 승인 대기').length;
     const totalPending = pendingTopics + pendingOutlines;
@@ -66,7 +77,7 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
                     </div>
                     <div className="space-y-4">
                         {(campaigns || []).map(campaign => {
-                            const posts = campaign.posts || [];
+                            const posts = campaign.Posts || [];
                             const total = posts.length;
                             const completed = posts.filter(p => p.publishedUrl).length;
                             const pendingCount = posts.filter(p => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')).length;
@@ -78,7 +89,7 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
                                                 <h4 className="font-bold text-lg text-gray-800">{campaign.name}</h4>
                                                 {pendingCount > 0 && <span className="ml-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full">{pendingCount}</span>}
                                             </div>
-                                            <p className="text-sm text-gray-500 mt-1">담당자: {campaign.manager}</p>
+                                            <p className="text-sm text-gray-500 mt-1">담당자: {campaign.Manager?.name}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-gray-800">{completed}/{total}</p>
@@ -94,7 +105,9 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
                 <div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">최근 발행된 글</h3>
                     <div className="bg-white p-5 rounded-xl border border-gray-200">
-                        <ul className="space-y-4">{recentlyPublished.map(post => ( <li key={post.id}><p className="font-semibold text-gray-800">{post.title}</p><a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center mt-1">블로그 링크 바로가기 <ArrowRight size={14} className="ml-1" /></a></li>))}</ul>
+                        <ul className="space-y-4">{recentlyPublished.map(post => ( <li key={post.id}><p className="font-semibold text-gray-800">{post.title}</p>
+                        {/* ⭐️ [수정] formatUrl 함수를 사용합니다. */}
+                        <a href={formatUrl(post.publishedUrl)} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center mt-1">블로그 링크 바로가기 <ArrowRight size={14} className="ml-1" /></a></li>))}</ul>
                     </div>
                 </div>
             </div>
@@ -119,14 +132,14 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
                     </thead>
                     <tbody>
                         {filteredCampaigns.map(campaign => {
-                            const posts = campaign.posts || [];
+                            const posts = campaign.Posts || [];
                             const total = posts.length;
                             const completed = posts.filter(p => p.publishedUrl).length;
                             const pendingCount = posts.filter(p => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')).length;
                             return (
                                 <tr key={campaign.id} onClick={() => setActivePage('campaignDetail', campaign.id)} className="border-b hover:bg-gray-50 cursor-pointer">
                                     <td className="px-4 py-3 font-semibold text-gray-900">{campaign.name}</td>
-                                    <td className="px-4 py-3">{campaign.manager}</td>
+                                    <td className="px-4 py-3">{campaign.Manager?.name}</td>
                                     <td className="px-4 py-3">{completed}/{total}</td>
                                     <td className="px-4 py-3">{pendingCount > 0 ? <span className="font-bold text-yellow-600">{pendingCount} 건</span> : '-'}</td>
                                 </tr>
@@ -157,12 +170,12 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
             <button onClick={() => setActivePage('campaigns', null)} className="text-sm text-blue-600 hover:underline mb-4">&larr; 캠페인 목록으로</button>
             <div className="bg-white p-6 rounded-xl border border-gray-200">
                 <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
-                <p className="text-gray-600 mt-1">담당자: {campaign.manager}</p>
+                <p className="text-gray-600 mt-1">담당자: {campaign.Manager?.name}</p>
                 <div className="mt-6">
                     <table className="w-full text-sm text-left text-gray-500">
                         <thead className="bg-gray-50 text-xs text-gray-700 uppercase"><tr><th className="px-4 py-3">주제</th><th className="px-4 py-3">목차</th><th className="px-4 py-3">상태</th><th className="px-4 py-3 text-center">액션</th></tr></thead>
                         <tbody>
-                            {(campaign.posts || []).map(post => {
+                            {(campaign.Posts || []).map(post => {
                                 const status = post.outlineStatus || post.topicStatus;
                                 const isPending = status && status.includes('대기');
                                 const isPublished = !!post.publishedUrl;
@@ -173,7 +186,8 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
                                         <td className="px-4 py-3"><StatusBadge status={status} /></td>
                                         <td className="px-4 py-3 text-center">
                                             {isPending && <button onClick={() => handleReviewClick(post)} className="font-semibold text-blue-600 hover:underline">검토하기</button>}
-                                            {isPublished && <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">링크 보기</a>}
+                                            {/* ⭐️ [수정] formatUrl 함수를 사용합니다. */}
+                                            {isPublished && <a href={formatUrl(post.publishedUrl)} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">링크 보기</a>}
                                         </td>
                                     </tr>
                                 );
@@ -263,42 +277,37 @@ export default function ClientUI({ user, onLogout }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // user 객체가 유효한지 먼저 확인합니다.
-        if (!user) {
-            setIsLoading(false); // user가 없으면 로딩을 멈춥니다.
+        if (!user || !user.id) {
+            setIsLoading(false);
             return;
         }
 
         const fetchClientData = async () => {
             setIsLoading(true);
             try {
-                // 실제 애플리케이션에서는 로그인한 사용자의 ID를 기반으로 데이터를 요청합니다.
-                console.log(`Fetching data for client: ${user.name} (ID: ${user.id})`);
                 const response = await axios.get(`http://localhost:5000/api/users/${user.id}/campaigns`);
                 setCampaigns(response.data);
             } catch (error) {
                 console.error("클라이언트 데이터 로딩 실패:", error);
-                setCampaigns([]); // 에러 발생 시 빈 배열로 설정
+                setCampaigns([]);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchClientData();
-    }, [user]); // user prop이 변경될 때마다 데이터를 다시 불러옵니다.
-
+    }, [user]);
 
     const handleSetActivePage = (page, id) => {
         setActivePage(page);
         setSelectedCampaignId(id);
-    }
+    };
 
     const handleUpdatePostStatus = async (postId, newStatus, rejectReason) => {
-        // 상태를 업데이트 할 캠페인을 찾습니다.
-        const targetCampaign = campaigns.find(c => c.posts.some(p => p.id === postId));
+        const targetCampaign = campaigns.find(c => (c.Posts || []).some(p => p.id === postId));
         if (!targetCampaign) return;
 
-        const postToUpdate = targetCampaign.posts.find(p => p.id === postId);
+        const postToUpdate = targetCampaign.Posts.find(p => p.id === postId);
         const isTopicUpdate = postToUpdate.topicStatus?.includes('주제');
         
         const payload = isTopicUpdate 
@@ -306,18 +315,11 @@ export default function ClientUI({ user, onLogout }) {
             : { outlineStatus: newStatus, rejectReason: rejectReason || null };
 
         try {
-            // 서버에 상태 업데이트 요청
             await axios.put(`http://localhost:5000/api/posts/${postId}/status`, payload);
 
-            // 로컬 상태 업데이트
             const updatedCampaigns = campaigns.map(c => ({
                 ...c,
-                posts: c.posts.map(p => {
-                    if (p.id === postId) {
-                        return { ...p, ...payload };
-                    }
-                    return p;
-                })
+                Posts: (c.Posts || []).map(p => p.id === postId ? { ...p, ...payload } : p)
             }));
             setCampaigns(updatedCampaigns);
         } catch (error) {
