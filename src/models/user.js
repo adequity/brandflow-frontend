@@ -1,7 +1,3 @@
-// 📄 /backend/src/models/user.js
-// 이 파일은 /backend/src/models/ 폴더 안에 생성합니다.
-// User 테이블의 구조를 정의합니다.
-
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.js';
 
@@ -14,9 +10,6 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    validate: {
-      isEmail: true,
-    },
   },
   password: {
     type: DataTypes.STRING,
@@ -29,9 +22,17 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
   },
   role: {
-    type: DataTypes.ENUM('슈퍼 어드민', '대행사 어드민', '클라이언트'),
+    type: DataTypes.STRING,
     allowNull: false,
   },
+  // ⭐️ [추가] 생성자 ID를 저장하기 위한 필드
+  // 어떤 관리자가 이 사용자를 생성했는지 추적합니다.
+  creatorId: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // 최초의 슈퍼 어드민은 생성자가 없으므로 NULL을 허용
+  }
+}, {
+  timestamps: true,
 });
 
 export default User;

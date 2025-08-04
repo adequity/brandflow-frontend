@@ -33,9 +33,9 @@ app.get('/', (req, res) => {
 
 async function startServer() {
   try {
-    await sequelize.sync({ alter: true }); 
-    console.log('✅ 데이터베이스 연결 및 동기화 완료 (데이터 보존 모드).');
-    
+    // ⭐️ [수정] alter: true 옵션을 완전히 제거합니다.
+    await sequelize.sync(); 
+    console.log('✅ 데이터베이스 연결 완료.');    
     const { User } = sequelize.models;
     const userCount = await User.count();
     if (userCount === 0) {
