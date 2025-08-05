@@ -21,7 +21,7 @@ const UserManagement = ({ loggedInUser }) => {
         }
         setIsLoading(true);
         try {
-            const response = await axios.get('http://localhost:5000/api/users', {
+            const response = await axios.get(${import.meta.env.VITE_API_URL}/api/users', {
                 params: {
                     adminId: loggedInUser.id,
                     adminRole: loggedInUser.role
@@ -53,9 +53,9 @@ const UserManagement = ({ loggedInUser }) => {
     const handleSaveUser = async (userData) => {
         try {
             if (currentUser) { // 수정
-                await axios.put(`http://localhost:5000/api/users/${currentUser.id}`, { ...userData, adminId: loggedInUser.id, adminRole: loggedInUser.role });
+                await axios.put(${import.meta.env.VITE_API_URL}/api/users/${currentUser.id}`, { ...userData, adminId: loggedInUser.id, adminRole: loggedInUser.role });
             } else { // 생성
-                await axios.post('http://localhost:5000/api/users', { ...userData, creatorId: loggedInUser.id });
+                await axios.post(${import.meta.env.VITE_API_URL}/api/users', { ...userData, creatorId: loggedInUser.id });
             }
             fetchUsers(); // 목록 새로고침
             setEditModalOpen(false);
@@ -67,7 +67,7 @@ const UserManagement = ({ loggedInUser }) => {
 
     const handleDeleteUser = async () => {
         try {
-            await axios.delete(`http://localhost:5000/api/users/${currentUser.id}`, { 
+            await axios.delete(${import.meta.env.VITE_API_URL}/api/users/${currentUser.id}`, { 
                 data: { adminId: loggedInUser.id, adminRole: loggedInUser.role }
             });
             fetchUsers(); // 목록 새로고침

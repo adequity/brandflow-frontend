@@ -18,7 +18,7 @@ const CampaignListPage = ({ users, loggedInUser }) => {
         setIsLoading(true);
         try {
             // ⭐️ [수정] API 요청 시 쿼리 파라미터로 관리자 정보를 전달합니다.
-            const response = await axios.get('http://localhost:5000/api/campaigns', {
+            const response = await axios.get(${import.meta.env.VITE_API_URL}/api/campaigns', {
                 params: {
                     adminId: loggedInUser.id,
                     adminRole: loggedInUser.role
@@ -44,7 +44,7 @@ const CampaignListPage = ({ users, loggedInUser }) => {
                 userId: campaignData.clientId,
                 managerId: campaignData.managerId
             };
-            await axios.post('http://localhost:5000/api/campaigns', payload);
+            await axios.post(${import.meta.env.VITE_API_URL}/api/campaigns', payload);
             setModalOpen(false);
             fetchCampaigns(); // 저장 후 목록을 다시 불러옵니다.
         } catch (error) {

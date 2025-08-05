@@ -15,7 +15,7 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign }) => {
                 userId: campaignData.clientId,
                 managerId: campaignData.managerId
             };
-            const response = await axios.post('http://localhost:5000/api/campaigns', payload);
+            const response = await axios.post(${import.meta.env.VITE_API_URL}/api/campaigns', payload);
             
             const manager = users.find(u => u.id === parseInt(campaignData.managerId));
             const newCampaign = { 

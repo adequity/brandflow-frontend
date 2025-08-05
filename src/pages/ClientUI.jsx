@@ -285,7 +285,7 @@ export default function ClientUI({ user, onLogout }) {
         const fetchClientData = async () => {
             setIsLoading(true);
             try {
-                const response = await axios.get(`http://localhost:5000/api/users/${user.id}/campaigns`);
+                const response = await axios.get(${import.meta.env.VITE_API_URL}/api/users/${user.id}/campaigns`);
                 setCampaigns(response.data);
             } catch (error) {
                 console.error("클라이언트 데이터 로딩 실패:", error);
@@ -315,7 +315,7 @@ export default function ClientUI({ user, onLogout }) {
             : { outlineStatus: newStatus, rejectReason: rejectReason || null };
 
         try {
-            await axios.put(`http://localhost:5000/api/posts/${postId}/status`, payload);
+            await axios.put(${import.meta.env.VITE_API_URL}/api/posts/${postId}/status`, payload);
 
             const updatedCampaigns = campaigns.map(c => ({
                 ...c,

@@ -22,8 +22,8 @@ export default function AdminUI({ user, onLogout }) {
         setIsLoading(true);
         try {
             const [campaignsRes, usersRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/campaigns'),
-                axios.get('http://localhost:5000/api/users')
+                axios.get(${import.meta.env.VITE_API_URL}/api/campaigns'),
+                axios.get(${import.meta.env.VITE_API_URL}/api/users')
             ]);
             setCampaigns(campaignsRes.data);
             setUsers(usersRes.data);
