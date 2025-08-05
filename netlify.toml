@@ -1,0 +1,4 @@
+[build]
+  # GitHub 리포지토리 최상단(package.json이 있는) 디렉토리에서 실행
+  command = "npm run build"
+  publish  = "dist"
