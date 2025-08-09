@@ -1,40 +1,49 @@
-import { Sequelize } from 'sequelize';
+// ⬇️ src/config/db.js
 import 'dotenv/config';
+import { Sequelize } from 'sequelize';
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'postgres',
-    dialectOptions: {
-      ssl: process.env.NODE_ENV === 'production' ? {
-        require: true,
-        rejectUnauthorized: false
-      } : false
-    },
-    logging: false,
-  }
-);
+const isProd = process.env.NODE_ENV === 'production';
 
-// ⭐️ [추가] DB 연결을 재시도하는 함수
+const baseOptions = {
+  dialect: 'postgres',
+  logging: false,
+  // Render/Neon/Supabase 등 대부분 prod 환경에서 SSL 필요
+  dialectOptions: isProd
+    ? { ssl: { require: true, rejectUnauthorized: false } }
+    : {},
+  pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
+};
+
+const sequelize = process.env.DATABASE_URL
+  ? new Sequelize(process.env.DATABASE_URL, {
+      ...baseOptions,
+      protocol: 'postgres'
+    })
+  : new Sequelize(
+      process.env.DB_NAME,
+      process.env.DB_USER,
+      process.env.DB_PASSWORD,
+      {
+        ...baseOptions,
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT) || 5432
+      }
+    );
+
+// 재시도 포함 연결 테스트
 export const testDbConnection = async () => {
   let retries = 5;
   while (retries) {
     try {
       await sequelize.authenticate();
       console.log('✅ 데이터베이스 연결에 성공했습니다.');
-      break;
+      return;
     } catch (error) {
-      console.error('❌ 데이터베이스에 연결할 수 없습니다:', error.name);
+      console.error('❌ 데이터베이스에 연결할 수 없습니다:', error.name, error.message);
       retries -= 1;
-      console.log(`${retries}번의 재시도 기회가 남았습니다. 5초 후에 다시 시도합니다...`);
-      if (retries === 0) {
-        throw new Error('여러 번의 시도 후에도 데이터베이스 연결에 실패했습니다.');
-      }
-      await new Promise(res => setTimeout(res, 5000)); // 5초 대기
+      if (!retries) throw new Error('여러 번의 시도 후에도 DB 연결 실패');
+      console.log(`${retries}번 남음. 5초 후 재시도…`);
+      await new Promise(res => setTimeout(res, 5000));
     }
   }
 };
