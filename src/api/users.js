@@ -113,20 +113,19 @@ router.delete('/:id', async (req, res) => {
 
 // GET /api/users/:id/campaigns - 특정 클라이언트의 캠페인 목록 조회
 router.get('/:id/campaigns', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const campaigns = await Campaign.findAll({
-            where: { userId: id },
-            include: [
-                { model: User, as: 'Manager', attributes: ['name'] },
-                { model: Post, attributes: ['id', 'title', 'topicStatus', 'outlineStatus', 'publishedUrl', 'outline', 'rejectReason'] }
-            ],
-            order: [['createdAt', 'DESC']]
-        });
-        res.json(campaigns);
-    } catch (error) {
-        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
-    }
+  const userId = Number(req.params.id);
+  try {
+    const campaigns = await Campaign.findAll({
+      where: { userId },
+      include: [
+        { model: Post, separate: true, order: [['createdAt', 'DESC']] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(campaigns);
+  } catch (e) {
+    res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+  }
 });
 
 export default router;
