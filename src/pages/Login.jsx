@@ -10,13 +10,18 @@ const Login = ({ onLogin, userType }) => {
     e.preventDefault();
     setError('');
     try {
-      // ✅ 절대URL 하드코딩 제거 → 상대 경로 + api 클라이언트
       const { data } = await api.post('/api/auth/login', { email, password });
+     // 1) { user, token } 형태면 user 사용, 2) user 자체를 바로 주면 그대로 사용
+       const token = data?.token;
+       const user  = data?.user ?? data;   // ✅ 여기!
 
-      const { token, user } = data;
-      if (token) localStorage.setItem('authToken', token);
-      if (user)  localStorage.setItem('user', JSON.stringify(user));
-      onLogin?.(user);
+       if (token) localStorage.setItem('authToken', token);
+       if (user?.id) {
+         localStorage.setItem('user', JSON.stringify(user));
+         onLogin?.(user);
+       } else {
+         setError(data?.message || '로그인 응답에 사용자 정보가 없습니다.');
+       }
     } catch (err) {
       setError(
         err?.response?.data?.message ||
