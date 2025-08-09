@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { Plus, Search } from 'lucide-react';
 import NewCampaignModal from '../modals/NewCampaignModal';
 
@@ -16,7 +16,7 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign }) => {
                 userId: campaignData.clientId,   // 클라이언트의 ID
                 managerId: campaignData.managerId // 담당자(어드민)의 ID
             };
-            const response = await axios.post('http://localhost:5000/api/campaigns', payload);
+            const { data } = await api.post('/api/campaigns', payload);
             
             // 화면에 즉시 반영하기 위해 담당자 정보를 찾아서 추가합니다.
             const manager = users.find(u => u.id === parseInt(campaignData.managerId));
