@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../api/client';
 import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // 필요한 컴포넌트들을 import 합니다.
@@ -41,7 +41,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
             payload = { outline: updatedContent, outlineStatus: '목차 승인 대기' };
         }
         try {
-            const response = await axios.put(`http://localhost:5000/api/posts/${postToUpdate.id}`, payload);
+            const { data } = await api.put(`/api/posts/${postToUpdate.id}`, payload);
             const updatedPosts = posts.map(p => p.id === selectedPost.id ? response.data : p);
             setPosts(updatedPosts);
             updateParentCampaign(updatedPosts);
@@ -52,7 +52,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
     const handleRegisterOutline = async (outlineContent) => {
         const postId = selectedRows[0];
         try {
-            const response = await axios.put(`http://localhost:5000/api/posts/${postId}`, { outline: outlineContent, outlineStatus: '목차 승인 대기' });
+            const { data } = await api.put(`/api/posts/${postId}`, { outline: outlineContent, outlineStatus: '목차 승인 대기' });
             const updatedPosts = posts.map(p => p.id === postId ? response.data : p);
             setPosts(updatedPosts);
             updateParentCampaign(updatedPosts);
@@ -62,7 +62,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
 
     const handleRegisterTopic = async (topicTitle) => {
         try {
-            const response = await axios.post(`http://localhost:5000/api/campaigns/${campaign.id}/posts`, { title: topicTitle });
+            const { data } = await api.post(`/api/campaigns/${campaign.id}/posts`, { title: topicTitle });
             const updatedPosts = [...posts, response.data];
             setPosts(updatedPosts);
             updateParentCampaign(updatedPosts);
@@ -73,7 +73,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
     const handleRegisterLink = async (url) => {
         const postId = selectedRows[0];
         try {
-            const response = await axios.put(`http://localhost:5000/api/posts/${postId}`, { publishedUrl: url });
+            const { data } = await api.put(`/api/posts/${postId}`, { publishedUrl: url });
             const updatedPosts = posts.map(p => p.id === postId ? response.data : p);
             setPosts(updatedPosts);
             updateParentCampaign(updatedPosts);
