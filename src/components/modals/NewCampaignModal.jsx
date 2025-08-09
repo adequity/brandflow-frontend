@@ -6,7 +6,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     // 담당자(관리자) 목록 필터링
     const adminUsers = users.filter(u => u.role !== '클라이언트');
     // 담당자의 이름이 아닌 ID를 상태로 관리합니다.
-    const [managerId, setManagerId] = useState(adminUsers[0]?.id || '');
+    const [UserId, setUserId] = useState(adminUsers[0]?.id || '');
     
     // 클라이언트 검색 기능 관련 state
     const [clientSearchTerm, setClientSearchTerm] = useState('');
@@ -58,7 +58,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
             alert('캠페인을 할당할 클라이언트를 선택해주세요.');
             return;
         }
-        if (!managerId) {
+        if (!UserId) {
             alert('캠페인 담당자를 선택해주세요.');
             return;
         }
@@ -66,7 +66,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
             name: campaignName,
             clientName: selectedClient.name,
             clientId: selectedClient.id,
-            managerId: managerId // 담당자의 ID를 전달합니다.
+            UserId: UserId // 담당자의 ID를 전달합니다.
         });
     };
 
@@ -118,12 +118,12 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                     </div>
 
                     <div>
-                        <label htmlFor="manager" className="block text-sm font-medium text-gray-700">담당자</label>
+                        <label htmlFor="User" className="block text-sm font-medium text-gray-700">담당자</label>
                         <select 
-                            name="manager" 
-                            id="manager" 
-                            value={managerId} // value를 managerId로 변경
-                            onChange={(e) => setManagerId(e.target.value)} // setManagerId로 변경
+                            name="User" 
+                            id="User" 
+                            value={UserId} // value를 UserId로 변경
+                            onChange={(e) => setUserId(e.target.value)} // setUserId로 변경
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md"
                         >
                             <option value="">담당자 선택</option>

@@ -11,7 +11,7 @@ import TopicRegisterModal from '../modals/TopicRegisterModal';
 import LinkRegisterModal from '../modals/LinkRegisterModal';
 
 const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
-  const [posts, setPosts] = useState(campaign.posts || []);
+  const [posts, setposts] = useState(campaign.posts || []);
   const [selectedRows, setSelectedRows] = useState([]);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -22,9 +22,9 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
   const [selectedPost, setSelectedPost] = useState(null);
 
   // 부모(AdminUI)의 campaigns 상태를 업데이트
-  const updateParentCampaign = (updatedPosts) => {
+  const updateParentCampaign = (updatedposts) => {
     setCampaigns((prev) =>
-      prev.map((c) => (c.id === campaign.id ? { ...c, posts: updatedPosts } : c))
+      prev.map((c) => (c.id === campaign.id ? { ...c, posts: updatedposts } : c))
     );
   };
 
@@ -59,9 +59,9 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
 
     try {
       const { data: updated } = await api.put(`/api/posts/${postToUpdate.id}`, payload);
-      const updatedPosts = posts.map((p) => (p.id === selectedPost.id ? updated : p));
-      setPosts(updatedPosts);
-      updateParentCampaign(updatedPosts);
+      const updatedposts = posts.map((p) => (p.id === selectedPost.id ? updated : p));
+      setposts(updatedposts);
+      updateParentCampaign(updatedposts);
     } catch (error) {
       console.error(error);
       alert('재요청 실패');
@@ -80,9 +80,9 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
         outline: outlineContent,
         outlineStatus: '목차 승인 대기',
       });
-      const updatedPosts = posts.map((p) => (p.id === postId ? updated : p));
-      setPosts(updatedPosts);
-      updateParentCampaign(updatedPosts);
+      const updatedposts = posts.map((p) => (p.id === postId ? updated : p));
+      setposts(updatedposts);
+      updateParentCampaign(updatedposts);
     } catch (error) {
       console.error(error);
       alert('목차 등록 실패');
@@ -98,9 +98,9 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
       const { data: created } = await api.post(`/api/campaigns/${campaign.id}/posts`, {
         title: topicTitle,
       });
-      const updatedPosts = [...(posts || []), created];
-      setPosts(updatedPosts);
-      updateParentCampaign(updatedPosts);
+      const updatedposts = [...(posts || []), created];
+      setposts(updatedposts);
+      updateParentCampaign(updatedposts);
     } catch (error) {
       console.error(error);
       alert('주제 등록 실패');
@@ -115,9 +115,9 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
 
     try {
       const { data: updated } = await api.put(`/api/posts/${postId}`, { publishedUrl: url });
-      const updatedPosts = posts.map((p) => (p.id === postId ? updated : p));
-      setPosts(updatedPosts);
-      updateParentCampaign(updatedPosts);
+      const updatedposts = posts.map((p) => (p.id === postId ? updated : p));
+      setposts(updatedposts);
+      updateParentCampaign(updatedposts);
     } catch (error) {
       console.error(error);
       alert('링크 등록 실패');
@@ -130,9 +130,9 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
   const handleConfirmDelete = async () => {
     try {
       await api.delete(`/api/posts/${selectedPost.id}`);
-      const updatedPosts = posts.filter((p) => p.id !== selectedPost.id);
-      setPosts(updatedPosts);
-      updateParentCampaign(updatedPosts);
+      const updatedposts = posts.filter((p) => p.id !== selectedPost.id);
+      setposts(updatedposts);
+      updateParentCampaign(updatedposts);
     } catch (error) {
       console.error(error);
       alert('삭제 실패');
