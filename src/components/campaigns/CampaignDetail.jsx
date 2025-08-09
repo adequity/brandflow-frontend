@@ -83,7 +83,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
 
     const handleConfirmDelete = async () => { 
         try {
-            await axios.delete(`http://localhost:5000/api/posts/${selectedPost.id}`);
+            await api.delete(`/api/posts/${selectedPost.id}`);
             const updatedPosts = posts.filter(p => p.id !== selectedPost.id);
             setPosts(updatedPosts);
             updateParentCampaign(updatedPosts);
