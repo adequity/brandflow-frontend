@@ -482,10 +482,10 @@ export default function ClientUI({ user, onLogout }) {
     const load = async () => {
       setLoading(true);
       try {
-        const viewerRole = user.role || '클라이언트';
-        const { data } = await api.get('/api/campaigns', {
-          params: { viewerId: user.id, viewerRole },
-        });
+        const role = user.role || '클라이언트';
+        const { data } = await api.get(
+          `/api/campaigns?viewerId=${user.id}&viewerRole=${encodeURIComponent(role)}`
+        );
         setCampaigns(data || []);
       } catch (err) {
         console.error('클라이언트 데이터 로딩 실패:', err);
