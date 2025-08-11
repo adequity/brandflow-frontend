@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "name": "brandflow-frontend",
   "private": true,
@@ -25,3 +26,6 @@
     "vite": "^5.0.0"
   }
 }
+=======
+{"name":"brandflow-frontend","private":true,"version":"0.0.0","type":"module","scripts":{"dev":"vite","build":"vite build","preview":"vite preview","start":"node src/server.js"},"dependencies":{"axios":"^1.6.0","bcrypt":"^6.0.0","cors":"^2.8.5","dotenv":"^17.2.1","express":"^5.1.0","lucide-react":"^0.300.0","pg":"^8.16.3","pg-hstore":"^2.3.4","react":"^18.2.0","react-dom":"^18.2.0","react-router-dom":"^7.7.1","sequelize":"^6.37.7"},"devDependencies":{"@types/react":"^18.2.37","@types/react-dom":"^18.2.15","@vitejs/plugin-react":"^4.2.0","autoprefixer":"^10.4.16","postcss":"^8.4.32","tailwindcss":"^3.3.5","vite":"^5.0.0"}}
+>>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
