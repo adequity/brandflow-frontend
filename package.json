@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "nodemon src/server.js",
     "build": "vite build",
     "preview": "vite preview --port 4173",
-    "start": "node server.js",
-    "start:dev": "nodemon server.js"
+    "start": "node src/server.js",
+    "start:dev": "nodemon src/server.js"
   },
   "dependencies": {
     "axios": "^1.7.2",
