@@ -1,131 +1,89 @@
+// src/api/users.js
 import express from 'express';
 import { User, Campaign, Post } from '../models/index.js';
-import bcrypt from 'bcrypt';
-import { Op } from 'sequelize';
 
 const router = express.Router();
 
-// GET /api/users - 역할에 따라 다른 사용자 목록 조회
-router.get('/', async (req, res) => {
-    const { adminId, adminRole } = req.query;
+// (공통) 호출자 정보
+async function getViewer(req) {
+  const viewerId = Number(req.query.viewerId || req.query.adminId);
+  const viewerRole = req.query.viewerRole || req.query.adminRole;
+  let viewerCompany = null;
 
-    try {
-        let whereCondition = {};
-        if (adminRole === '대행사 어드민') {
-            whereCondition = {
-                [Op.or]: [
-                    { creatorId: adminId },
-                    { id: adminId }
-                ]
-            };
-        }
-        
-        const users = await User.findAll({ 
-            where: whereCondition,
-            attributes: { exclude: ['password'] }
-        });
-        res.json(users);
-    } catch (error) {
-        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
-    }
-});
-
-// POST /api/users - 새 사용자 생성
-router.post('/', async (req, res) => {
-    const { name, email, password, role, company, contact, creatorId } = req.body;
-    try {
-        const existingUser = await User.findOne({ where: { email } });
-        if (existingUser) {
-            return res.status(409).json({ message: '이미 사용 중인 이메일입니다.' });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({ name, email, password: hashedPassword, role, company, contact, creatorId });
-        
-        const userResponse = { ...newUser.toJSON() };
-        delete userResponse.password;
-
-        res.status(201).json(userResponse);
-    } catch (error) {
-        res.status(500).json({ message: '사용자 생성에 실패했습니다.' });
-    }
-});
-
-// PUT /api/users/:id - 특정 사용자 정보 수정 (권한 검사 수정)
-router.put('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { name, email, role, company, contact, adminId, adminRole } = req.body;
-    try {
-        const userToEdit = await User.findByPk(id);
-        if (!userToEdit) {
-            return res.status(404).json({ message: '수정할 사용자를 찾을 수 없습니다.' });
-        }
-
-        // ⭐️ [권한 검사 수정]
-        if (adminRole === '대행사 어드민') {
-            // 1. 슈퍼 어드민은 수정 불가
-            if (userToEdit.role === '슈퍼 어드민') {
-                return res.status(403).json({ message: '권한이 없습니다.' });
-            }
-            // 2. 자기 자신이 아니고, 자기가 생성한 사용자도 아니면 수정 불가
-            if (userToEdit.id !== parseInt(adminId) && userToEdit.creatorId !== parseInt(adminId)) {
-                 return res.status(403).json({ message: '권한이 없습니다.' });
-            }
-        }
-
-        await userToEdit.update({ name, email, role, company, contact });
-        const userResponse = { ...userToEdit.toJSON() };
-        delete userResponse.password;
-        res.status(200).json(userResponse);
-    } catch (error) {
-        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
-    }
-});
-
-// DELETE /api/users/:id - 특정 사용자 삭제 (권한 검사 수정)
-router.delete('/:id', async (req, res) => {
-    const { id } = req.params;
-    const { adminId, adminRole } = req.body;
-    try {
-        const userToDelete = await User.findByPk(id);
-        if (!userToDelete) {
-            return res.status(404).json({ message: '삭제할 사용자를 찾을 수 없습니다.' });
-        }
-
-        // ⭐️ [권한 검사 수정]
-        if (adminRole === '대행사 어드민') {
-            // 1. 슈퍼 어드민은 삭제 불가
-            if (userToDelete.role === '슈퍼 어드민') {
-                return res.status(403).json({ message: '권한이 없습니다.' });
-            }
-            // 2. 자기 자신이 아니고, 자기가 생성한 사용자도 아니면 삭제 불가
-            if (userToDelete.id !== parseInt(adminId) && userToDelete.creatorId !== parseInt(adminId)) {
-                return res.status(403).json({ message: '권한이 없습니다.' });
-            }
-        }
-
-        await userToDelete.destroy();
-        res.status(204).send();
-    } catch (error) {
-        res.status(500).json({ message: '서버 에러가 발생했습니다.' });
-    }
-});
-
-// GET /api/users/:id/campaigns - 특정 클라이언트의 캠페인 목록 조회
-router.get('/:id/campaigns', async (req, res) => {
-  const userId = Number(req.params.id);
-  try {
-    const campaigns = await Campaign.findAll({
-      where: { userId },
-      include: [
-        { model: Post, separate: true, order: [['createdAt', 'DESC']] }
-      ],
-      order: [['createdAt', 'DESC']]
+  if (viewerId) {
+    const v = await User.findByPk(viewerId, {
+      attributes: ['id', 'company', 'role']
     });
-    res.json(campaigns);
-  } catch (e) {
+    viewerCompany = v?.company || null;
+  }
+  return { viewerId, viewerRole, viewerCompany };
+}
+
+/** GET /api/users  — 역할/회사별 필터 */
+router.get('/', async (req, res) => {
+  try {
+    const { viewerId, viewerRole, viewerCompany } = await getViewer(req);
+    let where = {};
+
+    if (viewerRole === '대행사 어드민') {
+      if (!viewerCompany) {
+        return res.status(400).json({ message: '대행사 정보가 없습니다.' });
+      }
+      where.company = viewerCompany; // 같은 회사만
+    } else if (viewerRole === '클라이언트') {
+      where.id = viewerId; // 본인만
+    }
+    // 슈퍼 어드민은 제한 없음
+
+    const users = await User.findAll({
+      where,
+      attributes: ['id', 'name', 'email', 'role', 'company', 'createdAt', 'updatedAt']
+    });
+    res.json(users);
+  } catch (err) {
+    console.error('사용자 조회 실패:', err);
     res.status(500).json({ message: '서버 에러가 발생했습니다.' });
   }
 });
+
+/** GET /api/users/:id/campaigns — 특정 유저의 캠페인 (권한 체크) */
+router.get('/:id/campaigns', async (req, res) => {
+  try {
+    const targetId = Number(req.params.id);
+    const { viewerId, viewerRole, viewerCompany } = await getViewer(req);
+
+    // 본인 확인
+    const targetUser = await User.findByPk(targetId, {
+      attributes: ['id', 'company', 'role']
+    });
+    if (!targetUser) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+
+    if (viewerRole === '대행사 어드민') {
+      if (!viewerCompany || targetUser.company !== viewerCompany) {
+        return res.status(403).json({ message: '권한이 없습니다.' });
+      }
+    } else if (viewerRole === '클라이언트') {
+      if (viewerId !== targetId) return res.status(403).json({ message: '권한이 없습니다.' });
+    }
+    // 슈퍼 어드민은 제한 없음
+
+    const campaigns = await Campaign.findAll({
+      where: { userId: targetId },
+      include: [
+        { model: User, as: 'User',   attributes: ['id', 'name', 'email', 'company'] },
+        { model: User, as: 'Client', attributes: ['id', 'name', 'email', 'company'] },
+        { model: Post,  as: 'posts' }
+      ],
+      order: [['updatedAt', 'DESC']]
+    });
+
+    res.json(campaigns);
+  } catch (err) {
+    console.error('사용자 캠페인 조회 실패:', err);
+    res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+  }
+});
+
+/** (선택) POST/PUT에서도 회사 강제하고 싶으면 여기에 추가 */
 
 export default router;

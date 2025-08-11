@@ -1,13 +1,7 @@
-<<<<<<< HEAD
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search } from 'lucide-react';
-=======
 // src/pages/ClientUI.jsx
 import React, { useEffect, useState } from 'react';
 import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search } from 'lucide-react';
 import api from '../api/client';
->>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
 
 /* ============ Helpers ============ */
 const StatusBadge = ({ status }) => {
@@ -24,20 +18,6 @@ const StatusBadge = ({ status }) => {
   return <span className={`${base} ${styles[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
 };
 
-<<<<<<< HEAD
-// ⭐️ [추가] URL을 올바른 형식으로 만들어주는 헬퍼 함수
-const formatUrl = (url) => {
-    if (!url) return '#'; // URL이 없으면 아무데도 이동하지 않도록 처리
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-        return url;
-    }
-    // 'http'가 없으면 자동으로 프로토콜을 붙여줍니다.
-    return `//${url}`;
-};
-
-
-// --- CLIENT-SIDE COMPONENTS ---
-=======
 const formatUrl = (url) => {
   if (!url) return '#';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
@@ -45,7 +25,6 @@ const formatUrl = (url) => {
 };
 
 /* ============ Layout ============ */
->>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
 const ClientSidebar = ({ activePage, setActivePage }) => {
   const menu = [
     { id: 'dashboard', label: '대시보드', icon: <Home size={20} /> },
@@ -115,66 +94,6 @@ const ClientHeader = ({ user, onLogout, title }) => {
 
 /* ============ Pages ============ */
 const ClientDashboard = ({ user, campaigns, setActivePage }) => {
-<<<<<<< HEAD
-    const allPosts = (campaigns || []).flatMap(c => c.Posts || []);
-    const pendingTopics = allPosts.filter(p => p.topicStatus === '주제 승인 대기').length;
-    const pendingOutlines = allPosts.filter(p => p.outlineStatus === '목차 승인 대기').length;
-    const totalPending = pendingTopics + pendingOutlines;
-    const recentlyPublished = allPosts.filter(p => p.publishedUrl).slice(0, 3);
-
-    return (
-        <div className="p-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">{user?.name}님, 안녕하세요!</h2>
-                <p className="text-gray-600 mt-2">현재 검토가 필요한 콘텐츠가 <span className="font-bold text-blue-600">{totalPending}건</span> 있습니다.</p>
-                <div className="flex space-x-4 mt-4">
-                    <div className="bg-yellow-50 p-4 rounded-lg flex-1"><p className="text-sm text-yellow-800">주제 승인 대기</p><p className="text-2xl font-bold text-yellow-900">{pendingTopics}건</p></div>
-                    <div className="bg-yellow-50 p-4 rounded-lg flex-1"><p className="text-sm text-yellow-800">목차 승인 대기</p><p className="text-2xl font-bold text-yellow-900">{pendingOutlines}건</p></div>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-800">진행 중인 캠페인</h3>
-                        <button onClick={() => setActivePage('campaigns', null)} className="text-sm text-blue-600 hover:underline flex items-center">전체보기 <ArrowRight size={14} className="ml-1" /></button>
-                    </div>
-                    <div className="space-y-4">
-                        {(campaigns || []).map(campaign => {
-                            const posts = campaign.Posts || [];
-                            const total = posts.length;
-                            const completed = posts.filter(p => p.publishedUrl).length;
-                            const pendingCount = posts.filter(p => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')).length;
-                            return (
-                                <div key={campaign.id} onClick={() => setActivePage('campaignDetail', campaign.id)} className="bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md cursor-pointer transition-shadow">
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="flex items-center">
-                                                <h4 className="font-bold text-lg text-gray-800">{campaign.name}</h4>
-                                                {pendingCount > 0 && <span className="ml-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full">{pendingCount}</span>}
-                                            </div>
-                                            <p className="text-sm text-gray-500 mt-1">담당자: {campaign.Manager?.name}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-gray-800">{completed}/{total}</p>
-                                            <p className="text-xs text-gray-500">진행률</p>
-                                        </div>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2.5 mt-3"><div className="bg-blue-600 h-2.5 rounded-full" style={{ width: total > 0 ? `${(completed / total) * 100}%` : '0%' }}></div></div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">최근 발행된 글</h3>
-                    <div className="bg-white p-5 rounded-xl border border-gray-200">
-                        <ul className="space-y-4">{recentlyPublished.map(post => ( <li key={post.id}><p className="font-semibold text-gray-800">{post.title}</p>
-                        {/* ⭐️ [수정] formatUrl 함수를 사용합니다. */}
-                        <a href={formatUrl(post.publishedUrl)} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline flex items-center mt-1">블로그 링크 바로가기 <ArrowRight size={14} className="ml-1" /></a></li>))}</ul>
-                    </div>
-                </div>
-            </div>
-=======
   const allPosts = (campaigns || []).flatMap((c) => c.posts || []);
   const pendingTopics = allPosts.filter((p) => p.topicStatus === '주제 승인 대기').length;
   const pendingOutlines = allPosts.filter((p) => p.outlineStatus === '목차 승인 대기').length;
@@ -197,7 +116,6 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
             <p className="text-sm text-yellow-800">목차 승인 대기</p>
             <p className="text-2xl font-bold text-yellow-900">{pendingOutlines}건</p>
           </div>
->>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
         </div>
       </div>
 
@@ -290,37 +208,6 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
     c.name.toLowerCase().includes(term.toLowerCase())
   );
 
-<<<<<<< HEAD
-    return (
-        <div className="p-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <div className="relative mb-4">
-                    <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="text" placeholder="캠페인명 검색..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full max-w-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
-                        <tr><th className="px-4 py-3">캠페인명</th><th className="px-4 py-3">담당자</th><th className="px-4 py-3">진행률</th><th className="px-4 py-3">승인대기</th></tr>
-                    </thead>
-                    <tbody>
-                        {filteredCampaigns.map(campaign => {
-                            const posts = campaign.Posts || [];
-                            const total = posts.length;
-                            const completed = posts.filter(p => p.publishedUrl).length;
-                            const pendingCount = posts.filter(p => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')).length;
-                            return (
-                                <tr key={campaign.id} onClick={() => setActivePage('campaignDetail', campaign.id)} className="border-b hover:bg-gray-50 cursor-pointer">
-                                    <td className="px-4 py-3 font-semibold text-gray-900">{campaign.name}</td>
-                                    <td className="px-4 py-3">{campaign.Manager?.name}</td>
-                                    <td className="px-4 py-3">{completed}/{total}</td>
-                                    <td className="px-4 py-3">{pendingCount > 0 ? <span className="font-bold text-yellow-600">{pendingCount} 건</span> : '-'}</td>
-                                </tr>
-                            )
-                        })}
-                    </tbody>
-                </table>
-            </div>
-=======
   return (
     <div className="p-6">
       <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -333,7 +220,6 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
             onChange={(e) => setTerm(e.target.value)}
             className="pl-10 pr-4 py-2 w-full max-w-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
           />
->>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
         </div>
 
         <table className="w-full text-sm text-left text-gray-500">
@@ -383,57 +269,12 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
 
-  const openReview = (post) => {
-    setSelectedPost(post);
-    setReviewModalOpen(true);
-  };
-  const openDetail = (post) => {
-    setSelectedPost(post);
-    setDetailModalOpen(true);
-  };
-  const closeModals = () => {
-    setReviewModalOpen(false);
-    setDetailModalOpen(false);
-    setSelectedPost(null);
-  };
+  const openReview = (post) => { setSelectedPost(post); setReviewModalOpen(true); };
+  const openDetail = (post) => { setSelectedPost(post); setDetailModalOpen(true); };
+  const closeModals = () => { setReviewModalOpen(false); setDetailModalOpen(false); setSelectedPost(null); };
 
   if (!campaign) return <div className="p-6">캠페인 정보를 불러오는 중...</div>;
 
-<<<<<<< HEAD
-    return (
-        <div className="p-6">
-            <button onClick={() => setActivePage('campaigns', null)} className="text-sm text-blue-600 hover:underline mb-4">&larr; 캠페인 목록으로</button>
-            <div className="bg-white p-6 rounded-xl border border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
-                <p className="text-gray-600 mt-1">담당자: {campaign.Manager?.name}</p>
-                <div className="mt-6">
-                    <table className="w-full text-sm text-left text-gray-500">
-                        <thead className="bg-gray-50 text-xs text-gray-700 uppercase"><tr><th className="px-4 py-3">주제</th><th className="px-4 py-3">목차</th><th className="px-4 py-3">상태</th><th className="px-4 py-3 text-center">액션</th></tr></thead>
-                        <tbody>
-                            {(campaign.Posts || []).map(post => {
-                                const status = post.outlineStatus || post.topicStatus;
-                                const isPending = status && status.includes('대기');
-                                const isPublished = !!post.publishedUrl;
-                                return (
-                                    <tr key={post.id} className="border-b">
-                                        <td onClick={() => handleDetailClick(post)} className="px-4 py-3 font-medium text-gray-900 hover:text-blue-600 cursor-pointer">{post.title}</td>
-                                        <td onClick={() => handleDetailClick(post)} className="px-4 py-3 text-gray-600 hover:text-blue-600 cursor-pointer">{post.outline ? `${post.outline.substring(0, 30)}...` : '-'}</td>
-                                        <td className="px-4 py-3"><StatusBadge status={status} /></td>
-                                        <td className="px-4 py-3 text-center">
-                                            {isPending && <button onClick={() => handleReviewClick(post)} className="font-semibold text-blue-600 hover:underline">검토하기</button>}
-                                            {/* ⭐️ [수정] formatUrl 함수를 사용합니다. */}
-                                            {isPublished && <a href={formatUrl(post.publishedUrl)} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 hover:underline">링크 보기</a>}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {isReviewModalOpen && <ReviewModal post={selectedPost} onClose={handleModalClose} onUpdate={onUpdatePostStatus} />}
-            {isDetailModalOpen && <ContentDetailModal post={selectedPost} onClose={handleModalClose} />}
-=======
   return (
     <div className="p-6">
       <button
@@ -505,7 +346,6 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
               })}
             </tbody>
           </table>
->>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
         </div>
       </div>
 
@@ -523,10 +363,7 @@ const ReviewModal = ({ post, onClose, onUpdate }) => {
   const status = post.outlineStatus || post.topicStatus;
   const isTopic = (status || '').includes('주제');
 
-  const approve = () => {
-    onUpdate(post.id, isTopic ? '주제 승인' : '목차 승인', null);
-    onClose();
-  };
+  const approve = () => { onUpdate(post.id, isTopic ? '주제 승인' : '목차 승인', null); onClose(); };
   const reject = () => {
     if (!rejectReason) return alert('반려 사유를 입력해주세요.');
     onUpdate(post.id, isTopic ? '주제 반려' : '목차 반려', rejectReason);
@@ -535,7 +372,7 @@ const ReviewModal = ({ post, onClose, onUpdate }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+      <div className="bg-white p-8 rounded-lg shadow-xl w/full max-w-2xl">
         <h3 className="text-xl font-bold mb-4">콘텐츠 검토</h3>
         <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
           <div>
@@ -560,10 +397,7 @@ const ReviewModal = ({ post, onClose, onUpdate }) => {
               className="w-full p-2 mt-1 border border-gray-300 rounded-lg"
             />
             <div className="flex justify-end space-x-3 mt-4">
-              <button
-                onClick={() => setRejecting(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-              >
+              <button onClick={() => setRejecting(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
                 취소
               </button>
               <button onClick={reject} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
@@ -576,10 +410,7 @@ const ReviewModal = ({ post, onClose, onUpdate }) => {
             <button onClick={onClose} className="px-5 py-2.5 bg-white border border-gray-300 text-gray-800 rounded-lg">
               취소
             </button>
-            <button
-              onClick={() => setRejecting(true)}
-              className="px-5 py-2.5 bg-white border border-gray-300 text-gray-800 rounded-lg"
-            >
+            <button onClick={() => setRejecting(true)} className="px-5 py-2.5 bg-white border border-gray-300 text-gray-800 rounded-lg">
               반려
             </button>
             <button onClick={approve} className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -624,58 +455,6 @@ export default function ClientUI({ user, onLogout }) {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
 
-<<<<<<< HEAD
-    useEffect(() => {
-        if (!user || !user.id) {
-            setIsLoading(false);
-            return;
-        }
-
-        const fetchClientData = async () => {
-            setIsLoading(true);
-            try {
-                const response = await axios.get(${import.meta.env.VITE_API_URL}/api/users/${user.id}/campaigns`);
-                setCampaigns(response.data);
-            } catch (error) {
-                console.error("클라이언트 데이터 로딩 실패:", error);
-                setCampaigns([]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchClientData();
-    }, [user]);
-
-    const handleSetActivePage = (page, id) => {
-        setActivePage(page);
-        setSelectedCampaignId(id);
-    };
-
-    const handleUpdatePostStatus = async (postId, newStatus, rejectReason) => {
-        const targetCampaign = campaigns.find(c => (c.Posts || []).some(p => p.id === postId));
-        if (!targetCampaign) return;
-
-        const postToUpdate = targetCampaign.Posts.find(p => p.id === postId);
-        const isTopicUpdate = postToUpdate.topicStatus?.includes('주제');
-        
-        const payload = isTopicUpdate 
-            ? { topicStatus: newStatus, rejectReason: rejectReason || null }
-            : { outlineStatus: newStatus, rejectReason: rejectReason || null };
-
-        try {
-            await axios.put(${import.meta.env.VITE_API_URL}/api/posts/${postId}/status`, payload);
-
-            const updatedCampaigns = campaigns.map(c => ({
-                ...c,
-                Posts: (c.Posts || []).map(p => p.id === postId ? { ...p, ...payload } : p)
-            }));
-            setCampaigns(updatedCampaigns);
-        } catch (error) {
-            console.error("상태 업데이트 실패:", error);
-            alert("상태 업데이트에 실패했습니다.");
-        }
-=======
   useEffect(() => {
     if (!user?.id) {
       setLoading(false);
@@ -695,7 +474,6 @@ export default function ClientUI({ user, onLogout }) {
       } finally {
         setLoading(false);
       }
->>>>>>> dd5e4b41cd8be695d8646d5ea8a2410254a74641
     };
     load();
   }, [user]);
