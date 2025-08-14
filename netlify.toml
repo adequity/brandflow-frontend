@@ -1,6 +1,10 @@
 [build]
-  command = "npm install && npm run build"
+  command = "npm install --omit=optional && npm run build"
   publish = "dist"
+
+[build.environment]
+  NODE_ENV = "production"
+  SKIP_PREFLIGHT_CHECK = "true"
 
 [[redirects]]
   from = "/*"
