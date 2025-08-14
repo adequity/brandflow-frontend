@@ -1,12 +1,9 @@
 [build]
-  command = "npm install --ignore-scripts --no-optional && npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_ENV = "production"
-  NODE_VERSION = "18"
-  SKIP_PREFLIGHT_CHECK = "true"
-  NPM_FLAGS = "--no-optional --ignore-scripts"
 
 [[redirects]]
   from = "/*"
