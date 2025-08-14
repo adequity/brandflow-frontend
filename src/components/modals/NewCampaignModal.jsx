@@ -9,7 +9,11 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     
     // 담당자(관리자) 목록 필터링
     // 슈퍼 어드민은 모든 어드민 선택 가능, 대행사 어드민은 자기 자신과 같은 회사 어드민만
+    console.log('All users:', users);
+    console.log('Current user:', currentUser);
+    
     const adminUsers = users.filter(u => {
+        console.log('Checking user:', u);
         if (u.role === '클라이언트') return false;
         if (currentUser.role === '슈퍼 어드민') return true; // 슈퍼 어드민은 모든 어드민 선택 가능
         if (currentUser.role === '대행사 어드민') {
@@ -17,6 +21,8 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         }
         return false;
     });
+    
+    console.log('Filtered admin users:', adminUsers);
     
     // 담당자의 이름이 아닌 ID를 상태로 관리합니다.
     const [UserId, setUserId] = useState(adminUsers[0]?.id || '');
