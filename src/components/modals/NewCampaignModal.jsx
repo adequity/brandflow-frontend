@@ -13,11 +13,12 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     console.log('Current user:', currentUser);
     
     const adminUsers = users.filter(u => {
-        console.log('Checking user:', u);
+        console.log('Checking user:', u, 'role:', u.role);
         if (u.role === '클라이언트') return false;
         if (currentUser.role === '슈퍼 어드민') return true; // 슈퍼 어드민은 모든 어드민 선택 가능
         if (currentUser.role === '대행사 어드민') {
-            return u.company === currentUser.company || u.id === currentUser.id; // 같은 회사 또는 본인
+            // company가 없는 경우도 허용 (임시)
+            return !u.company || !currentUser.company || u.company === currentUser.company || u.id === currentUser.id;
         }
         return false;
     });
@@ -40,7 +41,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     useEffect(() => {
         const fetchClients = async () => {
             try {
+                console.log('Fetching clients...');
                 const { data } = await api.get('/api/users/clients');
+                console.log('Clients data received:', data);
                 setClientUsers(data || []);
             } catch (error) {
                 console.error('클라이언트 목록 로드 실패:', error);
