@@ -5,6 +5,7 @@ import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucid
 
 import StatusBadge from '../common/StatusBadge';
 import AdvancedFilter from '../common/AdvancedFilter';
+import ImagePreview from '../common/ImagePreview';
 import EditModal from '../modals/EditModal';
 import DeleteModal from '../modals/DeleteModal';
 import OutlineRegisterModal from '../modals/OutlineRegisterModal';
@@ -177,14 +178,18 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
   };
 
   // 목차 등록
-  const handleRegisterOutline = async (outlineContent) => {
+  const handleRegisterOutline = async (outlineData) => {
     const postId = selectedRows[0];
     if (!postId) return;
     try {
-      const { data: updated } = await api.put(`/api/posts/${postId}`, {
-        outline: outlineContent,
-        outlineStatus: '목차 승인 대기',
-      });
+      const payload = typeof outlineData === 'string' 
+        ? { outline: outlineData, outlineStatus: '목차 승인 대기' }
+        : { 
+            outline: outlineData.text, 
+            outlineStatus: '목차 승인 대기',
+            images: outlineData.images || []
+          };
+      const { data: updated } = await api.put(`/api/posts/${postId}`, payload);
       const next = posts.map((p) => (p.id === updated.id ? updated : p));
       setPosts(next);
       updateParentCampaign(next);
@@ -202,7 +207,11 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
     try {
       const payload = typeof topicData === 'string' 
         ? { title: topicData, workType: '블로그' } // 기존 호환성
-        : { title: topicData.title, workType: topicData.workType };
+        : { 
+            title: topicData.title, 
+            workType: topicData.workType,
+            images: topicData.images || []
+          };
         
       const { data: created } = await api.post(`/api/campaigns/${campaign.id}/posts`, payload);
       const next = [...(posts || []), created];
@@ -309,6 +318,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
                 <th className="p-2">승인 상태</th>
                 <th className="p-2">세부사항 검토</th>
                 <th className="p-2">세부사항 승인 상태</th>
+                <th className="p-2">첨부 이미지</th>
                 <th className="p-2">결과물 링크</th>
                 <th className="p-2">작성 시간</th>
                 <th className="p-2">관리</th>
@@ -351,6 +361,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
                       )}
                     </td>
                     <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
+                    <td className="p-2"><ImagePreview images={post.images} /></td>
                     <td className="p-2">
                       {post.publishedUrl ? (
                         <a

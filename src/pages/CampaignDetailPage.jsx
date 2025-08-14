@@ -6,6 +6,7 @@ import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucid
 // 필요한 컴포넌트들을 import 합니다.
 import StatusBadge from '../components/common/StatusBadge';
 import AdvancedFilter from '../components/common/AdvancedFilter';
+import ImagePreview from '../components/common/ImagePreview';
 import EditModal from '../components/modals/EditModal';
 import DeleteModal from '../components/modals/DeleteModal';
 import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
@@ -171,10 +172,17 @@ const CampaignDetailPage = () => {
         setEditModalOpen(false); setSelectedPost(null);
     };
 
-    const handleRegisterOutline = async (outlineContent) => {
+    const handleRegisterOutline = async (outlineData) => {
         const postId = selectedRows[0];
         try {
-            await api.put(`/api/posts/${postId}`, { outline: outlineContent, outlineStatus: '목차 승인 대기' });
+            const payload = typeof outlineData === 'string' 
+                ? { outline: outlineData, outlineStatus: '목차 승인 대기' }
+                : { 
+                    outline: outlineData.text, 
+                    outlineStatus: '목차 승인 대기',
+                    images: outlineData.images || []
+                };
+            await api.put(`/api/posts/${postId}`, payload);
             fetchCampaignDetail();
         } catch (error) { alert('목차 등록 실패'); }
         setOutlineModalOpen(false); setSelectedRows([]);
@@ -184,7 +192,11 @@ const CampaignDetailPage = () => {
         try {
             const payload = typeof topicData === 'string' 
                 ? { title: topicData, workType: '블로그' } // 기존 호환성
-                : { title: topicData.title, workType: topicData.workType };
+                : { 
+                    title: topicData.title, 
+                    workType: topicData.workType,
+                    images: topicData.images || []
+                };
                 
             await api.post(`/api/campaigns/${campaignId}/posts`, payload);
             alert('새로운 업무가 성공적으로 등록되었습니다.');
@@ -255,6 +267,7 @@ const CampaignDetailPage = () => {
                                 <th className="p-2">승인 상태</th>
                                 <th className="p-2">세부사항 검토</th>
                                 <th className="p-2">세부사항 승인 상태</th>
+                                <th className="p-2">첨부 이미지</th>
                                 <th className="p-2">결과물 링크</th>
                                 <th className="p-2">작성 시간</th>
                                 <th className="p-2">관리</th>
@@ -273,6 +286,7 @@ const CampaignDetailPage = () => {
                                     <td className="p-2"><StatusBadge status={post.topicStatus} /></td>
                                     <td className="p-2">{post.outline ? <div className="flex items-center justify-between"><span className="text-xs truncate max-w-xs">{post.outline}</span><button onClick={() => openEditModal(post, 'outline')} className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"><Edit size={14} /></button></div> : '-'}</td>
                                     <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
+                                    <td className="p-2"><ImagePreview images={post.images} /></td>
                                     <td className="p-2">{post.publishedUrl ? <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline"><LinkIcon size={14} className="inline"/></a> : '-'}</td>
                                     <td className="p-2 text-xs text-gray-600">{new Date(post.createdAt).toLocaleString()}</td>
                                     <td className="p-2"><div className="flex items-center space-x-2"><button onClick={() => openEditModal(post, 'topic')} className="text-gray-400 hover:text-blue-600"><Edit size={16} /></button><button onClick={() => handleDeleteClick(post)} className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button></div></td>
