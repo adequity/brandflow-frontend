@@ -17,4 +17,42 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// 요청 인터셉터: 모든 API 호출에 사용자 권한 정보 자동 추가
+api.interceptors.request.use(
+  (config) => {
+    try {
+      // localStorage에서 사용자 정보 가져오기
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        
+        // 쿼리 파라미터에 권한 정보 추가
+        if (config.method === 'get' || config.method === 'delete') {
+          config.params = {
+            ...config.params,
+            viewerId: user.id,
+            viewerRole: user.role
+          };
+        }
+        
+        // POST/PUT 요청의 경우 쿼리 파라미터로 추가
+        if (config.method === 'post' || config.method === 'put') {
+          config.params = {
+            ...config.params,
+            viewerId: user.id,
+            viewerRole: user.role
+          };
+        }
+      }
+    } catch (error) {
+      console.error('권한 정보 추가 중 오류:', error);
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export default api;
