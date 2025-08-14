@@ -33,6 +33,7 @@ api.interceptors.request.use(
             viewerId: user.id,
             viewerRole: user.role
           };
+          console.log('GET/DELETE request params:', config.params);
         }
         
         // POST/PUT 요청의 경우 쿼리 파라미터로 추가
