@@ -5,7 +5,7 @@ import axios from 'axios';
 const API_BASE =
   (import.meta.env.VITE_API_URL || '')
     .replace(/\/$/, '')                                   // 끝 슬래시 제거
-  || (import.meta.env.DEV ? 'http://localhost:5000' : ''); // 로컬 개발용 fallback
+  || (import.meta.env.DEV ? 'http://localhost:5002' : ''); // 로컬 개발용 fallback
 
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);

@@ -5,10 +5,11 @@ import { Sequelize } from 'sequelize';
 const isProd = process.env.NODE_ENV === 'production';
 
 const baseOptions = {
-  dialect: 'postgres',
+  dialect: process.env.DB_DIALECT || 'sqlite',
+  storage: process.env.DB_STORAGE || './database.sqlite',
   logging: false,
   // Render/Neon/Supabase 등 대부분 prod 환경에서 SSL 필요
-  dialectOptions: isProd
+  dialectOptions: isProd && process.env.DB_DIALECT === 'postgres'
     ? { ssl: { require: true, rejectUnauthorized: false } }
     : {},
   pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
@@ -19,16 +20,19 @@ const sequelize = process.env.DATABASE_URL
       ...baseOptions,
       protocol: 'postgres'
     })
-  : new Sequelize(
+  : process.env.DB_DIALECT === 'postgres'
+  ? new Sequelize(
       process.env.DB_NAME,
       process.env.DB_USER,
       process.env.DB_PASSWORD,
       {
         ...baseOptions,
+        dialect: 'postgres',
         host: process.env.DB_HOST,
         port: Number(process.env.DB_PORT) || 5432
       }
-    );
+    )
+  : new Sequelize(baseOptions); // SQLite 사용
 
 // 재시도 포함 연결 테스트
 export const testDbConnection = async () => {
