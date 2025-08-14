@@ -1,9 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(choco install:*)"
+      "Bash(choco install:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "defaultMode": "acceptEdits"
   }
 }
