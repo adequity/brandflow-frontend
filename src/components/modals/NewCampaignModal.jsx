@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import api from '../../api/client';
 
 const NewCampaignModal = ({ users, onSave, onClose }) => {
     const [campaignName, setCampaignName] = useState('');
@@ -13,9 +14,24 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     const [searchResults, setSearchResults] = useState([]);
     const [selectedClient, setSelectedClient] = useState(null);
     const [isClientListOpen, setClientListOpen] = useState(false);
+    const [clientUsers, setClientUsers] = useState([]);
     
     const searchRef = useRef(null);
-    const clientUsers = users.filter(u => u.role === '클라이언트');
+
+    // 클라이언트 목록 로드
+    useEffect(() => {
+        const fetchClients = async () => {
+            try {
+                const { data } = await api.get('/api/users/clients');
+                setClientUsers(data || []);
+            } catch (error) {
+                console.error('클라이언트 목록 로드 실패:', error);
+                setClientUsers([]);
+            }
+        };
+
+        fetchClients();
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
