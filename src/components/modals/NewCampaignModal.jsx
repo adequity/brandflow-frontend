@@ -4,8 +4,20 @@ import api from '../../api/client';
 const NewCampaignModal = ({ users, onSave, onClose }) => {
     const [campaignName, setCampaignName] = useState('');
     
+    // 현재 사용자 정보 가져오기
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    
     // 담당자(관리자) 목록 필터링
-    const adminUsers = users.filter(u => u.role !== '클라이언트');
+    // 슈퍼 어드민은 모든 어드민 선택 가능, 대행사 어드민은 자기 자신과 같은 회사 어드민만
+    const adminUsers = users.filter(u => {
+        if (u.role === '클라이언트') return false;
+        if (currentUser.role === '슈퍼 어드민') return true; // 슈퍼 어드민은 모든 어드민 선택 가능
+        if (currentUser.role === '대행사 어드민') {
+            return u.company === currentUser.company || u.id === currentUser.id; // 같은 회사 또는 본인
+        }
+        return false;
+    });
+    
     // 담당자의 이름이 아닌 ID를 상태로 관리합니다.
     const [UserId, setUserId] = useState(adminUsers[0]?.id || '');
     

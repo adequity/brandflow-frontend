@@ -14,7 +14,7 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, curren
         name: campaignData.name?.trim(),
         client: campaignData.clientName?.trim(),
         userId: Number(campaignData.clientId),
-        managerId: Number(campaignData.managerId),
+        managerId: Number(campaignData.UserId),
       };
 
       // 대행사/슈퍼 권한 체크용 viewer 파라미터 포함
@@ -28,8 +28,8 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, curren
 
       // 화면 즉시 반영: 담당자(User) 정보 매칭
       const manager =
-        users?.find((u) => u.id === (created.managerId ?? Number(campaignData.managerId))) ||
-        users?.find((u) => u.id === Number(campaignData.managerId));
+        users?.find((u) => u.id === (created.managerId ?? Number(campaignData.UserId))) ||
+        users?.find((u) => u.id === Number(campaignData.UserId));
 
       const newCampaign = {
         ...created,
