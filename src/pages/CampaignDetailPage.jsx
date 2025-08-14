@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // 필요한 컴포넌트들을 import 합니다.
@@ -30,7 +30,7 @@ const CampaignDetailPage = () => {
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaignId}`);
+            const response = await api.get(`/api/campaigns/${campaignId}`);
             setCampaign(response.data);
             setPosts(response.data.Posts || []);
         } catch (error) {
@@ -59,7 +59,7 @@ const CampaignDetailPage = () => {
             payload = { outline: updatedContent, outlineStatus: '목차 승인 대기' };
         }
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/${postToUpdate.id}`, payload);
+            await api.put(`/api/posts/${postToUpdate.id}`, payload);
             fetchCampaignDetail();
         } catch (error) { alert('재요청 실패'); }
         setEditModalOpen(false); setSelectedPost(null);
@@ -68,7 +68,7 @@ const CampaignDetailPage = () => {
     const handleRegisterOutline = async (outlineContent) => {
         const postId = selectedRows[0];
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`, { outline: outlineContent, outlineStatus: '목차 승인 대기' });
+            await api.put(`/api/posts/${postId}`, { outline: outlineContent, outlineStatus: '목차 승인 대기' });
             fetchCampaignDetail();
         } catch (error) { alert('목차 등록 실패'); }
         setOutlineModalOpen(false); setSelectedRows([]);
@@ -76,7 +76,7 @@ const CampaignDetailPage = () => {
 
     const handleRegisterTopic = async (topicTitle) => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/campaigns/${campaignId}/posts`, { title: topicTitle });
+            await api.post(`/api/campaigns/${campaignId}/posts`, { title: topicTitle });
             alert('새로운 주제가 성공적으로 등록되었습니다.');
             fetchCampaignDetail();
         } catch (error) { 
@@ -88,7 +88,7 @@ const CampaignDetailPage = () => {
     const handleRegisterLink = async (url) => {
         const postId = selectedRows[0];
         try {
-            await axios.put(`${import.meta.env.VITE_API_URL}/api/posts/${postId}`, { publishedUrl: url });
+            await api.put(`/api/posts/${postId}`, { publishedUrl: url });
             fetchCampaignDetail();
         } catch(error) { alert('링크 등록 실패'); }
         setLinkModalOpen(false); setSelectedRows([]);
@@ -96,7 +96,7 @@ const CampaignDetailPage = () => {
 
     const handleConfirmDelete = async () => { 
         try {
-            await axios.delete(`${import.meta.env.VITE_API_URL}/api/posts/${selectedPost.id}`);
+            await api.delete(`/api/posts/${selectedPost.id}`);
             fetchCampaignDetail();
         } catch (error) { alert('삭제 실패'); }
         setDeleteModalOpen(false); setSelectedPost(null); 
