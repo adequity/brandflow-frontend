@@ -5,6 +5,7 @@ import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucid
 
 // 필요한 컴포넌트들을 import 합니다.
 import StatusBadge from '../components/common/StatusBadge';
+import AdvancedFilter from '../components/common/AdvancedFilter';
 import EditModal from '../components/modals/EditModal';
 import DeleteModal from '../components/modals/DeleteModal';
 import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
@@ -18,6 +19,7 @@ const CampaignDetailPage = () => {
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [posts, setPosts] = useState([]);
+    const [filteredPosts, setFilteredPosts] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]);
     const [isEditModalOpen, setEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -26,6 +28,14 @@ const CampaignDetailPage = () => {
     const [isLinkModalOpen, setLinkModalOpen] = useState(false);
     const [modalType, setModalType] = useState('topic');
     const [selectedPost, setSelectedPost] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [filters, setFilters] = useState({
+        workType: 'all',
+        status: 'all', 
+        manager: 'all',
+        dateRange: 'all',
+        stage: 'all'
+    });
 
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
@@ -45,13 +55,109 @@ const CampaignDetailPage = () => {
         fetchCampaignDetail();
     }, [fetchCampaignDetail]);
 
+    // 사용자 목록 가져오기 (담당자 필터용)
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await api.get('/api/users');
+                setUsers(response.data);
+            } catch (error) {
+                console.error('사용자 목록 로딩 실패:', error);
+            }
+        };
+        fetchUsers();
+    }, []);
+
+    // 필터링 로직
+    useEffect(() => {
+        let filtered = [...posts];
+
+        // 업무 타입 필터
+        if (filters.workType !== 'all') {
+            filtered = filtered.filter(post => 
+                (post.workType || '블로그') === filters.workType
+            );
+        }
+
+        // 상태 필터 (주제 승인 상태 기준)
+        if (filters.status !== 'all') {
+            let statusFilter = filters.status;
+            if (statusFilter === '승인 대기') {
+                filtered = filtered.filter(post => 
+                    post.topicStatus === '주제 승인 대기' || 
+                    post.outlineStatus === '목차 승인 대기'
+                );
+            } else if (statusFilter === '승인') {
+                filtered = filtered.filter(post => 
+                    post.topicStatus === '주제 승인' || 
+                    post.outlineStatus === '목차 승인'
+                );
+            } else if (statusFilter === '반려') {
+                filtered = filtered.filter(post => 
+                    post.topicStatus === '주제 반려' || 
+                    post.outlineStatus === '목차 반려'
+                );
+            } else if (statusFilter === '완료') {
+                filtered = filtered.filter(post => post.publishedUrl);
+            }
+        }
+
+        // 담당자 필터 (캠페인의 매니저 기준)
+        if (filters.manager !== 'all' && campaign?.managerId) {
+            if (filters.manager !== campaign.managerId.toString()) {
+                filtered = [];
+            }
+        }
+
+        // 날짜 범위 필터
+        if (filters.dateRange !== 'all') {
+            const now = new Date();
+            let cutoffDate;
+            
+            if (filters.dateRange === '7days') {
+                cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            } else if (filters.dateRange === '30days') {
+                cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            } else if (filters.dateRange === '3months') {
+                cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+            }
+            
+            if (cutoffDate) {
+                filtered = filtered.filter(post => 
+                    new Date(post.createdAt) >= cutoffDate
+                );
+            }
+        }
+
+        // 진행 단계 필터
+        if (filters.stage !== 'all') {
+            if (filters.stage === 'work_only') {
+                filtered = filtered.filter(post => 
+                    !post.outline && !post.publishedUrl
+                );
+            } else if (filters.stage === 'has_details') {
+                filtered = filtered.filter(post => 
+                    post.outline && !post.publishedUrl
+                );
+            } else if (filters.stage === 'has_result') {
+                filtered = filtered.filter(post => post.publishedUrl);
+            }
+        }
+
+        setFilteredPosts(filtered);
+    }, [posts, filters, campaign]);
+
+    const handleFilterChange = (newFilters) => {
+        setFilters(newFilters);
+    };
+
     const handleRowSelect = (id) => { setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [id]); };
-    const handleSelectAll = (e) => { setSelectedRows(e.target.checked ? posts.map(p => p.id) : []); };
+    const handleSelectAll = (e) => { setSelectedRows(e.target.checked ? filteredPosts.map(p => p.id) : []); };
     const openEditModal = (post, type) => { setSelectedPost(post); setModalType(type); setEditModalOpen(true); };
     const handleDeleteClick = (post) => { setSelectedPost(post); setDeleteModalOpen(true); };
     
     const handleReRequest = async (updatedContent) => {
-        const postToUpdate = posts.find(p => p.id === selectedPost.id);
+        const postToUpdate = filteredPosts.find(p => p.id === selectedPost.id) || posts.find(p => p.id === selectedPost.id);
         let payload = {};
         if (modalType === 'topic') {
             payload = { title: updatedContent, topicStatus: '주제 승인 대기', outline: null, outlineStatus: null };
@@ -106,7 +212,7 @@ const CampaignDetailPage = () => {
         setDeleteModalOpen(false); setSelectedPost(null); 
     };
     
-    const canRegisterOutline = selectedRows.length === 1 && posts.find(p => p.id === selectedRows[0])?.topicStatus === '주제 승인' && !posts.find(p => p.id === selectedRows[0])?.outline;
+    const canRegisterOutline = selectedRows.length === 1 && (filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.topicStatus === '주제 승인' && !(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.outline;
     const canRegisterLink = selectedRows.length === 1;
 
     if (isLoading) {
@@ -126,11 +232,17 @@ const CampaignDetailPage = () => {
             </div>
             <div className="flex-grow bg-white p-6 rounded-xl border border-gray-200 flex flex-col mt-4">
                 <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                    <h3 className="text-lg font-semibold text-gray-800">콘텐츠 기획 및 승인</h3>
+                    <div className="flex items-center space-x-4">
+                        <h3 className="text-lg font-semibold text-gray-800">콘텐츠 기획 및 승인</h3>
+                        <AdvancedFilter 
+                            onFilterChange={handleFilterChange}
+                            users={users}
+                        />
+                    </div>
                     <div className="space-x-2">
                         <button onClick={() => setTopicModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">업무 등록</button>
                         <button onClick={() => setOutlineModalOpen(true)} disabled={!canRegisterOutline} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700">세부사항 등록</button>
-                        <button onClick={() => setLinkModalOpen(true)} disabled={!canRegisterLink} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700">{posts.find(p => p.id === selectedRows[0])?.publishedUrl ? '결과물 수정' : '결과물 등록'}</button>
+                        <button onClick={() => setLinkModalOpen(true)} disabled={!canRegisterLink} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700">{(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl ? '결과물 수정' : '결과물 등록'}</button>
                     </div>
                 </div>
                 <div className="flex-grow overflow-x-auto">
@@ -149,7 +261,7 @@ const CampaignDetailPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {posts.map(post => (
+                            {filteredPosts.map(post => (
                                 <tr key={post.id} className="hover:bg-gray-50">
                                     <td className="p-2"><input type="checkbox" checked={selectedRows.includes(post.id)} onChange={() => handleRowSelect(post.id)} /></td>
                                     <td className="p-2">
@@ -181,7 +293,7 @@ const CampaignDetailPage = () => {
             {<DeleteModal isOpen={isDeleteModalOpen} itemType="콘텐츠" itemName={selectedPost?.title} onConfirm={handleConfirmDelete} onClose={() => setDeleteModalOpen(false)} />}
             {isOutlineModalOpen && <OutlineRegisterModal onSave={handleRegisterOutline} onClose={() => setOutlineModalOpen(false)} />}
             {isTopicModalOpen && <TopicRegisterModal onSave={handleRegisterTopic} onClose={() => setTopicModalOpen(false)} />}
-            {isLinkModalOpen && <LinkRegisterModal onSave={handleRegisterLink} onClose={() => setLinkModalOpen(false)} initialUrl={posts.find(p => p.id === selectedRows[0])?.publishedUrl} />}
+            {isLinkModalOpen && <LinkRegisterModal onSave={handleRegisterLink} onClose={() => setLinkModalOpen(false)} initialUrl={(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl} />}
         </div>
     );
 };
