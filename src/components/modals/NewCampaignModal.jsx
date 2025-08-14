@@ -88,6 +88,15 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        console.log('Form submit - campaignName:', campaignName);
+        console.log('Form submit - selectedClient:', selectedClient);
+        console.log('Form submit - UserId:', UserId);
+        
+        if (!campaignName.trim()) {
+            alert('캠페인명을 입력해주세요.');
+            return;
+        }
         if (!selectedClient) {
             alert('캠페인을 할당할 클라이언트를 선택해주세요.');
             return;
@@ -96,12 +105,16 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
             alert('캠페인 담당자를 선택해주세요.');
             return;
         }
-        onSave({
+        
+        const formData = {
             name: campaignName,
             clientName: selectedClient.name,
             clientId: selectedClient.id,
             UserId: UserId // 담당자의 ID를 전달합니다.
-        });
+        };
+        
+        console.log('Submitting form data:', formData);
+        onSave(formData);
     };
 
     return (
