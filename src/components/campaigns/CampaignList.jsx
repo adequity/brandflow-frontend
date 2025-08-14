@@ -10,12 +10,16 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, curren
 
   const handleSaveCampaign = async (campaignData) => {
     try {
+      console.log('Campaign data received:', campaignData);
+      
       const payload = {
         name: campaignData.name?.trim(),
         client: campaignData.clientName?.trim(),
         userId: Number(campaignData.clientId),
         managerId: Number(campaignData.UserId),
       };
+      
+      console.log('Payload to send:', payload);
 
       // 대행사/슈퍼 권한 체크용 viewer 파라미터 포함
       const { data, status } = await api.post('/api/campaigns', payload, {
