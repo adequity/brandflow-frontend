@@ -1,12 +1,13 @@
 // src/components/campaigns/CampaignList.jsx
 import React, { useState } from 'react';
 import api from '../../api/client';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Trash2 } from 'lucide-react';
 import NewCampaignModal from '../modals/NewCampaignModal';
 
 const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, currentUser }) => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deletingCampaignId, setDeletingCampaignId] = useState(null);
 
   const handleSaveCampaign = async (campaignData) => {
     try {
@@ -46,6 +47,27 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, curren
     } catch (err) {
       console.error('캠페인 생성 실패:', err);
       alert(err?.response?.data?.message ?? err.message ?? '캠페인 생성에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId, campaignName) => {
+    if (!window.confirm(`정말 "${campaignName}" 캠페인을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 캠페인과 관련된 모든 주제/목차 데이터가 삭제됩니다.`)) {
+      return;
+    }
+
+    setDeletingCampaignId(campaignId);
+    try {
+      await api.delete(`/api/campaigns/${campaignId}`);
+      
+      // 캠페인 목록에서 제거
+      setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
+      
+      alert('캠페인이 성공적으로 삭제되었습니다.');
+    } catch (err) {
+      console.error('캠페인 삭제 실패:', err);
+      alert(err?.response?.data?.message ?? '캠페인 삭제에 실패했습니다.');
+    } finally {
+      setDeletingCampaignId(null);
     }
   };
 
@@ -90,6 +112,9 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, curren
               <th className="px-6 py-3">담당자</th>
               <th className="px-6 py-3">진행률 (완료/총)</th>
               <th className="px-6 py-3">최근 업데이트</th>
+              {currentUser?.role === '슈퍼 어드민' && (
+                <th className="px-6 py-3">관리</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -101,18 +126,58 @@ const CampaignList = ({ campaigns, setCampaigns, users, onSelectCampaign, curren
               return (
                 <tr
                   key={campaign.id}
-                  className="bg-white border-b hover:bg-gray-50 cursor-pointer"
-                  onClick={() => onSelectCampaign(campaign.id)}
+                  className="bg-white border-b hover:bg-gray-50"
                 >
-                  <th scope="row" className="px-6 py-4 font-medium text-gray-900">
+                  <th 
+                    scope="row" 
+                    className="px-6 py-4 font-medium text-gray-900 cursor-pointer"
+                    onClick={() => onSelectCampaign(campaign.id)}
+                  >
                     {campaign.name}
                   </th>
-                  <td className="px-6 py-4">{campaign.client}</td>
-                  <td className="px-6 py-4">{campaign.User?.name || 'N/A'}</td>
-                  <td className="px-6 py-4 font-medium">{`${completedCount}/${totalCount}`}</td>
-                  <td className="px-6 py-4">
+                  <td 
+                    className="px-6 py-4 cursor-pointer"
+                    onClick={() => onSelectCampaign(campaign.id)}
+                  >
+                    {campaign.client}
+                  </td>
+                  <td 
+                    className="px-6 py-4 cursor-pointer"
+                    onClick={() => onSelectCampaign(campaign.id)}
+                  >
+                    {campaign.User?.name || 'N/A'}
+                  </td>
+                  <td 
+                    className="px-6 py-4 font-medium cursor-pointer"
+                    onClick={() => onSelectCampaign(campaign.id)}
+                  >
+                    {`${completedCount}/${totalCount}`}
+                  </td>
+                  <td 
+                    className="px-6 py-4 cursor-pointer"
+                    onClick={() => onSelectCampaign(campaign.id)}
+                  >
                     {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString() : '-'}
                   </td>
+                  {currentUser?.role === '슈퍼 어드민' && (
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCampaign(campaign.id, campaign.name);
+                        }}
+                        disabled={deletingCampaignId === campaign.id}
+                        className="text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        title="캠페인 삭제"
+                      >
+                        {deletingCampaignId === campaign.id ? (
+                          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
