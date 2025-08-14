@@ -1,11 +1,10 @@
 // src/api/client.js
 import axios from 'axios';
 
-// Netlify 환경변수(마지막 / 제거)
-const API_BASE =
-  (import.meta.env.VITE_API_URL || '')
-    .replace(/\/$/, '')                                   // 끝 슬래시 제거
-  || (import.meta.env.DEV ? 'http://localhost:5002' : ''); // 로컬 개발용 fallback
+// API 베이스 URL 설정
+const API_BASE = import.meta.env.DEV 
+  ? 'http://localhost:5002' // 개발환경
+  : ''; // 프로덕션에서는 상대 경로 사용 (Netlify Functions)
 
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);

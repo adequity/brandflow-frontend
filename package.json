@@ -24,6 +24,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.23.1",
     "sequelize": "^6.37.3",
+    "serverless-http": "^3.2.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

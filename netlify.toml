@@ -1,4 +1,24 @@
 [build]
   # GitHub 리포지토리 최상단(package.json이 있는) 디렉토리에서 실행
   command = "npm run build"
-  publish  = "dist"
+  publish = "dist"
+
+[build.environment]
+  NODE_ENV = "production"
+  DB_DIALECT = "sqlite"
+  DB_STORAGE = "./database.sqlite"
+
+# SPA 라우팅을 위한 리다이렉트 설정
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# API 함수로 리다이렉트
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[functions]
+  directory = "netlify/functions/"
