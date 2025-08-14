@@ -74,13 +74,17 @@ const CampaignDetailPage = () => {
         setOutlineModalOpen(false); setSelectedRows([]);
     };
 
-    const handleRegisterTopic = async (topicTitle) => {
+    const handleRegisterTopic = async (topicData) => {
         try {
-            await api.post(`/api/campaigns/${campaignId}/posts`, { title: topicTitle });
-            alert('새로운 주제가 성공적으로 등록되었습니다.');
+            const payload = typeof topicData === 'string' 
+                ? { title: topicData, workType: '블로그' } // 기존 호환성
+                : { title: topicData.title, workType: topicData.workType };
+                
+            await api.post(`/api/campaigns/${campaignId}/posts`, payload);
+            alert('새로운 업무가 성공적으로 등록되었습니다.');
             fetchCampaignDetail();
         } catch (error) { 
-            alert('주제 등록에 실패했습니다.'); 
+            alert('업무 등록에 실패했습니다.'); 
         }
         setTopicModalOpen(false);
     };
@@ -124,9 +128,9 @@ const CampaignDetailPage = () => {
                 <div className="flex justify-between items-center mb-4 flex-shrink-0">
                     <h3 className="text-lg font-semibold text-gray-800">콘텐츠 기획 및 승인</h3>
                     <div className="space-x-2">
-                        <button onClick={() => setTopicModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">주제 등록</button>
-                        <button onClick={() => setOutlineModalOpen(true)} disabled={!canRegisterOutline} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700">목차 등록</button>
-                        <button onClick={() => setLinkModalOpen(true)} disabled={!canRegisterLink} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700">{posts.find(p => p.id === selectedRows[0])?.publishedUrl ? '링크 수정' : '링크 등록'}</button>
+                        <button onClick={() => setTopicModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">업무 등록</button>
+                        <button onClick={() => setOutlineModalOpen(true)} disabled={!canRegisterOutline} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700">세부사항 등록</button>
+                        <button onClick={() => setLinkModalOpen(true)} disabled={!canRegisterLink} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700">{posts.find(p => p.id === selectedRows[0])?.publishedUrl ? '결과물 수정' : '결과물 등록'}</button>
                     </div>
                 </div>
                 <div className="flex-grow overflow-x-auto">
@@ -134,11 +138,12 @@ const CampaignDetailPage = () => {
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
                                 <th className="p-2 w-4"><input type="checkbox" onChange={handleSelectAll} /></th>
-                                <th className="p-2">주제</th>
+                                <th className="p-2">업무 타입</th>
+                                <th className="p-2">업무 내용</th>
                                 <th className="p-2">승인 상태</th>
-                                <th className="p-2">목차 내용 검토</th>
-                                <th className="p-2">목차 승인 상태</th>
-                                <th className="p-2">발행 링크</th>
+                                <th className="p-2">세부사항 검토</th>
+                                <th className="p-2">세부사항 승인 상태</th>
+                                <th className="p-2">결과물 링크</th>
                                 <th className="p-2">작성 시간</th>
                                 <th className="p-2">관리</th>
                             </tr>
@@ -147,6 +152,11 @@ const CampaignDetailPage = () => {
                             {posts.map(post => (
                                 <tr key={post.id} className="hover:bg-gray-50">
                                     <td className="p-2"><input type="checkbox" checked={selectedRows.includes(post.id)} onChange={() => handleRowSelect(post.id)} /></td>
+                                    <td className="p-2">
+                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                            {post.workType || '블로그'}
+                                        </span>
+                                    </td>
                                     <td className="p-2 font-medium text-gray-900">{post.title}</td>
                                     <td className="p-2"><StatusBadge status={post.topicStatus} /></td>
                                     <td className="p-2">{post.outline ? <div className="flex items-center justify-between"><span className="text-xs truncate max-w-xs">{post.outline}</span><button onClick={() => openEditModal(post, 'outline')} className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"><Edit size={14} /></button></div> : '-'}</td>
