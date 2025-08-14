@@ -32,7 +32,7 @@ const CampaignDetailPage = () => {
         try {
             const response = await api.get(`/api/campaigns/${campaignId}`);
             setCampaign(response.data);
-            setPosts(response.data.Posts || []);
+            setPosts(response.data.posts || []);
         } catch (error) {
             console.error("캠페인 상세 정보 로딩 실패:", error);
             setCampaign(null); // 에러 발생 시 campaign을 null로 설정
