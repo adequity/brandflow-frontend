@@ -100,107 +100,259 @@ const ClientHeader = ({ user, onLogout, title }) => {
 /* ============ Pages ============ */
 const ClientDashboard = ({ user, campaigns, setActivePage }) => {
   const allPosts = (campaigns || []).flatMap((c) => c.posts || []);
+  
+  // 상태별 통계
   const pendingTopics = allPosts.filter((p) => p.topicStatus === '주제 승인 대기').length;
   const pendingOutlines = allPosts.filter((p) => p.outlineStatus === '목차 승인 대기').length;
+  const rejectedPosts = allPosts.filter((p) => p.topicStatus === '주제 반려' || p.outlineStatus === '목차 반려').length;
+  const completedPosts = allPosts.filter((p) => p.publishedUrl).length;
   const totalPending = pendingTopics + pendingOutlines;
+  
+  // 최근 활동
   const recentlyPublished = allPosts.filter((p) => p.publishedUrl).slice(0, 3);
+  const recentlyUpdated = allPosts
+    .filter((p) => p.updatedAt || p.createdAt)
+    .sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt))
+    .slice(0, 5);
+
+  // 진행률 계산
+  const totalTasks = allPosts.length;
+  const progressPercentage = totalTasks > 0 ? Math.round((completedPosts / totalTasks) * 100) : 0;
+
+  // 이번 주 활동
+  const thisWeekStart = new Date();
+  thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
+  const thisWeekPosts = allPosts.filter(p => {
+    const postDate = new Date(p.createdAt || p.creationTime);
+    return postDate >= thisWeekStart;
+  }).length;
 
   return (
-    <div className="p-6">
-      <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">{user?.name}님, 안녕하세요!</h2>
-        <p className="text-gray-600 mt-2">
-          현재 검토가 필요한 콘텐츠가 <span className="font-bold text-blue-600">{totalPending}건</span> 있습니다.
+    <div className="p-6 space-y-6">
+      {/* 환영 메시지 및 주요 알림 */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-xl">
+        <h2 className="text-2xl font-bold">{user?.name}님, 안녕하세요! 👋</h2>
+        <p className="mt-2 opacity-90">
+          {totalPending > 0 
+            ? `검토가 필요한 콘텐츠가 ${totalPending}건 있습니다. 빠른 검토 부탁드려요!`
+            : `모든 업무가 최신 상태입니다! 🎉`
+          }
         </p>
-        <div className="flex space-x-4 mt-4">
-          <div className="bg-yellow-50 p-4 rounded-lg flex-1">
-            <p className="text-sm text-yellow-800">주제 승인 대기</p>
-            <p className="text-2xl font-bold text-yellow-900">{pendingTopics}건</p>
+        {totalTasks > 0 && (
+          <div className="mt-4">
+            <div className="flex justify-between text-sm mb-1">
+              <span>전체 진행률</span>
+              <span>{progressPercentage}%</span>
+            </div>
+            <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
+              <div 
+                className="bg-white h-2 rounded-full transition-all duration-500" 
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
           </div>
-          <div className="bg-yellow-50 p-4 rounded-lg flex-1">
-            <p className="text-sm text-yellow-800">목차 승인 대기</p>
-            <p className="text-2xl font-bold text-yellow-900">{pendingOutlines}건</p>
+        )}
+      </div>
+
+      {/* 상태별 카드 통계 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-lg border-l-4 border-yellow-400 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">주제 승인 대기</p>
+              <p className="text-2xl font-bold text-yellow-600">{pendingTopics}</p>
+            </div>
+            <div className="text-yellow-400">📝</div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border-l-4 border-orange-400 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">목차 승인 대기</p>
+              <p className="text-2xl font-bold text-orange-600">{pendingOutlines}</p>
+            </div>
+            <div className="text-orange-400">📋</div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border-l-4 border-red-400 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">반려된 업무</p>
+              <p className="text-2xl font-bold text-red-600">{rejectedPosts}</p>
+            </div>
+            <div className="text-red-400">❌</div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border-l-4 border-green-400 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">완료된 업무</p>
+              <p className="text-2xl font-bold text-green-600">{completedPosts}</p>
+            </div>
+            <div className="text-green-400">✅</div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">진행 중인 캠페인</h3>
-            <button
-              onClick={() => setActivePage('campaigns', null)}
-              className="text-sm text-blue-600 hover:underline flex items-center"
-            >
-              전체보기 <ArrowRight size={14} className="ml-1" />
-            </button>
+      {/* 이번 주 활동 요약 */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 이번 주 활동 요약</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600">{thisWeekPosts}</div>
+            <div className="text-sm text-gray-600">새 업무 등록</div>
           </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-600">{totalTasks}</div>
+            <div className="text-sm text-gray-600">전체 업무</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600">{progressPercentage}%</div>
+            <div className="text-sm text-gray-600">완료율</div>
+          </div>
+        </div>
+      </div>
 
-          <div className="space-y-4">
-            {(campaigns || []).map((c) => {
-              const posts = c.posts || [];
-              const total = posts.length;
-              const completed = posts.filter((p) => p.publishedUrl).length;
-              const pending = posts.filter(
-                (p) => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')
-              ).length;
+      {/* 메인 콘텐츠 영역 */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* 진행 중인 캠페인 */}
+        <div className="xl:col-span-2">
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">🎯 진행 중인 캠페인</h3>
+              <button
+                onClick={() => setActivePage('campaigns', null)}
+                className="text-sm text-blue-600 hover:underline flex items-center"
+              >
+                전체보기 <ArrowRight size={14} className="ml-1" />
+              </button>
+            </div>
 
-              return (
-                <div
-                  key={c.id}
-                  onClick={() => setActivePage('campaignDetail', c.id)}
-                  className="bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md cursor-pointer transition-shadow"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center">
-                        <h4 className="font-bold text-lg text-gray-800">{c.name}</h4>
-                        {pending > 0 && (
-                          <span className="ml-2 bg-yellow-400 text-white text-xs font-bold px-2 py-1 rounded-full">
-                            {pending}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">담당자: {c.User?.name || 'N/A'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-800">
-                        {completed}/{total}
-                      </p>
-                      <p className="text-xs text-gray-500">진행률</p>
-                    </div>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-3">
+            {campaigns && campaigns.length > 0 ? (
+              <div className="space-y-4">
+                {campaigns.slice(0, 4).map((c) => {
+                  const posts = c.posts || [];
+                  const total = posts.length;
+                  const completed = posts.filter((p) => p.publishedUrl).length;
+                  const pending = posts.filter(
+                    (p) => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')
+                  ).length;
+                  const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+                  return (
                     <div
-                      className="bg-blue-600 h-2.5 rounded-full"
-                      style={{ width: total > 0 ? `${(completed / total) * 100}%` : '0%' }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                      key={c.id}
+                      onClick={() => setActivePage('campaignDetail', c.id)}
+                      className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm cursor-pointer transition-all group"
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-gray-900 group-hover:text-blue-600">{c.name}</h4>
+                            {pending > 0 && (
+                              <span className="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded-full">
+                                검토필요 {pending}
+                              </span>
+                            )}
+                            {total === completed && total > 0 && (
+                              <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                                완료 ✅
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">담당자: {c.User?.name || 'N/A'}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-gray-800">{progressPercent}%</div>
+                          <div className="text-xs text-gray-500">{completed}/{total} 완료</div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full transition-all duration-500 ${
+                            progressPercent === 100 ? 'bg-green-500' : 'bg-blue-500'
+                          }`}
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-3">📋</div>
+                <p>아직 등록된 캠페인이 없습니다.</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">최근 발행된 글</h3>
-          <div className="bg-white p-5 rounded-xl border border-gray-200">
-            <ul className="space-y-4">
-              {recentlyPublished.map((p) => (
-                <li key={p.id}>
-                  <p className="font-semibold text-gray-800">{p.title}</p>
-                  <a
-                    href={formatUrl(p.publishedUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline flex items-center mt-1"
-                  >
-                    블로그 링크 바로가기 <ArrowRight size={14} className="ml-1" />
-                  </a>
-                </li>
-              ))}
-            </ul>
+        {/* 사이드바 */}
+        <div className="space-y-6">
+          {/* 최근 활동 */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">⚡ 최근 활동</h3>
+            {recentlyUpdated.length > 0 ? (
+              <div className="space-y-3">
+                {recentlyUpdated.map((p) => (
+                  <div key={p.id} className="border-l-2 border-blue-200 pl-3">
+                    <div className="text-sm font-medium text-gray-900 line-clamp-2">{p.title}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {new Date(p.updatedAt || p.createdAt).toLocaleDateString('ko-KR')}
+                    </div>
+                    <StatusBadge status={p.topicStatus || p.outlineStatus} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">최근 활동이 없습니다.</p>
+            )}
           </div>
+
+          {/* 발행된 글 */}
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">🎉 최근 발행된 글</h3>
+            {recentlyPublished.length > 0 ? (
+              <div className="space-y-4">
+                {recentlyPublished.map((p) => (
+                  <div key={p.id} className="p-3 bg-green-50 rounded-lg">
+                    <div className="font-medium text-gray-900 line-clamp-2 mb-2">{p.title}</div>
+                    <a
+                      href={formatUrl(p.publishedUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm text-blue-600 hover:underline"
+                    >
+                      <LinkIcon size={12} className="mr-1" />
+                      링크 보기
+                    </a>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                <div className="text-2xl mb-2">📝</div>
+                <p className="text-sm">아직 발행된 글이 없습니다.</p>
+              </div>
+            )}
+          </div>
+
+          {/* 빠른 액션 */}
+          {totalPending > 0 && (
+            <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-3">⚡ 빠른 액션</h3>
+              <button
+                onClick={() => setActivePage('campaigns', null)}
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                대기 중인 {totalPending}건 검토하기
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

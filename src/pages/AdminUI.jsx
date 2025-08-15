@@ -142,7 +142,7 @@ export default function AdminUI({ user, onLogout }) {
         <Header title={getPageTitle()} onLogout={onLogout} user={user} />
         <div className="flex-1 overflow-y-auto">
           <Routes>
-            <Route path="dashboard" element={<Dashboard campaigns={campaigns} activities={activities} />} />
+            <Route path="dashboard" element={<Dashboard campaigns={campaigns} activities={activities} user={user} />} />
             <Route
               path="campaigns"
               element={
@@ -159,7 +159,7 @@ export default function AdminUI({ user, onLogout }) {
               element={<CampaignDetailPage campaigns={campaigns} setCampaigns={setCampaigns} />}
             />
             <Route path="users" element={<UserManagement loggedInUser={user} />} />
-            <Route path="*" element={<Dashboard campaigns={campaigns} activities={activities} />} />
+            <Route path="*" element={<Dashboard campaigns={campaigns} activities={activities} user={user} />} />
           </Routes>
         </div>
       </main>

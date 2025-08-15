@@ -18,16 +18,21 @@ const colorStyles = {
   gray:   { bg: 'bg-gray-100',   text: 'text-gray-600'   },
 };
 
-export default function Dashboard({ campaigns = [], activities = [], onSeeAll }) {
+export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
   const {
     allPosts,
     inProgressCount,
     rejectedCount,
     publishReadyCount,
     publishedThisMonthCount,
+    pendingReviewCount,
+    avgCompletionTime,
+    clientActivityStats,
+    campaignPerformance,
     previewInProgress,
     previewRejected,
     previewPublishReady,
+    urgentTasks,
   } = useMemo(() => {
     const posts = campaigns.flatMap(c => c.posts || []);
 
@@ -40,6 +45,10 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll })
       p.outlineStatus === '목차 승인' &&
       !p.publishedUrl;
 
+    const isPendingReview = (p) =>
+      (p.topicStatus && p.topicStatus.includes('대기')) ||
+      (p.outlineStatus && p.outlineStatus.includes('대기'));
+
     const isPublishedThisMonth = (p) => {
       if (!p.publishedUrl) return false;
       const d = new Date(p.updatedAt || p.createdAt);
@@ -47,10 +56,73 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll })
       return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
     };
 
+    // 긴급 업무 (3일 이상 대기 중인 업무)
+    const urgentTasks = posts.filter(p => {
+      if (!isPendingReview(p)) return false;
+      const createdDate = new Date(p.createdAt || p.creationTime);
+      const daysPassed = (new Date() - createdDate) / (1000 * 60 * 60 * 24);
+      return daysPassed > 3;
+    });
+
+    // 평균 완료 시간 계산 (완료된 업무 기준)
+    const completedPosts = posts.filter(p => p.publishedUrl);
+    const avgCompletionTime = completedPosts.length > 0 
+      ? Math.round(completedPosts.reduce((acc, p) => {
+          const created = new Date(p.createdAt || p.creationTime);
+          const updated = new Date(p.updatedAt || p.createdAt);
+          return acc + (updated - created) / (1000 * 60 * 60 * 24);
+        }, 0) / completedPosts.length)
+      : 0;
+
+    // 클라이언트별 활동 통계
+    const clientStats = {};
+    campaigns.forEach(c => {
+      const clientId = c.userId;
+      const clientName = c.Client?.name || 'Unknown';
+      if (!clientStats[clientId]) {
+        clientStats[clientId] = {
+          name: clientName,
+          totalTasks: 0,
+          completedTasks: 0,
+          pendingTasks: 0,
+          rejectedTasks: 0
+        };
+      }
+      
+      (c.posts || []).forEach(p => {
+        clientStats[clientId].totalTasks++;
+        if (p.publishedUrl) clientStats[clientId].completedTasks++;
+        if (isPendingReview(p)) clientStats[clientId].pendingTasks++;
+        if (isRejected(p)) clientStats[clientId].rejectedTasks++;
+      });
+    });
+
+    // 캠페인 성과 분석
+    const campaignPerformance = campaigns.map(c => {
+      const posts = c.posts || [];
+      const total = posts.length;
+      const completed = posts.filter(p => p.publishedUrl).length;
+      const pending = posts.filter(isPendingReview).length;
+      const rejected = posts.filter(isRejected).length;
+      
+      return {
+        id: c.id,
+        name: c.name,
+        clientName: c.Client?.name || 'Unknown',
+        total,
+        completed,
+        pending,
+        rejected,
+        completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+        efficiency: total > 0 ? Math.round(((completed + pending) / total) * 100) : 0
+      };
+    }).sort((a, b) => b.efficiency - a.efficiency);
+
     const inProgressCount = campaigns.length;
     const rejectedCount = posts.filter(isRejected).length;
     const publishReadyCount = posts.filter(isPublishReady).length;
     const publishedThisMonthCount = posts.filter(isPublishedThisMonth).length;
+    const pendingReviewCount = posts.filter(isPendingReview).length;
 
     const sorted = [...posts].sort(
       (a, b) =>
@@ -67,17 +139,22 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll })
       rejectedCount,
       publishReadyCount,
       publishedThisMonthCount,
+      pendingReviewCount,
+      avgCompletionTime,
+      clientActivityStats: Object.values(clientStats),
+      campaignPerformance,
       previewInProgress,
       previewRejected,
       previewPublishReady,
+      urgentTasks,
     };
   }, [campaigns]);
 
   const stats = [
-    { title: '진행 중인 캠페인', value: inProgressCount, Icon: FileText,  color: 'blue',   description: '전체 활성 캠페인' },
-    { title: '반려된 콘텐츠',   value: rejectedCount,  Icon: XCircle,   color: 'red',    description: '확인 및 수정 필요' },
-    { title: '발행 대기',       value: publishReadyCount, Icon: Clock,    color: 'yellow', description: '주제/목차 승인 완료' },
-    { title: '이번 달 발행 완료', value: publishedThisMonthCount, Icon: CheckCircle, color: 'green',  description: `총 ${allPosts.length}건 콘텐츠` },
+    { title: '진행 중인 캠페인', value: inProgressCount, Icon: FileText, color: 'blue', description: '전체 활성 캠페인' },
+    { title: '검토 대기 중', value: pendingReviewCount, Icon: Clock, color: 'yellow', description: '승인/반려 검토 필요' },
+    { title: '반려된 콘텐츠', value: rejectedCount, Icon: XCircle, color: 'red', description: '확인 및 수정 필요' },
+    { title: '이번 달 완료', value: publishedThisMonthCount, Icon: CheckCircle, color: 'green', description: `총 ${allPosts.length}건 중` },
   ];
 
   const StatCard = ({ title, value, description, Icon, color }) => {
@@ -168,6 +245,22 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll })
 
   return (
     <div className="p-6 bg-gray-50 space-y-6">
+      {/* 환영 메시지 및 주요 알림 */}
+      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl">
+        <h2 className="text-2xl font-bold">관리자 대시보드 📊</h2>
+        <p className="mt-2 opacity-90">
+          {urgentTasks.length > 0 
+            ? `⚠️ 긴급 처리가 필요한 업무가 ${urgentTasks.length}건 있습니다!`
+            : `모든 업무가 원활하게 진행되고 있습니다. 👍`
+          }
+        </p>
+        {avgCompletionTime > 0 && (
+          <div className="mt-3 text-sm opacity-90">
+            평균 업무 완료 시간: <span className="font-bold">{avgCompletionTime}일</span>
+          </div>
+        )}
+      </div>
+
       {/* 상단 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((s, i) => (
@@ -175,19 +268,129 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll })
         ))}
       </div>
 
-      {/* 미리보기 3열 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <MiniTable title="진행 중"   rows={previewInProgress} />
-        <MiniTable title="반려"     rows={previewRejected} />
-        <MiniTable title="발행 대기" rows={previewPublishReady} />
+      {/* 긴급 업무 섹션 */}
+      {urgentTasks.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-red-800 mb-4">🚨 긴급 처리 필요 (3일 이상 대기)</h3>
+          <div className="space-y-3">
+            {urgentTasks.slice(0, 5).map(task => (
+              <div key={task.id} className="bg-white p-3 rounded-lg border border-red-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-medium text-gray-900">{task.title}</div>
+                    <div className="text-sm text-gray-600">
+                      상태: {task.topicStatus || task.outlineStatus}
+                    </div>
+                  </div>
+                  <div className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">
+                    {Math.floor((new Date() - new Date(task.createdAt || task.creationTime)) / (1000 * 60 * 60 * 24))}일 경과
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 성과 분석 및 업무 현황 */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* 캠페인 성과 순위 */}
+        <div className="xl:col-span-2">
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 캠페인 성과 분석</h3>
+            {campaignPerformance.length > 0 ? (
+              <div className="space-y-3">
+                {campaignPerformance.slice(0, 5).map((campaign, index) => (
+                  <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                        index === 0 ? 'bg-yellow-400 text-white' :
+                        index === 1 ? 'bg-gray-400 text-white' :
+                        index === 2 ? 'bg-orange-400 text-white' :
+                        'bg-gray-200 text-gray-600'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{campaign.name}</div>
+                        <div className="text-sm text-gray-600">{campaign.clientName}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-gray-900">{campaign.completionRate}%</div>
+                      <div className="text-xs text-gray-500">{campaign.completed}/{campaign.total} 완료</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-3">📊</div>
+                <p>분석할 캠페인 데이터가 없습니다.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 클라이언트 활동 통계 */}
+        <div>
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">👥 클라이언트 현황</h3>
+            {clientActivityStats.length > 0 ? (
+              <div className="space-y-4">
+                {clientActivityStats.slice(0, 4).map((client, index) => (
+                  <div key={index} className="p-3 border border-gray-200 rounded-lg">
+                    <div className="font-medium text-gray-900 mb-2">{client.name}</div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span>전체:</span>
+                        <span className="font-medium">{client.totalTasks}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>완료:</span>
+                        <span className="text-green-600 font-medium">{client.completedTasks}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>대기:</span>
+                        <span className="text-yellow-600 font-medium">{client.pendingTasks}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>반려:</span>
+                        <span className="text-red-600 font-medium">{client.rejectedTasks}</span>
+                      </div>
+                    </div>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full" 
+                        style={{ 
+                          width: `${client.totalTasks > 0 ? (client.completedTasks / client.totalTasks) * 100 : 0}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500">
+                <div className="text-2xl mb-2">👤</div>
+                <p className="text-sm">활동 중인 클라이언트가 없습니다.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* 최신 알림 */}
+      {/* 업무 상태별 미리보기 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <MiniTable title="⏳ 진행 중" rows={previewInProgress} />
+        <MiniTable title="❌ 반려" rows={previewRejected} />
+        <MiniTable title="✅ 발행 대기" rows={previewPublishReady} />
+      </div>
+
+      {/* 최신 활동 */}
       <div className="bg-white p-6 rounded-xl border border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">최신 알림</h3>
-          {/* 필요하면 알림 전체 페이지로 이동하는 버튼 연결 */}
-          {/* <button className="text-sm text-blue-600 hover:underline">더보기</button> */}
+          <h3 className="text-lg font-semibold text-gray-800">📋 최신 활동</h3>
         </div>
         {activities && activities.length > 0 ? (
           <ul>
@@ -196,7 +399,10 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll })
             ))}
           </ul>
         ) : (
-          <div className="text-sm text-gray-400">최근 알림이 없습니다.</div>
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-3">📝</div>
+            <p>최근 활동이 없습니다.</p>
+          </div>
         )}
       </div>
     </div>
