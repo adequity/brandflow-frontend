@@ -35,12 +35,15 @@ const NotificationBell = () => {
 
   // 알림 드롭다운 열기
   const handleBellClick = async () => {
+    console.log('알림 벨 클릭됨, isOpen:', isOpen);
     setIsOpen(!isOpen);
     if (!isOpen) {
       setPage(1);
       setHasMore(true);
+      console.log('알림 로딩 시작...');
       try {
         const result = await fetchNotifications(1);
+        console.log('알림 로딩 결과:', result);
         setHasMore(result.page < result.totalPages);
       } catch (error) {
         console.error('알림 로딩 실패:', error);

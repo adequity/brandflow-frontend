@@ -19,12 +19,15 @@ export const NotificationProvider = ({ children }) => {
 
   // 알림 목록 조회
   const fetchNotifications = async (page = 1, unreadOnly = false) => {
+    console.log('fetchNotifications 호출됨:', { page, unreadOnly });
     try {
       setLoading(true);
       setError(null);
       const response = await api.get('/api/notifications', {
         params: { page, limit: 20, unreadOnly }
       });
+      
+      console.log('알림 API 응답:', response.data);
       
       if (page === 1) {
         setNotifications(response.data.notifications);
