@@ -261,7 +261,16 @@ const UserManagement = ({ loggedInUser }) => {
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '-'}
                   </td>
                   <td className="px-6 py-4">
-                    {(loggedInUser?.role === '슈퍼 어드민' || user.role !== '슈퍼 어드민') && (
+                    {(() => {
+                      // 슈퍼 어드민은 모든 계정 관리 가능
+                      if (loggedInUser?.role === '슈퍼 어드민') return true;
+                      
+                      // 대행사 어드민은 슈퍼 어드민 제외하고 관리 가능
+                      if (loggedInUser?.role === '대행사 어드민' && user.role !== '슈퍼 어드민') return true;
+                      
+                      // 그 외에는 관리 불가
+                      return false;
+                    })() && (
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleOpenEditModal(user)}
