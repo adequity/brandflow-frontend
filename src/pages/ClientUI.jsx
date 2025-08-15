@@ -1,8 +1,9 @@
 // src/pages/ClientUI.jsx
 import React, { useEffect, useState } from 'react';
-import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search } from 'lucide-react';
+import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search, Link as LinkIcon } from 'lucide-react';
 import api from '../api/client';
 import NotificationBell from '../components/common/NotificationBell';
+import ImagePreview from '../components/common/ImagePreview';
 
 /* ============ Helpers ============ */
 const StatusBadge = ({ status }) => {
@@ -294,38 +295,70 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
 
         <div className="mt-6">
           <table className="w-full text-sm text-left text-gray-500">
-            <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
-                <th className="px-4 py-3">주제</th>
-                <th className="px-4 py-3">목차</th>
-                <th className="px-4 py-3">상태</th>
-                <th className="px-4 py-3 text-center">액션</th>
+                <th className="p-2">업무 타입</th>
+                <th className="p-2">업무 내용</th>
+                <th className="p-2">승인 상태</th>
+                <th className="p-2">세부사항 검토</th>
+                <th className="p-2">세부사항 승인 상태</th>
+                <th className="p-2">첨부 이미지</th>
+                <th className="p-2">결과물 링크</th>
+                <th className="p-2">작성 시간</th>
+                <th className="p-2 text-center">액션</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y">
               {(campaign.posts || []).map((post) => {
-                const status = post.outlineStatus || post.topicStatus;
-                const isPending = status && status.includes('대기');
+                const isPending = (post.topicStatus && post.topicStatus.includes('대기')) || 
+                                 (post.outlineStatus && post.outlineStatus.includes('대기'));
                 const isPublished = !!post.publishedUrl;
+                const created = post.creationTime || post.createdAt;
 
                 return (
-                  <tr key={post.id} className="border-b">
-                    <td
+                  <tr key={post.id} className="hover:bg-gray-50">
+                    <td className="p-2">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                        {post.workType || '블로그'}
+                      </span>
+                    </td>
+                    <td 
                       onClick={() => openDetail(post)}
-                      className="px-4 py-3 font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                      className="p-2 font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
                     >
                       {post.title}
                     </td>
-                    <td
+                    <td className="p-2">
+                      <StatusBadge status={post.topicStatus} />
+                    </td>
+                    <td 
                       onClick={() => openDetail(post)}
-                      className="px-4 py-3 text-gray-600 hover:text-blue-600 cursor-pointer"
+                      className="p-2 hover:text-blue-600 cursor-pointer"
                     >
-                      {post.outline ? `${post.outline.substring(0, 30)}...` : '-'}
+                      {post.outline ? (
+                        <span className="text-xs truncate max-w-xs">{post.outline}</span>
+                      ) : (
+                        '-'
+                      )}
                     </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={status} />
+                    <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
+                    <td className="p-2"><ImagePreview images={post.images} /></td>
+                    <td className="p-2">
+                      {post.publishedUrl ? (
+                        <a
+                          href={formatUrl(post.publishedUrl)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          <LinkIcon size={14} className="inline" />
+                        </a>
+                      ) : (
+                        '-'
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="p-2 text-xs text-gray-600">{created ? new Date(created).toLocaleString() : '-'}</td>
+                    <td className="p-2 text-center">
                       {isPending && (
                         <button
                           onClick={() => openReview(post)}
@@ -334,7 +367,7 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
                           검토하기
                         </button>
                       )}
-                      {isPublished && (
+                      {isPublished && !isPending && (
                         <a
                           href={formatUrl(post.publishedUrl)}
                           target="_blank"
