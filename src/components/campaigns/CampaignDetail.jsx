@@ -281,22 +281,6 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
               onFilterChange={handleFilterChange}
               users={users}
             />
-            {filteredPosts.length > 0 && (
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <input 
-                  type="checkbox" 
-                  onChange={handleSelectAll}
-                  checked={selectedRows.length === filteredPosts.length && filteredPosts.length > 0}
-                  className="rounded"
-                />
-                <span>전체 선택</span>
-                {selectedRows.length > 0 && (
-                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                    {selectedRows.length}개 선택됨
-                  </span>
-                )}
-              </div>
-            )}
           </div>
           <div className="space-x-2">
             <button
@@ -322,188 +306,92 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
           </div>
         </div>
 
-        <div className="flex-grow overflow-y-auto">
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <div className="text-4xl mb-4">📝</div>
-              <p>등록된 업무가 없습니다.</p>
-              <p className="text-sm mt-2">위의 "업무 등록" 버튼을 클릭하여 새 업무를 추가해보세요.</p>
-            </div>
-          ) : (
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        <div className="flex-grow overflow-x-auto">
+          <table className="w-full text-sm text-left text-gray-500">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th className="p-2 w-4">
+                  <input type="checkbox" onChange={handleSelectAll} />
+                </th>
+                <th className="p-2">업무 타입</th>
+                <th className="p-2">업무 내용</th>
+                <th className="p-2">승인 상태</th>
+                <th className="p-2">세부사항 검토</th>
+                <th className="p-2">세부사항 승인 상태</th>
+                <th className="p-2">첨부 이미지</th>
+                <th className="p-2">결과물 링크</th>
+                <th className="p-2">작성 시간</th>
+                <th className="p-2">관리</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
               {filteredPosts.map((post) => {
                 const created = post.creationTime || post.createdAt;
-                const isSelected = selectedRows.includes(post.id);
-                
                 return (
-                  <div
-                    key={post.id}
-                    className={`bg-white border-2 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
-                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => handleRowSelect(post.id)}
-                  >
-                    {/* 헤더 */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleRowSelect(post.id)}
-                          className="mt-1"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                          {post.workType || '블로그'}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditModal(post, 'topic');
-                          }} 
-                          className="text-gray-400 hover:text-blue-600 p-1"
-                        >
-                          <Edit size={14} />
-                        </button>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteClick(post);
-                          }} 
-                          className="text-gray-400 hover:text-red-600 p-1"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* 제목 */}
-                    <h4 className="font-semibold text-gray-900 mb-3 line-clamp-2">
-                      {post.title}
-                    </h4>
-
-                    {/* 진행 상태 바 */}
-                    <div className="mb-4">
-                      {(() => {
-                        let progress = 0;
-                        let progressColor = 'bg-gray-300';
-                        let statusText = '대기중';
-                        
-                        if (post.topicStatus === '주제 승인') {
-                          progress = 33;
-                          progressColor = 'bg-blue-500';
-                          statusText = '주제 승인됨';
-                        }
-                        if (post.outline && post.outlineStatus === '목차 승인') {
-                          progress = 66;
-                          progressColor = 'bg-blue-500';
-                          statusText = '세부사항 승인됨';
-                        }
-                        if (post.publishedUrl) {
-                          progress = 100;
-                          progressColor = 'bg-green-500';
-                          statusText = '완료';
-                        }
-                        if (post.topicStatus === '주제 반려' || post.outlineStatus === '목차 반려') {
-                          progressColor = 'bg-red-500';
-                          statusText = '반려됨';
-                        }
-                        
-                        return (
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs font-medium text-gray-600">진행 상태</span>
-                              <span className="text-xs text-gray-600">{statusText}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full transition-all duration-300 ${progressColor}`}
-                                style={{ width: `${progress}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* 상태 배지들 */}
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-600">주제 상태</span>
-                        <StatusBadge status={post.topicStatus} />
-                      </div>
-                      
-                      {post.outline && (
+                  <tr key={post.id} className="hover:bg-gray-50">
+                    <td className="p-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.includes(post.id)}
+                        onChange={() => handleRowSelect(post.id)}
+                      />
+                    </td>
+                    <td className="p-2">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                        {post.workType || '블로그'}
+                      </span>
+                    </td>
+                    <td className="p-2 font-medium text-gray-900">{post.title}</td>
+                    <td className="p-2">
+                      <StatusBadge status={post.topicStatus} />
+                    </td>
+                    <td className="p-2">
+                      {post.outline ? (
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-600">세부사항 상태</span>
-                          <StatusBadge status={post.outlineStatus} />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 세부사항 */}
-                    {post.outline && (
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-gray-600">세부사항</span>
+                          <span className="text-xs truncate max-w-xs">{post.outline}</span>
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEditModal(post, 'outline');
-                            }}
-                            className="text-gray-400 hover:text-blue-600"
+                            onClick={() => openEditModal(post, 'outline')}
+                            className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"
                           >
-                            <Edit size={12} />
+                            <Edit size={14} />
                           </button>
                         </div>
-                        <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded line-clamp-3">
-                          {post.outline}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 첨부 이미지 */}
-                    {post.images && post.images.length > 0 && (
-                      <div className="mb-4">
-                        <span className="text-sm font-medium text-gray-600 block mb-1">첨부 이미지</span>
-                        <ImagePreview images={post.images} />
-                      </div>
-                    )}
-
-                    {/* 결과물 링크 */}
-                    {post.publishedUrl && (
-                      <div className="mb-4">
-                        <span className="text-sm font-medium text-gray-600 block mb-1">결과물</span>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
+                    <td className="p-2"><ImagePreview images={post.images} /></td>
+                    <td className="p-2">
+                      {post.publishedUrl ? (
                         <a
                           href={formatUrl(post.publishedUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center text-blue-600 hover:underline text-sm"
-                          onClick={(e) => e.stopPropagation()}
+                          className="text-blue-600 hover:underline"
                         >
-                          <LinkIcon size={14} className="mr-1" />
-                          링크 보기
+                          <LinkIcon size={14} className="inline" />
                         </a>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className="p-2 text-xs text-gray-600">{created ? new Date(created).toLocaleString() : '-'}</td>
+                    <td className="p-2">
+                      <div className="flex items-center space-x-2">
+                        <button onClick={() => openEditModal(post, 'topic')} className="text-gray-400 hover:text-blue-600">
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => handleDeleteClick(post)} className="text-gray-400 hover:text-red-600">
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                    )}
-
-                    {/* 푸터 */}
-                    <div className="text-xs text-gray-500 pt-2 border-t border-gray-100">
-                      {created ? new Date(created).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      }) : '-'}
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
-          )}
+            </tbody>
+          </table>
         </div>
 
         <div className="flex justify-center items-center mt-4 flex-shrink-0">
