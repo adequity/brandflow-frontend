@@ -51,6 +51,10 @@ export const NotificationProvider = ({ children }) => {
       return response.data.unreadCount;
     } catch (err) {
       console.error('미읽음 알림 개수 조회 실패:', err);
+      // 401 오류인 경우 (인증 실패) 알림을 0으로 설정
+      if (err.response?.status === 401) {
+        setUnreadCount(0);
+      }
       return 0;
     }
   };
