@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // 각 UI 레이아웃과 로그인 페이지를 import 합니다.
 import AdminUI from './pages/AdminUI';
@@ -50,31 +51,33 @@ export default function App() {
     }
 
     return (
-        <Routes>
-            {/* 로그인 페이지 경로 */}
-            <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
+        <NotificationProvider>
+            <Routes>
+                {/* 로그인 페이지 경로 */}
+                <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
 
-            {/* 관리자 페이지 경로 */}
-            <Route 
-                path="/admin/*" 
-                element={user && user.role !== '클라이언트' ? <AdminUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
-            />
+                {/* 관리자 페이지 경로 */}
+                <Route 
+                    path="/admin/*" 
+                    element={user && user.role !== '클라이언트' ? <AdminUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                />
 
-            {/* 클라이언트 페이지 경로 */}
-            <Route 
-                path="/client/*" 
-                element={user && user.role === '클라이언트' ? <ClientUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
-            />
+                {/* 클라이언트 페이지 경로 */}
+                <Route 
+                    path="/client/*" 
+                    element={user && user.role === '클라이언트' ? <ClientUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                />
 
-            {/* 루트 경로 처리 */}
-            <Route 
-                path="/" 
-                element={
-                    !user ? <Navigate to="/login" /> : 
-                    user.role === '클라이언트' ? <Navigate to="/client/dashboard" /> : 
-                    <Navigate to="/admin/dashboard" />
-                } 
-            />
-        </Routes>
+                {/* 루트 경로 처리 */}
+                <Route 
+                    path="/" 
+                    element={
+                        !user ? <Navigate to="/login" /> : 
+                        user.role === '클라이언트' ? <Navigate to="/client/dashboard" /> : 
+                        <Navigate to="/admin/dashboard" />
+                    } 
+                />
+            </Routes>
+        </NotificationProvider>
     );
 }

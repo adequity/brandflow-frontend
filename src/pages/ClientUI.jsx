@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search } from 'lucide-react';
 import api from '../api/client';
+import NotificationBell from '../components/common/NotificationBell';
 
 /* ============ Helpers ============ */
 const StatusBadge = ({ status }) => {
@@ -63,7 +64,9 @@ const ClientHeader = ({ user, onLogout, title }) => {
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
       <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-      <div className="relative">
+      <div className="flex items-center space-x-4">
+        <NotificationBell />
+        <div className="relative">
         <div onClick={() => setOpen((v) => !v)} className="flex items-center space-x-2 cursor-pointer">
           <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">
             {user?.name?.charAt(0)}
@@ -87,6 +90,7 @@ const ClientHeader = ({ user, onLogout, title }) => {
             </button>
           </div>
         )}
+        </div>
       </div>
     </header>
   );

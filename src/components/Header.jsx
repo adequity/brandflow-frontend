@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Bell, ChevronDown, LogOut } from 'lucide-react';
+import NotificationBell from './common/NotificationBell';
 
 const Header = ({ title, onLogout, user }) => {
     const [isProfileOpen, setProfileOpen] = useState(false);
     return (
         <div className="h-16 bg-white border-b flex items-center justify-between px-6 shrink-0">
             <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-            <div className="relative">
+            <div className="flex items-center space-x-4">
+                <NotificationBell />
+                <div className="relative">
                 <div onClick={() => setProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 cursor-pointer">
                     <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">{user?.name?.charAt(0)}</div>
                     <div>
@@ -22,6 +25,7 @@ const Header = ({ title, onLogout, user }) => {
                         </button>
                     </div>
                 )}
+                </div>
             </div>
         </div>
     );
