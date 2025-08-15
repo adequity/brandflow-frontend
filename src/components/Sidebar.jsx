@@ -1,10 +1,11 @@
 import React from 'react';
-import { Home, FileText, Users } from 'lucide-react';
+import { Home, FileText, Users, DollarSign } from 'lucide-react';
 
 const Sidebar = ({ activePage, setActivePage }) => {
     const menus = [
         {id: 'dashboard', label: '대시보드', icon: <Home size={20}/>}, 
         {id: 'campaigns', label: '캠페인 관리', icon: <FileText size={20}/>}, 
+        {id: 'purchase-requests', label: '구매요청 관리', icon: <DollarSign size={20}/>},
         {id: 'users', label: '고객사/사용자 관리', icon: <Users size={20}/>}
     ];
     return (

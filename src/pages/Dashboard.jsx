@@ -1,5 +1,5 @@
 // frontend/src/pages/Dashboard.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   FileText,
   XCircle,
@@ -7,8 +7,10 @@ import {
   CheckCircle,
   ArrowRight,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  DollarSign
 } from 'lucide-react';
+import api from '../api/client';
 
 const colorStyles = {
   blue:   { bg: 'bg-blue-100',   text: 'text-blue-600'   },
@@ -19,6 +21,33 @@ const colorStyles = {
 };
 
 export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
+  const [purchaseStats, setPurchaseStats] = useState({
+    totalRequests: 0,
+    pendingRequests: 0,
+    approvedRequests: 0,
+    totalAmount: 0,
+    thisMonthAmount: 0
+  });
+
+  useEffect(() => {
+    const fetchPurchaseStats = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data } = await api.get('/api/purchase-requests/summary/stats', {
+          params: {
+            viewerId: user.id,
+            viewerRole: user.role
+          }
+        });
+        setPurchaseStats(data);
+      } catch (error) {
+        console.error('구매요청 통계 로딩 실패:', error);
+      }
+    };
+
+    fetchPurchaseStats();
+  }, [user]);
   const {
     allPosts,
     inProgressCount,
@@ -27,7 +56,6 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     publishedThisMonthCount,
     pendingReviewCount,
     avgCompletionTime,
-    clientActivityStats,
     campaignPerformance,
     previewInProgress,
     previewRejected,
@@ -74,28 +102,6 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         }, 0) / completedPosts.length)
       : 0;
 
-    // 클라이언트별 활동 통계
-    const clientStats = {};
-    campaigns.forEach(c => {
-      const clientId = c.userId;
-      const clientName = c.Client?.name || 'Unknown';
-      if (!clientStats[clientId]) {
-        clientStats[clientId] = {
-          name: clientName,
-          totalTasks: 0,
-          completedTasks: 0,
-          pendingTasks: 0,
-          rejectedTasks: 0
-        };
-      }
-      
-      (c.posts || []).forEach(p => {
-        clientStats[clientId].totalTasks++;
-        if (p.publishedUrl) clientStats[clientId].completedTasks++;
-        if (isPendingReview(p)) clientStats[clientId].pendingTasks++;
-        if (isRejected(p)) clientStats[clientId].rejectedTasks++;
-      });
-    });
 
     // 캠페인 성과 분석
     const campaignPerformance = campaigns.map(c => {
@@ -141,7 +147,6 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       publishedThisMonthCount,
       pendingReviewCount,
       avgCompletionTime,
-      clientActivityStats: Object.values(clientStats),
       campaignPerformance,
       previewInProgress,
       previewRejected,
@@ -156,6 +161,14 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     { title: '반려된 콘텐츠', value: rejectedCount, Icon: XCircle, color: 'red', description: '확인 및 수정 필요' },
     { title: '이번 달 완료', value: publishedThisMonthCount, Icon: CheckCircle, color: 'green', description: `총 ${allPosts.length}건 중` },
   ];
+
+  const formatAmount = (amount) => {
+    return new Intl.NumberFormat('ko-KR', {
+      style: 'currency',
+      currency: 'KRW',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
 
   const StatCard = ({ title, value, description, Icon, color }) => {
     const c = colorStyles[color] || colorStyles.blue;
@@ -292,92 +305,67 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         </div>
       )}
 
-      {/* 성과 분석 및 업무 현황 */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* 캠페인 성과 순위 */}
-        <div className="xl:col-span-2">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 캠페인 성과 분석</h3>
-            {campaignPerformance.length > 0 ? (
-              <div className="space-y-3">
-                {campaignPerformance.slice(0, 5).map((campaign, index) => (
-                  <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        index === 0 ? 'bg-yellow-400 text-white' :
-                        index === 1 ? 'bg-gray-400 text-white' :
-                        index === 2 ? 'bg-orange-400 text-white' :
-                        'bg-gray-200 text-gray-600'
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{campaign.name}</div>
-                        <div className="text-sm text-gray-600">{campaign.clientName}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">{campaign.completionRate}%</div>
-                      <div className="text-xs text-gray-500">{campaign.completed}/{campaign.total} 완료</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <div className="text-4xl mb-3">📊</div>
-                <p>분석할 캠페인 데이터가 없습니다.</p>
-              </div>
-            )}
+      {/* 구매요청 현황 */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">💰 구매요청 현황</h3>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-blue-600">{purchaseStats.totalRequests}</div>
+            <div className="text-sm text-gray-600">전체 요청</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-yellow-600">{purchaseStats.pendingRequests}</div>
+            <div className="text-sm text-gray-600">승인 대기</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">{purchaseStats.approvedRequests}</div>
+            <div className="text-sm text-gray-600">승인 완료</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-purple-600">{formatAmount(purchaseStats.totalAmount)}</div>
+            <div className="text-sm text-gray-600">총 승인금액</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-indigo-600">{formatAmount(purchaseStats.thisMonthAmount)}</div>
+            <div className="text-sm text-gray-600">이번 달</div>
           </div>
         </div>
+      </div>
 
-        {/* 클라이언트 활동 통계 */}
-        <div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">👥 클라이언트 현황</h3>
-            {clientActivityStats.length > 0 ? (
-              <div className="space-y-4">
-                {clientActivityStats.slice(0, 4).map((client, index) => (
-                  <div key={index} className="p-3 border border-gray-200 rounded-lg">
-                    <div className="font-medium text-gray-900 mb-2">{client.name}</div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>전체:</span>
-                        <span className="font-medium">{client.totalTasks}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>완료:</span>
-                        <span className="text-green-600 font-medium">{client.completedTasks}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>대기:</span>
-                        <span className="text-yellow-600 font-medium">{client.pendingTasks}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>반려:</span>
-                        <span className="text-red-600 font-medium">{client.rejectedTasks}</span>
-                      </div>
-                    </div>
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full" 
-                        style={{ 
-                          width: `${client.totalTasks > 0 ? (client.completedTasks / client.totalTasks) * 100 : 0}%` 
-                        }}
-                      ></div>
-                    </div>
+      {/* 캠페인 성과 분석 */}
+      <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 캠페인 성과 분석</h3>
+        {campaignPerformance.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {campaignPerformance.slice(0, 8).map((campaign, index) => (
+              <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    index === 0 ? 'bg-yellow-400 text-white' :
+                    index === 1 ? 'bg-gray-400 text-white' :
+                    index === 2 ? 'bg-orange-400 text-white' :
+                    'bg-gray-200 text-gray-600'
+                  }`}>
+                    {index + 1}
                   </div>
-                ))}
+                  <div>
+                    <div className="font-medium text-gray-900">{campaign.name}</div>
+                    <div className="text-sm text-gray-600">{campaign.clientName}</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">{campaign.completionRate}%</div>
+                  <div className="text-xs text-gray-500">{campaign.completed}/{campaign.total} 완료</div>
+                </div>
               </div>
-            ) : (
-              <div className="text-center py-4 text-gray-500">
-                <div className="text-2xl mb-2">👤</div>
-                <p className="text-sm">활동 중인 클라이언트가 없습니다.</p>
-              </div>
-            )}
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-3">📊</div>
+            <p>분석할 캠페인 데이터가 없습니다.</p>
+          </div>
+        )}
       </div>
 
       {/* 업무 상태별 미리보기 */}

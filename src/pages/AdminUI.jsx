@@ -9,6 +9,7 @@ import Dashboard from './Dashboard';
 import CampaignListPage from './CampaignListPage';
 import CampaignDetailPage from './CampaignDetailPage';
 import UserManagement from './UserManagement';
+import PurchaseRequestsPage from './PurchaseRequestsPage';
 
 export default function AdminUI({ user, onLogout }) {
   const location = useLocation();
@@ -114,6 +115,7 @@ export default function AdminUI({ user, onLogout }) {
 
   const getActivePageFromPath = (path) => {
     if (path.startsWith('/admin/campaigns')) return 'campaigns';
+    if (path.startsWith('/admin/purchase-requests')) return 'purchase-requests';
     if (path.startsWith('/admin/users')) return 'users';
     return 'dashboard';
   };
@@ -130,6 +132,7 @@ export default function AdminUI({ user, onLogout }) {
     if (location.pathname.includes('/admin/campaigns/')) return '캠페인 상세';
     switch (activePage) {
       case 'campaigns': return '캠페인 관리';
+      case 'purchase-requests': return '구매요청 관리';
       case 'users':     return '고객사/사용자 관리';
       default:          return '대시보드';
     }
@@ -158,6 +161,7 @@ export default function AdminUI({ user, onLogout }) {
               path="campaigns/:campaignId"
               element={<CampaignDetailPage campaigns={campaigns} setCampaigns={setCampaigns} />}
             />
+            <Route path="purchase-requests" element={<PurchaseRequestsPage loggedInUser={user} />} />
             <Route path="users" element={<UserManagement loggedInUser={user} />} />
             <Route path="*" element={<Dashboard campaigns={campaigns} activities={activities} user={user} />} />
           </Routes>
