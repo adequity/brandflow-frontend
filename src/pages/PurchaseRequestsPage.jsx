@@ -1,6 +1,6 @@
 // src/pages/PurchaseRequestsPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Download, FileImage } from 'lucide-react';
 import api from '../api/client';
 
 const PurchaseRequestsPage = ({ loggedInUser }) => {
@@ -91,6 +91,51 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
     }
   };
 
+  const handleGenerateDocuments = async (requestId, type = 'transaction') => {
+    try {
+      const response = await api.post(`/api/purchase-requests/${requestId}/generate-documents`, {
+        type
+      }, {
+        params: {
+          viewerId: loggedInUser.id,
+          viewerRole: loggedInUser.role
+        }
+      });
+
+      const { files } = response.data;
+      
+      // PDF와 JPG 파일을 동시에 다운로드
+      downloadFile(files.pdf.data, files.pdf.filename, files.pdf.mimeType);
+      downloadFile(files.jpg.data, files.jpg.filename, files.jpg.mimeType);
+      
+      alert(`📄 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`);
+      
+    } catch (error) {
+      console.error('문서 생성 실패:', error);
+      alert('문서 생성에 실패했습니다.');
+    }
+  };
+
+  const downloadFile = (base64Data, filename, mimeType) => {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   const getStatusBadge = (status) => {
     const baseClass = 'px-2 py-1 text-xs font-medium rounded-full';
     const statusStyles = {
@@ -148,6 +193,9 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
         <div>
           <h2 className="text-2xl font-bold text-gray-800">💰 리소스 구매요청</h2>
           <p className="text-gray-600 mt-1">업무 진행을 위한 리소스 구매요청을 관리하세요</p>
+          <div className="mt-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg inline-block">
+            💡 <strong>Tip:</strong> 승인된 요청은 거래명세서/견적서를 PDF+JPG로 생성하여 카카오톡으로 드래그 전송할 수 있습니다!
+          </div>
         </div>
         {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && (
           <button
@@ -278,6 +326,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                 <th className="px-6 py-3">상태</th>
                 <th className="px-6 py-3">요청자</th>
                 <th className="px-6 py-3">요청일</th>
+                <th className="px-6 py-3">문서생성</th>
                 <th className="px-6 py-3">관리</th>
               </tr>
             </thead>
@@ -323,6 +372,31 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                   </td>
                   <td className="px-6 py-4 text-gray-500">
                     {new Date(request.requestedDate).toLocaleDateString('ko-KR')}
+                  </td>
+                  <td className="px-6 py-4">
+                    {request.status === '승인됨' && (
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleGenerateDocuments(request.id, 'transaction')}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group"
+                          title="거래명세서 생성 (PDF + JPG)"
+                        >
+                          <FileText size={16} />
+                          <span className="sr-only">거래명세서</span>
+                        </button>
+                        <button
+                          onClick={() => handleGenerateDocuments(request.id, 'quote')}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors group"
+                          title="견적서 생성 (PDF + JPG)"
+                        >
+                          <FileImage size={16} />
+                          <span className="sr-only">견적서</span>
+                        </button>
+                      </div>
+                    )}
+                    {request.status !== '승인됨' && (
+                      <span className="text-xs text-gray-400">승인 후 생성 가능</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
