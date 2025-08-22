@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../api/client';
 
 const NotificationContext = createContext();
@@ -18,7 +18,7 @@ export const NotificationProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // 알림 목록 조회
-  const fetchNotifications = async (page = 1, unreadOnly = false) => {
+  const fetchNotifications = useCallback(async (page = 1, unreadOnly = false) => {
     console.log('fetchNotifications 호출됨:', { page, unreadOnly });
     try {
       setLoading(true);
@@ -39,31 +39,42 @@ export const NotificationProvider = ({ children }) => {
       return response.data;
     } catch (err) {
       console.error('알림 조회 실패:', err);
+      // 404 오류인 경우 (API 미구현) 빈 배열 반환
+      if (err.response?.status === 404) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return { notifications: [], unreadCount: 0 };
+      }
       setError('알림을 불러오는데 실패했습니다.');
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // 미읽음 알림 개수 조회
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await api.get('/api/notifications/unread-count');
       setUnreadCount(response.data.unreadCount);
       return response.data.unreadCount;
     } catch (err) {
+      // 404 오류인 경우 (API 미구현) 조용히 처리
+      if (err.response?.status === 404) {
+        setUnreadCount(0);
+        return 0;
+      }
+      // 다른 에러는 로그 출력
       console.error('미읽음 알림 개수 조회 실패:', err);
-      // 401 오류인 경우 (인증 실패) 알림을 0으로 설정
       if (err.response?.status === 401) {
         setUnreadCount(0);
       }
       return 0;
     }
-  };
+  }, []);
 
   // 알림 읽음 처리
-  const markAsRead = async (notificationId) => {
+  const markAsRead = useCallback(async (notificationId) => {
     try {
       await api.put(`/api/notifications/${notificationId}/read`);
       
@@ -85,10 +96,10 @@ export const NotificationProvider = ({ children }) => {
       setError('알림 읽음 처리에 실패했습니다.');
       throw err;
     }
-  };
+  }, []);
 
   // 모든 알림 읽음 처리
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     try {
       const response = await api.put('/api/notifications/read-all');
       
@@ -108,18 +119,18 @@ export const NotificationProvider = ({ children }) => {
       setError('모든 알림 읽음 처리에 실패했습니다.');
       throw err;
     }
-  };
+  }, []);
 
   // 새 알림 추가 (실시간 업데이트용)
-  const addNotification = (notification) => {
+  const addNotification = useCallback((notification) => {
     setNotifications(prev => [notification, ...prev]);
     if (!notification.isRead) {
       setUnreadCount(prev => prev + 1);
     }
-  };
+  }, []);
 
   // 알림 타입별 아이콘 및 색상 반환
-  const getNotificationStyle = (type) => {
+  const getNotificationStyle = useCallback((type) => {
     const styles = {
       task_created: { 
         icon: '📋', 
@@ -183,7 +194,7 @@ export const NotificationProvider = ({ children }) => {
       bgColor: 'bg-gray-50',
       textColor: 'text-gray-800'
     };
-  };
+  }, []);
 
   // 컴포넌트 마운트 시 미읽음 개수 조회
   useEffect(() => {
@@ -193,9 +204,9 @@ export const NotificationProvider = ({ children }) => {
     const interval = setInterval(fetchUnreadCount, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchUnreadCount]);
 
-  const value = {
+  const value = useMemo(() => ({
     notifications,
     unreadCount,
     loading,
@@ -207,7 +218,18 @@ export const NotificationProvider = ({ children }) => {
     addNotification,
     getNotificationStyle,
     setError
-  };
+  }), [
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    fetchNotifications,
+    fetchUnreadCount,
+    markAsRead,
+    markAllAsRead,
+    addNotification,
+    getNotificationStyle
+  ]);
 
   return (
     <NotificationContext.Provider value={value}>

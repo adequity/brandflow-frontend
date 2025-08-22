@@ -1,7 +1,8 @@
 // src/components/campaigns/CampaignDetail.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
-import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
 
 import StatusBadge from '../common/StatusBadge';
 import AdvancedFilter from '../common/AdvancedFilter';
@@ -11,6 +12,7 @@ import DeleteModal from '../modals/DeleteModal';
 import OutlineRegisterModal from '../modals/OutlineRegisterModal';
 import TopicRegisterModal from '../modals/TopicRegisterModal';
 import LinkRegisterModal from '../modals/LinkRegisterModal';
+import PurchaseRequestModal from '../modals/PurchaseRequestModal';
 
 const formatUrl = (url) => {
   if (!url) return '#';
@@ -18,7 +20,8 @@ const formatUrl = (url) => {
   return `//${url}`;
 };
 
-const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
+const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
+  const { showError } = useToast();
   const [posts, setPosts] = useState(campaign.posts || []);
   const [filteredPosts, setFilteredPosts] = useState(campaign.posts || []);
   const [users, setUsers] = useState([]);
@@ -40,8 +43,10 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
   const [isOutlineModalOpen, setOutlineModalOpen] = useState(false);
   const [isTopicModalOpen, setTopicModalOpen] = useState(false);
   const [isLinkModalOpen, setLinkModalOpen] = useState(false);
+  const [isPurchaseModalOpen, setPurchaseModalOpen] = useState(false);
   const [modalType, setModalType] = useState('topic');
   const [selectedPost, setSelectedPost] = useState(null);
+  const [purchaseRequests, setPurchaseRequests] = useState([]);
 
   // 사용자 목록 가져오기 (담당자 필터용)
   useEffect(() => {
@@ -55,6 +60,27 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
     };
     fetchUsers();
   }, []);
+
+  // 캠페인 구매요청 목록 가져오기
+  useEffect(() => {
+    const fetchPurchaseRequests = async () => {
+      if (!campaign?.id || !loggedInUser?.id) return;
+      
+      try {
+        const { data } = await api.get('/api/purchase-requests', {
+          params: {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role,
+            campaignId: campaign.id
+          }
+        });
+        setPurchaseRequests(data.requests || []);
+      } catch (error) {
+        console.error('구매요청 목록 로딩 실패:', error);
+      }
+    };
+    fetchPurchaseRequests();
+  }, [campaign?.id, loggedInUser]);
 
   // 필터링 로직
   useEffect(() => {
@@ -153,15 +179,32 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
   const openEditModal = (post, type) => { setSelectedPost(post); setModalType(type); setEditModalOpen(true); };
   const handleDeleteClick = (post) => { setSelectedPost(post); setDeleteModalOpen(true); };
 
-  // 주제/목차 재요청
+  // 주제/목차 수정
   const handleReRequest = async (updatedContent) => {
     const postToUpdate = filteredPosts.find((p) => p.id === selectedPost?.id) || posts.find((p) => p.id === selectedPost?.id);
     if (!postToUpdate) return;
 
-    const payload =
-      modalType === 'topic'
-        ? { title: updatedContent, topicStatus: '주제 승인 대기', outline: null, outlineStatus: null }
-        : { outline: updatedContent, outlineStatus: '목차 승인 대기' };
+    let payload;
+    if (modalType === 'topic') {
+      // 새로운 확장된 수정 데이터 처리
+      if (typeof updatedContent === 'object') {
+        payload = {
+          title: updatedContent.title,
+          workType: updatedContent.workType,
+          images: updatedContent.images,
+          productId: updatedContent.productId,
+          quantity: updatedContent.quantity,
+          startDate: updatedContent.startDate,
+          dueDate: updatedContent.dueDate,
+          topicStatus: '주제 승인 대기' // 수정 시 재승인 필요
+        };
+      } else {
+        // 기존 방식 호환성
+        payload = { title: updatedContent, topicStatus: '주제 승인 대기', outline: null, outlineStatus: null };
+      }
+    } else {
+      payload = { outline: updatedContent, outlineStatus: '목차 승인 대기' };
+    }
 
     try {
       const { data: updated } = await api.put(`/api/posts/${postToUpdate.id}`, payload);
@@ -170,7 +213,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
       updateParentCampaign(next);
     } catch (err) {
       console.error(err);
-      alert('재요청 실패');
+      showError('수정 실패');
     } finally {
       setEditModalOpen(false);
       setSelectedPost(null);
@@ -195,7 +238,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
       updateParentCampaign(next);
     } catch (err) {
       console.error(err);
-      alert('목차 등록 실패');
+      showError('목차 등록 실패');
     } finally {
       setOutlineModalOpen(false);
       setSelectedRows([]);
@@ -219,7 +262,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
       updateParentCampaign(next);
     } catch (err) {
       console.error(err);
-      alert('업무 등록 실패');
+      showError('업무 등록 실패');
     } finally {
       setTopicModalOpen(false);
     }
@@ -236,7 +279,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
       updateParentCampaign(next);
     } catch (err) {
       console.error(err);
-      alert('링크 등록 실패');
+      showError('링크 등록 실패');
     } finally {
       setLinkModalOpen(false);
       setSelectedRows([]);
@@ -253,11 +296,72 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
       updateParentCampaign(next);
     } catch (err) {
       console.error(err);
-      alert('삭제 실패');
+      showError('삭제 실패');
     } finally {
       setDeleteModalOpen(false);
       setSelectedPost(null);
     }
+  };
+
+  // 구매요청 처리
+  const handlePurchaseRequest = (postId) => {
+    const post = posts.find(p => p.id === postId);
+    setSelectedPost(post);
+    setPurchaseModalOpen(true);
+  };
+
+  const handlePurchaseSuccess = () => {
+    // 구매요청 목록 새로고침
+    const fetchPurchaseRequests = async () => {
+      if (!campaign?.id || !loggedInUser?.id) return;
+      
+      try {
+        const { data } = await api.get('/api/purchase-requests', {
+          params: {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role,
+            campaignId: campaign.id
+          }
+        });
+        setPurchaseRequests(data.requests || []);
+      } catch (error) {
+        console.error('구매요청 목록 로딩 실패:', error);
+      }
+    };
+    fetchPurchaseRequests();
+    setPurchaseModalOpen(false);
+  };
+
+  // 특정 업무의 구매요청 상태 가져오기
+  const getPurchaseRequestStatus = (postId) => {
+    const request = purchaseRequests.find(req => req.postId === postId);
+    if (!request) return null;
+    
+    return {
+      status: request.status,
+      id: request.id,
+      amount: request.amount
+    };
+  };
+
+  // 구매요청 상태 뱃지 렌더링
+  const renderPurchaseStatusBadge = (postId) => {
+    const requestStatus = getPurchaseRequestStatus(postId);
+    if (!requestStatus) return null;
+
+    const statusStyles = {
+      '승인 대기': 'bg-yellow-100 text-yellow-800',
+      '검토 중': 'bg-blue-100 text-blue-800',
+      '승인됨': 'bg-green-100 text-green-800',
+      '거절됨': 'bg-red-100 text-red-800',
+      '보류': 'bg-orange-100 text-orange-800',
+    };
+
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusStyles[requestStatus.status] || 'bg-gray-100 text-gray-800'}`}>
+        {requestStatus.status}
+      </span>
+    );
   };
 
   const selected = filteredPosts.find((p) => p.id === selectedRows[0]) || posts.find((p) => p.id === selectedRows[0]);
@@ -321,6 +425,8 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
                 <th className="p-2">첨부 이미지</th>
                 <th className="p-2">결과물 링크</th>
                 <th className="p-2">작성 시간</th>
+                <th className="p-2 bg-yellow-50">원가</th>
+                <th className="p-2 bg-blue-50">구매요청</th>
                 <th className="p-2">관리</th>
               </tr>
             </thead>
@@ -377,6 +483,27 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
                       )}
                     </td>
                     <td className="p-2 text-xs text-gray-600">{created ? new Date(created).toLocaleString() : '-'}</td>
+                    <td className="p-2 text-xs font-semibold text-orange-600 bg-yellow-50">
+                      {post.productId && post.publishedUrl ? (
+                        <span>{((post.product?.costPrice || 0) * (post.quantity || 1)).toLocaleString()}원</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-2 bg-blue-50">
+                      <div className="flex flex-col items-center space-y-1">
+                        {renderPurchaseStatusBadge(post.id)}
+                        {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && (
+                          <button
+                            onClick={() => handlePurchaseRequest(post.id)}
+                            className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
+                            title="구매요청"
+                          >
+                            <ShoppingCart size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
                     <td className="p-2">
                       <div className="flex items-center space-x-2">
                         <button onClick={() => openEditModal(post, 'topic')} className="text-gray-400 hover:text-blue-600">
@@ -424,6 +551,19 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns }) => {
           onSave={handleRegisterLink}
           onClose={() => setLinkModalOpen(false)}
           initialUrl={selected?.publishedUrl}
+        />
+      )}
+      {isPurchaseModalOpen && selectedPost && (
+        <PurchaseRequestModal
+          isOpen={isPurchaseModalOpen}
+          onClose={() => setPurchaseModalOpen(false)}
+          onSuccess={handlePurchaseSuccess}
+          loggedInUser={loggedInUser}
+          initialData={{
+            title: `${campaign.name} - ${selectedPost.title}`,
+            campaignId: campaign.id,
+            postId: selectedPost.id
+          }}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 // src/pages/Login.jsx
 import React, { useState } from 'react';
 import api from '../api/client'; // ✅ VITE_API_URL이 설정된 공통 axios 인스턴스
+import LogoDisplay from '../components/LogoDisplay';
 
 const Login = ({ onLogin, userType = 'admin' }) => {
   const [email, setEmail] = useState('');
@@ -15,28 +16,57 @@ const Login = ({ onLogin, userType = 'admin' }) => {
     setLoading(true);
 
     try {
-      // 서버가 { user, token } 을 주든, user만 주든 모두 대응
+      // Express API 로그인
+      console.log('로그인 시도:', { email, password });
+      console.log('API Base URL:', api.defaults.baseURL);
+      
       const { data } = await api.post('/api/auth/login', { email, password });
-      const token = data?.token;
-      const user  = data?.user ?? data;
-
-      if (token) {
-        localStorage.setItem('authToken', token);
-        // 선택: 이후 요청에 자동으로 토큰 붙이기
-        api.defaults.headers.common.Authorization = `Bearer ${token}`;
-      }
-
-      if (user?.id) {
-        localStorage.setItem('user', JSON.stringify(user));
-        onLogin?.(user);
+      console.log('로그인 응답:', data);
+      
+      // Express API는 사용자 정보를 직접 반환
+      if (data?.id) {
+        // 간단한 토큰 생성 (Express 백엔드가 JWT를 사용하지 않으므로)
+        const simpleToken = btoa(`${data.id}:${data.email}:${Date.now()}`);
+        localStorage.setItem('authToken', simpleToken);
+        
+        // 사용자 정보 저장 (Express API 구조에 맞게)
+        const userInfo = {
+          id: data.id,
+          name: data.name || data.username || '',
+          email: data.email,
+          role: data.role || '클라이언트',
+          company: data.company || '',
+          contact: data.contact || '',
+          incentiveRate: data.incentiveRate || 0
+        };
+        
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        console.log('사용자 정보 저장 완료:', userInfo);
+        
+        onLogin?.(userInfo);
       } else {
-        setError(data?.message || '로그인 응답에 사용자 정보가 없습니다.');
+        setError('로그인 응답에 필요한 정보가 없습니다.');
       }
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-        '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'
-      );
+      console.error('로그인 오류:', err);
+      console.error('응답 데이터:', err?.response?.data);
+      console.error('상태 코드:', err?.response?.status);
+      
+      let errorMessage = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
+      
+      if (err?.response?.data) {
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.detail) {
+          errorMessage = err.response.data.detail;
+        } else if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data.non_field_errors) {
+          errorMessage = err.response.data.non_field_errors[0];
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,7 +76,9 @@ const Login = ({ onLogin, userType = 'admin' }) => {
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl shadow-lg">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-blue-600">BrandFlow</h1>
+          <div className="flex justify-center mb-2">
+            <LogoDisplay size="large" />
+          </div>
           <p className="mt-2 text-gray-500">
             {userType === 'admin' ? '관리자' : '클라이언트'} 로그인
           </p>

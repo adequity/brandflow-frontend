@@ -10,6 +10,12 @@ import CampaignListPage from './CampaignListPage';
 import CampaignDetailPage from './CampaignDetailPage';
 import UserManagement from './UserManagement';
 import PurchaseRequestsPage from './PurchaseRequestsPage';
+import ProductManagement from './ProductManagement';
+import SalesRegistration from './SalesRegistration';
+import SystemSettings from './SystemSettings';
+import MonthlyIncentives from './MonthlyIncentives';
+import OrderManagement from './OrderManagement';
+import LazyRoutes from '../components/LazyRoutes';
 
 export default function AdminUI({ user, onLogout }) {
   const location = useLocation();
@@ -20,25 +26,166 @@ export default function AdminUI({ user, onLogout }) {
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 대행사/슈퍼/클라 권한 분리용 viewer 파라미터 포함
+  // 실제 API 데이터 사용 (더미 fallback 포함)
   const fetchAdminData = useCallback(async () => {
     if (!user?.id) return;
     setIsLoading(true);
     try {
-      const [{ data: campaignsData }, { data: usersData }] = await Promise.all([
-        api.get('/api/campaigns', { params: { viewerId: user.id, viewerRole: user.role } }),
-        api.get('/api/users', { params: { viewerId: user.id, viewerRole: user.role } }),
-      ]);
-      setCampaigns(campaignsData || []);
-      setUsers(usersData || []);
+      const token = localStorage.getItem('authToken');
+      console.log('AdminUI: 토큰 상태:', token ? '존재' : '없음');
       
-      // 실제 활동 로그 생성
+      if (token) {
+        try {
+          // 실제 API 호출
+          const [campaignsResponse, usersResponse] = await Promise.all([
+            api.get('/api/campaigns/'),
+            api.get('/api/users/')
+          ]);
+          
+          setCampaigns(campaignsResponse.data.results || campaignsResponse.data);
+          setUsers(usersResponse.data.results || usersResponse.data);
+          
+          console.log('AdminUI: 실제 API 데이터 로드 성공');
+          console.log('캠페인:', (campaignsResponse.data.results || campaignsResponse.data).length, '개');
+          console.log('사용자:', (usersResponse.data.results || usersResponse.data).length, '개');
+          
+        } catch (apiError) {
+          console.warn('AdminUI: API 호출 실패, 더미 데이터 사용', apiError);
+          // API 실패시 더미 데이터 사용
+          const dummyCampaigns = [
+        {
+          id: 1,
+          name: '테스트 캠페인 - 상품 매핑 테스트',
+          client: '테스트 클라이언트',
+          manager: 1,
+          manager_name: '슈퍼 관리자',
+          post_count: 3,
+          createdAt: new Date().toISOString(),
+          invoiceIssued: false,
+          paymentCompleted: false,
+          invoiceDueDate: null,
+          paymentDueDate: null,
+          revenue: 500000,
+          User: { 
+            id: 1, 
+            name: '슈퍼 관리자'
+          },
+          posts: [
+            {
+              id: 1,
+              title: '블로그 포스트 테스트',
+              workType: '블로그',
+              topicStatus: '대기',
+              createdAt: new Date().toISOString(),
+              productId: 1,
+              quantity: 1
+            },
+            {
+              id: 2,
+              title: '인스타그램 포스트 테스트',
+              workType: '인스타그램',
+              topicStatus: '승인',
+              createdAt: new Date().toISOString(),
+              productId: 2,
+              quantity: 2
+            },
+            {
+              id: 3,
+              title: '유튜브 영상 테스트',
+              workType: '유튜브',
+              topicStatus: '승인',
+              createdAt: new Date().toISOString(),
+              productId: 4,
+              quantity: 1
+            },
+            {
+              id: 4,
+              title: '페이스북 광고 테스트',
+              workType: '페이스북',
+              topicStatus: '거절',
+              createdAt: new Date().toISOString(),
+              productId: 3,
+              quantity: 1
+            }
+          ]
+        }
+      ];
+      
+      setCampaigns(dummyCampaigns);
+      
+      // 더미 사용자 데이터
+      const dummyUsers = [
+        {
+          id: 1,
+          name: '슈퍼 관리자',
+          email: 'admin@brandflow.com',
+          role: '슈퍼 어드민',
+          company: 'BrandFlow'
+        },
+        {
+          id: 2,
+          name: '테스트 직원',
+          email: 'staff@brandflow.com',
+          role: '직원',
+          company: 'BrandFlow'
+        }
+      ];
+      setUsers(dummyUsers);
+        }
+      } else {
+        console.warn('AdminUI: 인증 토큰이 없어 더미 데이터 사용');
+        // 토큰이 없으면 더미 데이터 사용
+        const dummyCampaigns = [
+        {
+          id: 1,
+          name: '테스트 캠페인 - 상품 매핑 테스트',
+          client: '테스트 클라이언트',
+          manager: 1,
+          manager_name: '슈퍼 관리자',
+          post_count: 3,
+          createdAt: new Date().toISOString(),
+          invoiceIssued: false,
+          paymentCompleted: false,
+          invoiceDueDate: null,
+          paymentDueDate: null,
+          revenue: 500000,
+          User: { 
+            id: 1, 
+            name: '슈퍼 관리자'
+          },
+          posts: []
+        }
+      ];
+      
+      setCampaigns(dummyCampaigns);
+      
+      // 더미 사용자 데이터
+      const dummyUsers = [
+        {
+          id: 1,
+          name: '슈퍼 관리자',
+          email: 'admin@brandflow.com',
+          role: '슈퍼 어드민',
+          company: 'BrandFlow'
+        },
+        {
+          id: 2,
+          name: '테스트 직원',
+          email: 'staff@brandflow.com',
+          role: '직원',
+          company: 'BrandFlow'
+        }
+      ];
+      setUsers(dummyUsers);
+      }
+      
+      // 더미 활동 로그 생성
       const generateActivities = () => {
         const activities = [];
         const now = new Date();
         
         // 캠페인 및 주제 등록 활동 추출
-        (campaignsData || []).forEach(campaign => {
+        campaigns.forEach(campaign => {
           // 캠페인 생성 활동
           const campaignCreated = new Date(campaign.createdAt);
           const timeDiff = Math.floor((now - campaignCreated) / (1000 * 60)); // 분 단위
@@ -77,8 +224,8 @@ export default function AdminUI({ user, onLogout }) {
               user: campaign.User?.name || '관리자',
               action: `'${post.title}' 주제를 등록했습니다.`,
               time: postTimeText,
-              type: post.topicStatus === '주제 승인 대기' ? 'action' : 
-                    post.topicStatus?.includes('반려') ? 'reject' : 'approve'
+              type: post.topicStatus === '대기' ? 'action' : 
+                    post.topicStatus === '거절' ? 'reject' : 'approve'
             });
           });
         });
@@ -116,6 +263,12 @@ export default function AdminUI({ user, onLogout }) {
   const getActivePageFromPath = (path) => {
     if (path.startsWith('/admin/campaigns')) return 'campaigns';
     if (path.startsWith('/admin/purchase-requests')) return 'purchase-requests';
+    if (path.startsWith('/admin/order-management')) return 'order-management';
+    if (path.startsWith('/admin/products')) return 'products';
+    if (path.startsWith('/admin/sales')) return 'sales';
+    if (path.startsWith('/admin/monthly-incentives')) return 'monthly-incentives';
+    if (path.startsWith('/admin/calendar')) return 'calendar';
+    if (path.startsWith('/admin/system-settings')) return 'system-settings';
     if (path.startsWith('/admin/users')) return 'users';
     return 'dashboard';
   };
@@ -130,9 +283,16 @@ export default function AdminUI({ user, onLogout }) {
 
   const getPageTitle = () => {
     if (location.pathname.includes('/admin/campaigns/')) return '캠페인 상세';
+    if (location.pathname.includes('/admin/calendar')) return '일정 관리';
     switch (activePage) {
       case 'campaigns': return '캠페인 관리';
       case 'purchase-requests': return '구매요청 관리';
+      case 'order-management': return '발주 관리';
+      case 'products': return '상품 관리';
+      case 'sales': return '매출 관리';
+      case 'monthly-incentives': return '월간 인센티브 관리';
+      case 'calendar': return '일정 관리';
+      case 'system-settings': return '시스템 설정';
       case 'users':     return '고객사/사용자 관리';
       default:          return '대시보드';
     }
@@ -145,7 +305,7 @@ export default function AdminUI({ user, onLogout }) {
         <Header title={getPageTitle()} onLogout={onLogout} user={user} />
         <div className="flex-1 overflow-y-auto">
           <Routes>
-            <Route path="dashboard" element={<Dashboard campaigns={campaigns} activities={activities} user={user} />} />
+            <Route path="dashboard" element={<Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
             <Route
               path="campaigns"
               element={
@@ -162,8 +322,14 @@ export default function AdminUI({ user, onLogout }) {
               element={<CampaignDetailPage campaigns={campaigns} setCampaigns={setCampaigns} />}
             />
             <Route path="purchase-requests" element={<PurchaseRequestsPage loggedInUser={user} />} />
+            <Route path="order-management" element={<OrderManagement loggedInUser={user} />} />
+            <Route path="products" element={<ProductManagement loggedInUser={user} />} />
+            <Route path="sales" element={<SalesRegistration loggedInUser={user} />} />
+            <Route path="monthly-incentives" element={<MonthlyIncentives loggedInUser={user} />} />
+            <Route path="calendar" element={<LazyRoutes.CalendarPage user={user} />} />
+            <Route path="system-settings" element={<SystemSettings loggedInUser={user} />} />
             <Route path="users" element={<UserManagement loggedInUser={user} />} />
-            <Route path="*" element={<Dashboard campaigns={campaigns} activities={activities} user={user} />} />
+            <Route path="*" element={<Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
           </Routes>
         </div>
       </main>

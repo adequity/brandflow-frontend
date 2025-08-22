@@ -4,6 +4,8 @@ import { Home, FileText, ChevronDown, ArrowRight, LogOut, Search, Link as LinkIc
 import api from '../api/client';
 import NotificationBell from '../components/common/NotificationBell';
 import ImagePreview from '../components/common/ImagePreview';
+import LogoDisplay from '../components/LogoDisplay';
+import { useToast } from '../contexts/ToastContext';
 
 /* ============ Helpers ============ */
 const StatusBadge = ({ status }) => {
@@ -35,7 +37,7 @@ const ClientSidebar = ({ activePage, setActivePage }) => {
   return (
     <div className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-blue-600">BrandFlow</h1>
+        <LogoDisplay size="medium" />
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
         {menu.map((item) => (
@@ -547,6 +549,7 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
 };
 
 const ReviewModal = ({ post, onClose, onUpdate }) => {
+  const { showWarning } = useToast();
   const [isRejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const status = post.outlineStatus || post.topicStatus;
@@ -554,7 +557,7 @@ const ReviewModal = ({ post, onClose, onUpdate }) => {
 
   const approve = () => { onUpdate(post.id, isTopic ? '주제 승인' : '목차 승인', null); onClose(); };
   const reject = () => {
-    if (!rejectReason) return alert('반려 사유를 입력해주세요.');
+    if (!rejectReason) return showWarning('반려 사유를 입력해주세요.');
     onUpdate(post.id, isTopic ? '주제 반려' : '목차 반려', rejectReason);
     onClose();
   };
@@ -674,6 +677,7 @@ export default function ClientUI({ user, onLogout }) {
 
   // 승인/반려
   const handleUpdatePostStatus = async (postId, newStatus, rejectReason) => {
+    const { showError } = useToast();
     const target = campaigns.find((c) => (c.posts || []).some((p) => p.id === postId));
     if (!target) return;
 
@@ -692,7 +696,7 @@ export default function ClientUI({ user, onLogout }) {
       setCampaigns(updated);
     } catch (err) {
       console.error('상태 업데이트 실패:', err);
-      alert('상태 업데이트에 실패했습니다.');
+      showError('상태 업데이트에 실패했습니다.');
     }
   };
 

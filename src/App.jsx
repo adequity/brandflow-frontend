@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { OrderProvider } from './contexts/OrderContext';
 
 // 각 UI 레이아웃과 로그인 페이지를 import 합니다.
-import AdminUI from './pages/AdminUI';
-import ClientUI from './pages/ClientUI';
+import LazyRoutes from './components/LazyRoutes';
 import Login from './pages/Login';
+import LoginDebug from './pages/LoginDebug';
 
 export default function App() {
     const [user, setUser] = useState(null);
@@ -52,20 +54,22 @@ export default function App() {
 
     return (
         <NotificationProvider>
-            <Routes>
+            <ToastProvider>
+                <OrderProvider>
+                <Routes>
                 {/* 로그인 페이지 경로 */}
                 <Route path="/login" element={!user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
 
                 {/* 관리자 페이지 경로 */}
                 <Route 
                     path="/admin/*" 
-                    element={user && user.role !== '클라이언트' ? <AdminUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                    element={user && user.role !== '클라이언트' ? <LazyRoutes.AdminUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
                 />
 
                 {/* 클라이언트 페이지 경로 */}
                 <Route 
                     path="/client/*" 
-                    element={user && user.role === '클라이언트' ? <ClientUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                    element={user && user.role === '클라이언트' ? <LazyRoutes.ClientUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
                 />
 
                 {/* 루트 경로 처리 */}
@@ -77,7 +81,9 @@ export default function App() {
                         <Navigate to="/admin/dashboard" />
                     } 
                 />
-            </Routes>
+                </Routes>
+                </OrderProvider>
+            </ToastProvider>
         </NotificationProvider>
     );
 }

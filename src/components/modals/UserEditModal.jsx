@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../api/client';
 
-const UserEditModal = ({ user, onSave, onClose }) => {
+const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -8,11 +9,80 @@ const UserEditModal = ({ user, onSave, onClose }) => {
         contact: user?.contact || '',
         company: user?.company || '',
         role: user?.role || '클라이언트',
+        incentiveRate: user?.incentiveRate || 0,
     });
+    
+    // 사용자 정보가 변경되면 formData 업데이트
+    useEffect(() => {
+        if (user) {
+            console.log('UserEditModal - updating formData for existing user:', user);
+            setFormData({
+                name: user.name || '',
+                email: user.email || '',
+                password: '',
+                contact: user.contact || '',
+                company: user.company || '',
+                role: user.role || '클라이언트',
+                incentiveRate: user.incentiveRate || 0,
+            });
+        } else {
+            console.log('UserEditModal - setting formData for new user');
+            setFormData({
+                name: '',
+                email: '',
+                password: '',
+                contact: '',
+                company: (loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : '',
+                role: '클라이언트',
+                incentiveRate: 0,
+            });
+        }
+    }, [user]);
+    const [existingCompanies, setExistingCompanies] = useState([]);
+    const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+    // 기존 회사 목록 로드 (슈퍼 어드민만)
+    useEffect(() => {
+        if (loggedInUser?.role === '슈퍼 어드민' && !user) {
+            fetchExistingCompanies();
+        }
+    }, [loggedInUser, user]);
+
+    const fetchExistingCompanies = async () => {
+        setIsLoadingCompanies(true);
+        try {
+            const response = await api.get('/api/users', {
+                params: {
+                    adminId: loggedInUser.id,
+                    adminRole: loggedInUser.role,
+                },
+            });
+            
+            // API 응답 데이터 구조에 맞게 수정
+            const usersData = response.data.results || response.data;
+            console.log('회사 목록을 위한 사용자 데이터:', usersData);
+            
+            // 회사명만 추출하고 중복 제거
+            const companies = [...new Set(
+                usersData.filter(u => u.company && u.company.trim())
+                    .map(u => u.company.trim())
+            )].sort();
+            
+            console.log('추출된 회사 목록:', companies);
+            setExistingCompanies(companies);
+        } catch (error) {
+            console.error('회사 목록 로딩 실패:', error);
+        } finally {
+            setIsLoadingCompanies(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleCompanySelect = (company) => {
+        setFormData(prev => ({ ...prev, company }));
     };
 
     const handleSubmit = (e) => {
@@ -103,17 +173,92 @@ const UserEditModal = ({ user, onSave, onClose }) => {
                         </div>
 
                         <div>
-                            <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">소속/회사명</label>
-                            <input 
-                                type="text" 
-                                name="company" 
-                                id="company" 
-                                value={formData.company} 
-                                onChange={handleChange} 
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                                placeholder="회사명 또는 부서명"
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                소속/회사명
+                                {formData.role === '대행사 어드민' && (
+                                    <span className="text-blue-600 text-xs ml-2">(새로운 대행사)</span>
+                                )}
+                            </label>
+                            
+                            {/* 직원/대행사 관리자가 사용자 생성 시에는 본인 회사로 고정 */}
+                            {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && !user ? (
+                                <div className="w-full px-4 py-3 border border-gray-300 bg-gray-100 rounded-lg text-gray-700">
+                                    {loggedInUser.company} (본인 소속)
+                                    <input type="hidden" name="company" value={loggedInUser.company} />
+                                </div>
+                            ) : /* 슈퍼 어드민이 직원/클라이언트 생성 시에만 드롭다운 표시 */
+                            loggedInUser?.role === '슈퍼 어드민' && !user && 
+                             (formData.role === '직원' || formData.role === '클라이언트') && 
+                             existingCompanies.length > 0 ? (
+                                <select
+                                    value={formData.company}
+                                    onChange={(e) => handleCompanySelect(e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">기존 대행사 선택...</option>
+                                    {existingCompanies.map((company, index) => (
+                                        <option key={index} value={company}>
+                                            {company}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input 
+                                    type="text" 
+                                    name="company" 
+                                    id="company" 
+                                    value={formData.company} 
+                                    onChange={handleChange} 
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                    placeholder={
+                                        formData.role === '대행사 어드민' 
+                                            ? "새 대행사명을 입력하세요" 
+                                            : "회사명 또는 부서명"
+                                    }
+                                />
+                            )}
+                            
+                            {isLoadingCompanies && (
+                                <p className="text-xs text-gray-500 mt-1">기존 대행사 목록 로딩 중...</p>
+                            )}
+                            
+                            {formData.role === '대행사 어드민' && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 대행사 어드민 계정은 새로운 대행사를 만듭니다. 회사명을 정확히 입력해주세요.
+                                </p>
+                            )}
+                            
+                            {(formData.role === '직원' || formData.role === '클라이언트') && existingCompanies.length > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 기존 대행사에 소속시킬 직원/클라이언트입니다.
+                                </p>
+                            )}
                         </div>
+
+                        {/* 인센티브율 필드 - 직원/대행사 어드민만 표시 */}
+                        {isStaffRole && (
+                            <div>
+                                <label htmlFor="incentiveRate" className="block text-sm font-medium text-gray-700 mb-1">
+                                    인센티브율 (%)
+                                </label>
+                                <div className="relative">
+                                    <input 
+                                        type="number" 
+                                        name="incentiveRate" 
+                                        id="incentiveRate" 
+                                        value={formData.incentiveRate} 
+                                        onChange={handleChange} 
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                        placeholder="0"
+                                        min="0"
+                                        max="100"
+                                        step="0.1"
+                                    />
+                                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">직원의 이익 대비 인센티브 비율을 설정합니다.</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* 역할 선택 섹션 */}
@@ -125,7 +270,18 @@ const UserEditModal = ({ user, onSave, onClose }) => {
                                 { value: '대행사 어드민', label: '대행사 어드민', desc: '팀 관리 및 전체 업무 감독', icon: '👨‍💼', color: 'blue' },
                                 { value: '클라이언트', label: '클라이언트', desc: '업무 의뢰 및 결과 확인', icon: '🤝', color: 'orange' },
                                 { value: '슈퍼 어드민', label: '슈퍼 어드민', desc: '시스템 전체 관리 권한', icon: '⚡', color: 'purple' }
-                            ].map(role => (
+                            ].filter(role => {
+                                // 직원은 클라이언트만 생성 가능
+                                if (loggedInUser?.role === '직원') {
+                                    return role.value === '클라이언트';
+                                }
+                                // 대행사 어드민은 슈퍼 어드민 제외하고 생성 가능
+                                if (loggedInUser?.role === '대행사 어드민') {
+                                    return role.value !== '슈퍼 어드민';
+                                }
+                                // 슈퍼 어드민은 모든 역할 생성 가능
+                                return true;
+                            }).map(role => (
                                 <div key={role.value} className="relative">
                                     <input
                                         type="radio"

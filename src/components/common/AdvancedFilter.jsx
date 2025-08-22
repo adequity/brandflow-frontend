@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Filter, X } from 'lucide-react';
 
-const AdvancedFilter = ({ onFilterChange, users = [] }) => {
+const AdvancedFilter = React.memo(({ onFilterChange, users = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState({
     workType: 'all',
@@ -14,20 +14,19 @@ const AdvancedFilter = ({ onFilterChange, users = [] }) => {
   const workTypes = [
     { value: 'all', label: '전체 업무' },
     { value: '블로그', label: '블로그' },
+    { value: '인스타그램', label: '인스타그램' },
+    { value: '페이스북', label: '페이스북' },
+    { value: '유튜브', label: '유튜브' },
     { value: '디자인', label: '디자인' },
     { value: '마케팅', label: '마케팅' },
-    { value: '개발', label: '개발' },
-    { value: '영상', label: '영상' },
-    { value: '기획', label: '기획' },
-    { value: '기타', label: '기타' }
+    { value: '영상 편집', label: '영상 편집' }
   ];
 
   const statusOptions = [
     { value: 'all', label: '전체 상태' },
-    { value: '승인 대기', label: '승인 대기' },
+    { value: '대기', label: '승인 대기' },
     { value: '승인', label: '승인됨' },
-    { value: '반려', label: '반려됨' },
-    { value: '완료', label: '완료됨' }
+    { value: '거절', label: '거절됨' }
   ];
 
   const dateRanges = [
@@ -200,6 +199,8 @@ const AdvancedFilter = ({ onFilterChange, users = [] }) => {
       )}
     </div>
   );
-};
+});
+
+AdvancedFilter.displayName = 'AdvancedFilter';
 
 export default AdvancedFilter;

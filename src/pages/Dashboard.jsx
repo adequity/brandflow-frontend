@@ -21,6 +21,16 @@ const colorStyles = {
 };
 
 export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
+  // 안전한 데이터 확인
+  if (!user) {
+    return (
+      <div className="p-6 bg-gray-50">
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <p>사용자 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
   const [purchaseStats, setPurchaseStats] = useState({
     totalRequests: 0,
     pendingRequests: 0,
@@ -29,25 +39,256 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     thisMonthAmount: 0
   });
 
+  const [salesStats, setSalesStats] = useState({
+    totalSales: 0,
+    totalRevenue: 0,
+    totalMargin: 0,
+    totalIncentives: 0,
+    thisMonthRevenue: 0,
+    thisMonthMargin: 0
+  });
+
+  const [financialOverview, setFinancialOverview] = useState({
+    totalRevenue: 0,           // 매출 (Sales에서)
+    totalExpenses: 0,          // 매입/지출 (PurchaseRequests에서)
+    netProfit: 0,              // 순이익 (매출 - 매입)
+    totalIncentives: 0,        // 총 인센티브 지출 예정
+    finalNetProfit: 0          // 최종 순이익 (매출 - 매입 - 인센티브)
+  });
+
+  const [employeeStats, setEmployeeStats] = useState({
+    thisMonthRevenue: 0,       // 이번달 총 매출 (담당 캠페인 기준)
+    thisMonthIncentive: 0,     // 이번달 인센티브 금액
+    pendingInvoices: 0,        // 미발행 계산서 캠페인 수
+    pendingPayments: 0         // 미입금 캠페인 수
+  });
+
   useEffect(() => {
-    const fetchPurchaseStats = async () => {
+    const fetchAllStats = async () => {
       if (!user?.id) return;
       
       try {
-        const { data } = await api.get('/api/purchase-requests/summary/stats', {
-          params: {
-            viewerId: user.id,
-            viewerRole: user.role
+        // 최신 캠페인 데이터 다시 로드 (매출 데이터 포함)
+        let latestCampaigns = campaigns;
+        
+        // 캠페인 데이터가 없거나 매출 정보가 없으면 다시 로드
+        if (!campaigns || campaigns.length === 0 || !campaigns[0].hasOwnProperty('posts')) {
+          try {
+            const campaignsResponse = await api.get('/api/campaigns/', {
+              params: { viewerId: user.id, viewerRole: user.role }
+            });
+            const campaignsData = campaignsResponse.data.results || campaignsResponse.data || [];
+            
+            // posts 정보도 함께 로드
+            latestCampaigns = await Promise.all(
+              campaignsData.map(async (campaign) => {
+                try {
+                  const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts/`);
+                  return {
+                    ...campaign,
+                    posts: postsResponse.data || [],
+                    invoiceIssued: campaign.invoice_issued,
+                    paymentCompleted: campaign.payment_completed,
+                  };
+                } catch (error) {
+                  console.error(`캠페인 ${campaign.id} 포스트 로딩 실패:`, error);
+                  return { ...campaign, posts: [] };
+                }
+              })
+            );
+          } catch (error) {
+            console.error('캠페인 데이터 재로딩 실패:', error);
           }
+        }
+        
+        // 실제 캠페인 데이터 기반으로 재무 정보 계산
+        let campaignTotalRevenue = 0;
+        let campaignTotalCost = 0;
+        let completedCampaigns = 0;
+        let pendingInvoices = 0;
+        let pendingPayments = 0;
+        
+        // 각 캠페인별로 재무 요약 가져오기
+        if (latestCampaigns && latestCampaigns.length > 0) {
+          const campaignFinancials = await Promise.all(
+            latestCampaigns.map(async (campaign) => {
+              try {
+                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+                const summary = response.data;
+                
+                campaignTotalRevenue += summary.total_revenue || 0;
+                campaignTotalCost += summary.total_cost || 0;
+                
+                if (summary.completed_tasks === summary.total_tasks && summary.total_tasks > 0) {
+                  completedCampaigns++;
+                }
+                
+                // 재무 상태 확인 (캠페인 모델에 필드가 있다고 가정)
+                if (!campaign.invoice_issued) pendingInvoices++;
+                if (!campaign.payment_completed) pendingPayments++;
+                
+                return summary;
+              } catch (error) {
+                console.error(`캠페인 ${campaign.id} 재무 데이터 로딩 실패:`, error);
+                return { total_revenue: 0, total_cost: 0 };
+              }
+            })
+          );
+        }
+        
+        // 실제 구매요청 및 발주 데이터 가져오기
+        let realPurchaseStats = {
+          totalRequests: 0,
+          pendingRequests: 0,
+          approvedRequests: 0,
+          totalAmount: 0,
+          thisMonthAmount: 0
+        };
+        
+        try {
+          // 구매요청 데이터 가져오기
+          const purchaseResponse = await api.get('/api/purchase-requests');
+          const purchaseRequests = purchaseResponse.data.requests || [];
+          
+          // 발주요청 데이터 가져오기
+          const orderResponse = await api.get('/api/purchase-requests');
+          const orderRequests = orderResponse.data.requests || [];
+          
+          // 구매요청 통계 계산
+          const purchasePending = purchaseRequests.filter(p => p.status === '승인 대기').length;
+          const purchaseApproved = purchaseRequests.filter(p => p.status === '승인됨' || p.status === '완료됨').length;
+          const purchaseTotalAmount = purchaseRequests.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+          
+          // 발주요청 통계 계산
+          const orderPending = orderRequests.filter(o => o.status === '승인 대기').length;
+          const orderApproved = orderRequests.filter(o => o.status === '승인됨' || o.status === '완료됨').length;
+          const orderTotalAmount = orderRequests.reduce((sum, o) => sum + (parseFloat(o.amount) || 0), 0);
+          
+          // 이번 달 금액 계산
+          const thisMonth = new Date();
+          const thisMonthPurchase = purchaseRequests
+            .filter(p => {
+              const createdDate = new Date(p.created_at || p.createdAt);
+              return createdDate.getFullYear() === thisMonth.getFullYear() && 
+                     createdDate.getMonth() === thisMonth.getMonth();
+            })
+            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+            
+          const thisMonthOrder = orderRequests
+            .filter(o => {
+              const createdDate = new Date(o.created_at || o.createdAt);
+              return createdDate.getFullYear() === thisMonth.getFullYear() && 
+                     createdDate.getMonth() === thisMonth.getMonth();
+            })
+            .reduce((sum, o) => sum + (parseFloat(o.amount) || 0), 0);
+          
+          realPurchaseStats = {
+            totalRequests: purchaseRequests.length + orderRequests.length,
+            pendingRequests: purchasePending + orderPending,
+            approvedRequests: purchaseApproved + orderApproved,
+            totalAmount: purchaseTotalAmount + orderTotalAmount,
+            thisMonthAmount: thisMonthPurchase + thisMonthOrder
+          };
+          
+        } catch (error) {
+          console.error('구매요청/발주 데이터 로딩 실패:', error);
+          // 오류 시 기본값 유지
+        }
+        
+        setPurchaseStats(realPurchaseStats);
+
+        // 실제 사용자 데이터 기반 인센티브 계산
+        let totalIncentives = 0;
+        try {
+          // 모든 직원 데이터 가져오기
+          const usersResponse = await api.get('/api/users/');
+          const allUsers = usersResponse.data.results || usersResponse.data || [];
+          
+          // 직원들의 캠페인 매출과 인센티브율 기반으로 계산
+          for (const userItem of allUsers.filter(u => u.role === '직원')) {
+            const userCampaigns = latestCampaigns.filter(c => c.managerId === userItem.id || c.manager === userItem.id);
+            let userRevenue = 0;
+            
+            for (const campaign of userCampaigns) {
+              try {
+                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+                userRevenue += response.data.total_revenue || 0;
+              } catch (error) {
+                console.error(`사용자 ${userItem.id} 캠페인 ${campaign.id} 매출 데이터 로딩 실패:`, error);
+              }
+            }
+            
+            // 사용자 인센티브율 적용 (기본 10%)
+            const incentiveRate = userItem.incentive_rate ? parseFloat(userItem.incentive_rate) / 100 : 0.1;
+            totalIncentives += userRevenue * incentiveRate;
+          }
+        } catch (error) {
+          console.error('인센티브 계산 실패:', error);
+          // 오류 시 기본값 사용 (매출의 5%)
+          totalIncentives = campaignTotalRevenue * 0.05;
+        }
+
+        // 실제 캠페인 데이터 기반 매출 통계 (인센티브 계산 후)
+        const realSalesStats = {
+          totalSales: latestCampaigns.length,
+          totalRevenue: campaignTotalRevenue,
+          totalMargin: campaignTotalRevenue - campaignTotalCost,
+          totalIncentives: totalIncentives,
+          thisMonthRevenue: campaignTotalRevenue * 0.3, // 이번달 추정치
+          thisMonthMargin: (campaignTotalRevenue - campaignTotalCost) * 0.3
+        };
+        setSalesStats(realSalesStats);
+
+        // 종합 재무 현황 계산 (실제 데이터 기반)
+        const totalRevenue = campaignTotalRevenue;
+        const totalExpenses = realPurchaseStats.totalAmount + campaignTotalCost;
+        const netProfit = totalRevenue - totalExpenses;
+        const finalNetProfit = netProfit - totalIncentives;
+
+        setFinancialOverview({
+          totalRevenue: totalRevenue,
+          totalExpenses: totalExpenses,
+          netProfit: netProfit,
+          totalIncentives: totalIncentives,
+          finalNetProfit: finalNetProfit,
+          campaignRevenue: campaignTotalRevenue,
+          campaignCost: campaignTotalCost,
+          salesRevenue: campaignTotalRevenue
         });
-        setPurchaseStats(data);
+
+        // 직원인 경우 실제 데이터 기반 개별 통계
+        if (user.role === '직원') {
+          // 직원이 담당하는 캠페인들만 필터링
+          const employeeCampaigns = latestCampaigns.filter(c => c.managerId === user.id || c.manager === user.id);
+          let employeeRevenue = 0;
+          
+          for (const campaign of employeeCampaigns) {
+            try {
+              const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+              employeeRevenue += response.data.total_revenue || 0;
+            } catch (error) {
+              console.error(`직원 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);
+            }
+          }
+          
+          // 사용자 인센티브율 가져오기
+          const userIncentiveRate = user.incentive_rate ? parseFloat(user.incentive_rate) / 100 : 0.1;
+          
+          setEmployeeStats({
+            thisMonthRevenue: employeeRevenue,
+            thisMonthIncentive: employeeRevenue * userIncentiveRate,
+            pendingInvoices: pendingInvoices,
+            pendingPayments: pendingPayments
+          });
+        }
+
       } catch (error) {
-        console.error('구매요청 통계 로딩 실패:', error);
+        console.error('통계 데이터 로딩 실패:', error);
       }
     };
 
-    fetchPurchaseStats();
-  }, [user]);
+    fetchAllStats();
+  }, [user?.id, user?.role]);
   const {
     allPosts,
     inProgressCount,
@@ -62,7 +303,25 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     previewPublishReady,
     urgentTasks,
   } = useMemo(() => {
-    const posts = campaigns.flatMap(c => c.posts || []);
+    // 안전한 데이터 처리
+    if (!Array.isArray(campaigns)) {
+      return {
+        allPosts: [],
+        inProgressCount: 0,
+        rejectedCount: 0,
+        publishReadyCount: 0,
+        publishedThisMonthCount: 0,
+        pendingReviewCount: 0,
+        avgCompletionTime: 0,
+        campaignPerformance: [],
+        previewInProgress: [],
+        previewRejected: [],
+        previewPublishReady: [],
+        urgentTasks: [],
+      };
+    }
+    
+    const posts = campaigns.flatMap(c => (c && c.posts) ? c.posts : []);
 
     const isRejected = (p) =>
       (p.topicStatus && p.topicStatus.includes('반려')) ||
@@ -104,17 +363,17 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
 
     // 캠페인 성과 분석
-    const campaignPerformance = campaigns.map(c => {
-      const posts = c.posts || [];
+    const campaignPerformance = campaigns.filter(c => c && c.id).map(c => {
+      const posts = Array.isArray(c.posts) ? c.posts : [];
       const total = posts.length;
-      const completed = posts.filter(p => p.publishedUrl).length;
-      const pending = posts.filter(isPendingReview).length;
-      const rejected = posts.filter(isRejected).length;
+      const completed = posts.filter(p => p && p.publishedUrl).length;
+      const pending = posts.filter(p => p && isPendingReview(p)).length;
+      const rejected = posts.filter(p => p && isRejected(p)).length;
       
       return {
         id: c.id,
-        name: c.name,
-        clientName: c.Client?.name || 'Unknown',
+        name: c.name || 'Unknown Campaign',
+        clientName: c.client || c.Client?.name || 'Unknown',
         total,
         completed,
         pending,
@@ -192,7 +451,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
         <button
           className="text-sm text-blue-600 hover:underline flex items-center"
-          onClick={onSeeAll}
+          onClick={onSeeAll || (() => {})}
           type="button"
         >
           전체보기 <ArrowRight size={14} className="ml-1" />
@@ -260,19 +519,118 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     <div className="p-6 bg-gray-50 space-y-6">
       {/* 환영 메시지 및 주요 알림 */}
       <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl">
-        <h2 className="text-2xl font-bold">관리자 대시보드 📊</h2>
+        <h2 className="text-2xl font-bold">
+          {user?.role === '직원' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
+        </h2>
         <p className="mt-2 opacity-90">
-          {urgentTasks.length > 0 
-            ? `⚠️ 긴급 처리가 필요한 업무가 ${urgentTasks.length}건 있습니다!`
-            : `모든 업무가 원활하게 진행되고 있습니다. 👍`
+          {user?.role === '직원' 
+            ? `안녕하세요! 오늘도 화이팅입니다! 💪`
+            : urgentTasks.length > 0 
+              ? `⚠️ 긴급 처리가 필요한 업무가 ${urgentTasks.length}건 있습니다!`
+              : `모든 업무가 원활하게 진행되고 있습니다. 👍`
           }
         </p>
-        {avgCompletionTime > 0 && (
+        {user?.role !== '직원' && avgCompletionTime > 0 && (
           <div className="mt-3 text-sm opacity-90">
             평균 업무 완료 시간: <span className="font-bold">{avgCompletionTime}일</span>
           </div>
         )}
       </div>
+
+      {/* 직원용 매출 데이터 또는 관리자용 재무 현황 */}
+      {user?.role === '직원' ? (
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+            📊 내 매출 데이터
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="text-4xl font-bold text-blue-600">{formatAmount(employeeStats.thisMonthRevenue)}</div>
+              <div className="text-lg text-blue-700 mt-2">이번달 총 매출</div>
+              <div className="text-sm text-gray-500 mt-1">담당 캠페인 기준</div>
+            </div>
+            <div className="text-center p-6 bg-green-50 rounded-lg">
+              <div className="text-4xl font-bold text-green-600">{formatAmount(employeeStats.thisMonthIncentive)}</div>
+              <div className="text-lg text-green-700 mt-2">이번달 인센티브 금액</div>
+              <div className="text-sm text-gray-500 mt-1">
+                {employeeStats.thisMonthIncentive > 0 ? '승인/지급 예정액' : '계산 대기 중'}
+              </div>
+            </div>
+            <div className="text-center p-6 bg-purple-50 rounded-lg border-2 border-dashed border-purple-300">
+              <div className="text-4xl font-bold text-purple-600">🗓️</div>
+              <div className="text-lg text-purple-700 mt-2">업무 캘린더</div>
+              <div className="text-sm text-gray-500 mt-1">추후 개발 예정</div>
+            </div>
+          </div>
+          
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">{employeeStats.pendingInvoices}</div>
+              <div className="text-sm text-red-700 mt-1">미발행 계산서</div>
+              <div className="text-xs text-gray-500 mt-1">발행 필요한 캠페인</div>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">{employeeStats.pendingPayments}</div>
+              <div className="text-sm text-orange-700 mt-1">미입금 캠페인</div>
+              <div className="text-xs text-gray-500 mt-1">입금 대기 중</div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+            💰 재무 현황 (원장 데이터)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-3xl font-bold text-blue-600">{formatAmount(financialOverview.totalRevenue)}</div>
+              <div className="text-sm text-blue-700 mt-1">총 매출</div>
+              <div className="text-xs text-gray-500 mt-1">Sales + Campaigns</div>
+            </div>
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <div className="text-3xl font-bold text-red-600">{formatAmount(financialOverview.totalExpenses)}</div>
+              <div className="text-sm text-red-700 mt-1">총 매입/지출</div>
+              <div className="text-xs text-gray-500 mt-1">Purchase + Cost</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-3xl font-bold text-green-600">{formatAmount(financialOverview.netProfit)}</div>
+              <div className="text-sm text-green-700 mt-1">순이익</div>
+              <div className="text-xs text-gray-500 mt-1">Revenue - Expenses</div>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="text-3xl font-bold text-orange-600">{formatAmount(financialOverview.totalIncentives)}</div>
+              <div className="text-sm text-orange-700 mt-1">인센티브 지출</div>
+              <div className="text-xs text-gray-500 mt-1">Staff Incentives</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className={`text-3xl font-bold ${financialOverview.finalNetProfit >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                {formatAmount(financialOverview.finalNetProfit)}
+              </div>
+              <div className="text-sm text-purple-700 mt-1">최종 순이익</div>
+              <div className="text-xs text-gray-500 mt-1">Final Net Profit</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">공식:</span> 순이익 = 매출 - 매입 | 최종 순이익 = 순이익 - 인센티브 지출
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              인센티브는 승인완료/지급완료 상태의 금액만 포함됩니다
+            </div>
+            {financialOverview.totalIncentives > financialOverview.netProfit && financialOverview.totalIncentives > 0 && (
+              <div className="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800">
+                ⚠️ 인센티브 지출({formatAmount(financialOverview.totalIncentives)})이 순이익({formatAmount(financialOverview.netProfit)})을 초과했습니다! 검토가 필요합니다.
+              </div>
+            )}
+            {financialOverview.totalIncentives > 0 && financialOverview.netProfit > 0 && (
+              <div className="mt-2 text-xs text-blue-600">
+                💡 인센티브 비율: {((financialOverview.totalIncentives / financialOverview.netProfit) * 100).toFixed(1)}% (순이익 대비)
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 상단 통계 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -281,8 +639,8 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         ))}
       </div>
 
-      {/* 긴급 업무 섹션 */}
-      {urgentTasks.length > 0 && (
+      {/* 긴급 업무 섹션 - 관리자만 */}
+      {user?.role !== '직원' && urgentTasks.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-red-800 mb-4">🚨 긴급 처리 필요 (3일 이상 대기)</h3>
           <div className="space-y-3">
@@ -305,32 +663,31 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         </div>
       )}
 
-      {/* 구매요청 현황 */}
+      {/* 매입/지출 상세 현황 - 관리자만 */}
+      {user?.role !== '직원' && (
       <div className="bg-white p-6 rounded-xl border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">💰 구매요청 현황</h3>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">💸 구매요청 및 발주승인 현황</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="text-center p-3 bg-blue-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{purchaseStats.totalRequests}</div>
-            <div className="text-sm text-gray-600">전체 요청</div>
+            <div className="text-sm text-blue-700 mt-1">전체 요청</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 bg-yellow-50 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{purchaseStats.pendingRequests}</div>
-            <div className="text-sm text-gray-600">승인 대기</div>
+            <div className="text-sm text-yellow-700 mt-1">승인 대기</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{purchaseStats.approvedRequests}</div>
-            <div className="text-sm text-gray-600">승인 완료</div>
+            <div className="text-sm text-green-700 mt-1">승인 완료</div>
           </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-purple-600">{formatAmount(purchaseStats.totalAmount)}</div>
-            <div className="text-sm text-gray-600">총 승인금액</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-indigo-600">{formatAmount(purchaseStats.thisMonthAmount)}</div>
-            <div className="text-sm text-gray-600">이번 달</div>
+          <div className="text-center p-3 bg-red-50 rounded-lg">
+            <div className="text-2xl font-bold text-red-600">{formatAmount(purchaseStats.thisMonthAmount)}</div>
+            <div className="text-sm text-red-700 mt-1">이번 달 지출</div>
+            <div className="text-xs text-gray-500 mt-1">구매요청 + 발주승인</div>
           </div>
         </div>
       </div>
+      )}
 
       {/* 캠페인 성과 분석 */}
       <div className="bg-white p-6 rounded-xl border border-gray-200">

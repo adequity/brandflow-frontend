@@ -2,13 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Download, FileImage } from 'lucide-react';
 import api from '../api/client';
+import PurchaseRequestModal from '../components/modals/PurchaseRequestModal';
+import { useToast } from '../contexts/ToastContext';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const PurchaseRequestsPage = ({ loggedInUser }) => {
+  const { showSuccess, showError, showInfo } = useToast();
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, requestId: null });
+  const [statusUpdateConfirm, setStatusUpdateConfirm] = useState({ isOpen: false, requestId: null, newStatus: null });
   const [stats, setStats] = useState({
     totalRequests: 0,
     pendingRequests: 0,
@@ -26,14 +32,121 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
     
     setIsLoading(true);
     try {
-      const { data } = await api.get('/api/purchase-requests', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role,
-          ...filters
+      const token = localStorage.getItem('authToken');
+      console.log('PurchaseRequestsPage: 토큰 상태:', token ? '존재' : '없음');
+      
+      if (token) {
+        try {
+          // 실제 API 호출 - 비품 구매 요청만 필터링
+          const response = await api.get('/api/purchase-requests/', {
+            params: {
+              viewerId: loggedInUser.id,
+              viewerRole: loggedInUser.role,
+              resourceType: '비품 구매' // 비품 구매 요청만 가져오기
+            }
+          });
+          const requestsData = response.data.requests || response.data.results || response.data;
+          
+          // 프론트엔드 형식에 맞게 데이터 변환
+          const transformedRequests = requestsData.map(request => ({
+            id: request.id,
+            title: request.title,
+            description: request.description,
+            amount: parseInt(request.amount),
+            resourceType: request.resourceType || '구매요청',
+            priority: request.priority || '보통',
+            status: request.status,
+            requesterId: request.requesterId,
+            requester: request.requester || { 
+              name: request.requester_name || '요청자', 
+              email: request.requester_email || '' 
+            },
+            requestedDate: request.requestedDate || request.createdAt,
+            dueDate: request.dueDate,
+            campaign: request.campaign
+          }));
+          
+          console.log('PurchaseRequestsPage: 실제 API 데이터 로드 성공');
+          console.log('구매요청:', transformedRequests.length, '개');
+          setRequests(transformedRequests);
+        } catch (apiError) {
+          console.warn('PurchaseRequestsPage: API 호출 실패, 더미 데이터 사용', apiError);
+          // API 실패시 더미 데이터 사용
+          const dummyRequests = [
+            {
+              id: 1,
+              title: '페이스북 광고비',
+              description: '브랜드 A 마케팅 캠페인용 페이스북 광고비',
+              amount: 3000000,
+              resourceType: '광고비',
+              priority: '높음',
+              status: '승인됨',
+              requesterId: 3,
+              requester: { name: '직원1', email: 'staff1@agency.com' },
+              requestedDate: new Date().toISOString(),
+              dueDate: new Date(Date.now() + 86400000).toISOString(),
+              campaign: { name: '브랜드 A 마케팅 캠페인' }
+            },
+        {
+          id: 2,
+          title: '콘텐츠 제작비',
+          description: '인스타그램 포스트 디자인 제작',
+          amount: 800000,
+          resourceType: '콘텐츠 제작비',
+          priority: '보통',
+          status: '승인 대기',
+          requesterId: 4,
+          requester: { name: '직원2', email: 'staff2@agency.com' },
+          requestedDate: new Date(Date.now() - 86400000).toISOString(), // 어제
+          dueDate: new Date(Date.now() + 3 * 86400000).toISOString() // 3일 후
+        },
+        {
+          id: 3,
+          title: '도구 구독료',
+          description: 'Canva Pro 월간 구독',
+          amount: 15000,
+          resourceType: '도구 구독료',
+          priority: '낮음',
+          status: '검토 중',
+          requesterId: 3,
+          requester: { name: '직원1', email: 'staff1@agency.com' },
+          requestedDate: new Date(Date.now() - 2 * 86400000).toISOString(), // 2일 전
+          dueDate: new Date(Date.now() + 7 * 86400000).toISOString() // 7일 후
         }
-      });
-      setRequests(data.requests || []);
+      ];
+      
+      // 필터 적용
+      let filteredRequests = dummyRequests;
+      if (filters.status) {
+        filteredRequests = filteredRequests.filter(r => r.status === filters.status);
+      }
+      if (filters.resourceType) {
+        filteredRequests = filteredRequests.filter(r => r.resourceType === filters.resourceType);
+      }
+      
+          setRequests(filteredRequests);
+        }
+      } else {
+        console.warn('PurchaseRequestsPage: 인증 토큰이 없어 더미 데이터 사용');
+        // 토큰이 없으면 더미 데이터 사용
+        const dummyRequests = [
+          {
+            id: 1,
+            title: '페이스북 광고비',
+            description: '브랜드 A 마케팅 캠페인용 페이스북 광고비',
+            amount: 3000000,
+            resourceType: '광고비',
+            priority: '높음',
+            status: '승인됨',
+            requesterId: 3,
+            requester: { name: '직원1', email: 'staff1@agency.com' },
+            requestedDate: new Date().toISOString(),
+            dueDate: new Date(Date.now() + 86400000).toISOString(),
+            campaign: { name: '브랜드 A 마케팅 캠페인' }
+          }
+        ];
+        setRequests(dummyRequests);
+      }
     } catch (error) {
       console.error('구매요청 목록 로딩 실패:', error);
       setRequests([]);
@@ -46,15 +159,25 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
     if (!loggedInUser?.id) return;
     
     try {
-      const { data } = await api.get('/api/purchase-requests/summary/stats', {
+      // 실제 통계 API 호출
+      const response = await api.get('/api/purchase-requests/summary/stats', {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role
         }
       });
-      setStats(data);
+      setStats(response.data);
     } catch (error) {
       console.error('구매요청 통계 로딩 실패:', error);
+      // API 실패 시 기본값
+      const defaultStats = {
+        totalRequests: 0,
+        pendingRequests: 0,
+        approvedRequests: 0,
+        totalAmount: 0,
+        thisMonthAmount: 0
+      };
+      setStats(defaultStats);
     }
   };
 
@@ -73,46 +196,95 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
     setEditModalOpen(true);
   };
 
-  const handleDeleteRequest = async (requestId) => {
-    if (!confirm('정말로 이 구매요청을 삭제하시겠습니까?')) return;
-    
+  const handleDeleteRequest = (requestId) => {
+    setDeleteConfirm({ isOpen: true, requestId });
+  };
+
+  const confirmDeleteRequest = async () => {
     try {
-      await api.delete(`/api/purchase-requests/${requestId}`, {
+      // 실제 API 호출로 삭제
+      await api.delete(`/api/purchase-requests/${deleteConfirm.requestId}`, {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role
         }
       });
+      showSuccess('구매요청이 삭제되었습니다.');
       await fetchRequests();
       await fetchStats();
+      setDeleteConfirm({ isOpen: false, requestId: null });
     } catch (error) {
       console.error('구매요청 삭제 실패:', error);
-      alert('삭제에 실패했습니다.');
+      showError('삭제에 실패했습니다.');
+    }
+  };
+
+  const handleStatusUpdate = (requestId, newStatus) => {
+    setStatusUpdateConfirm({ isOpen: true, requestId, newStatus });
+  };
+
+  const confirmStatusUpdate = async () => {
+    const { requestId, newStatus } = statusUpdateConfirm;
+    const statusName = newStatus === '승인됨' ? '승인' : newStatus === '완료됨' ? '완료' : newStatus;
+    
+    try {
+      // 실제 API 호출로 상태 업데이트
+      await api.put(`/api/purchase-requests/${requestId}`, 
+        { status: newStatus },
+        {
+          params: {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role
+          }
+        }
+      );
+      
+      await fetchRequests();
+      await fetchStats();
+      
+      if (newStatus === '승인됨' || newStatus === '완료됨') {
+        showInfo(`구매요청이 ${statusName} 처리되었습니다.\n연결된 캠페인의 집행 상태도 자동으로 업데이트됩니다.`);
+      } else {
+        showSuccess(`구매요청 상태가 '${newStatus}'로 업데이트되었습니다.`);
+      }
+      
+      setStatusUpdateConfirm({ isOpen: false, requestId: null, newStatus: null });
+    } catch (error) {
+      console.error('상태 업데이트 실패:', error);
+      showError('상태 업데이트에 실했했습니다.');
     }
   };
 
   const handleGenerateDocuments = async (requestId, type = 'transaction') => {
     try {
-      const response = await api.post(`/api/purchase-requests/${requestId}/generate-documents`, {
-        type
-      }, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
+      // 실제 API 호출로 문서 생성
+      const response = await api.post(`/api/purchase-requests/${requestId}/generate-documents`, 
+        { type },
+        {
+          params: {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role
+          }
         }
-      });
-
+      );
+      
       const { files } = response.data;
       
-      // PDF와 JPG 파일을 동시에 다운로드
-      downloadFile(files.pdf.data, files.pdf.filename, files.pdf.mimeType);
-      downloadFile(files.jpg.data, files.jpg.filename, files.jpg.mimeType);
+      // PDF 다운로드
+      if (files.pdf) {
+        downloadFile(files.pdf.data, files.pdf.filename, files.pdf.mimeType);
+      }
       
-      alert(`📄 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`);
+      // JPG 다운로드
+      if (files.jpg) {
+        downloadFile(files.jpg.data, files.jpg.filename, files.jpg.mimeType);
+      }
+      
+      showInfo(`📄 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`);
       
     } catch (error) {
       console.error('문서 생성 실패:', error);
-      alert('문서 생성에 실패했습니다.');
+      showError('문서 생성에 실패했습니다.');
     }
   };
 
@@ -176,9 +348,10 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   };
 
   const canDeleteRequest = (request) => {
+    // 직원은 삭제 불가 (본사가 취소하는 형태로 로그를 남겨야 함)
+    if (loggedInUser?.role === '직원') return false;
     if (loggedInUser?.role === '슈퍼 어드민') return true;
     if (loggedInUser?.role === '대행사 어드민') return true;
-    if (loggedInUser?.role === '직원' && request.requesterId === loggedInUser.id && request.status === '승인 대기') return true;
     return false;
   };
 
@@ -326,6 +499,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                 <th className="px-6 py-3">상태</th>
                 <th className="px-6 py-3">요청자</th>
                 <th className="px-6 py-3">요청일</th>
+                <th className="px-6 py-3">희망 완료일</th>
                 <th className="px-6 py-3">문서생성</th>
                 <th className="px-6 py-3">관리</th>
               </tr>
@@ -374,6 +548,23 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                     {new Date(request.requestedDate).toLocaleDateString('ko-KR')}
                   </td>
                   <td className="px-6 py-4">
+                    {request.dueDate ? (
+                      <div className="flex items-center space-x-1">
+                        <span className="text-gray-900">
+                          {new Date(request.dueDate).toLocaleDateString('ko-KR')}
+                        </span>
+                        {/* 당일 요청인지 확인 */}
+                        {new Date(request.dueDate).toDateString() === new Date(request.requestedDate).toDateString() && (
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                            🚨 당일
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
                     {request.status === '승인됨' && (
                       <div className="flex items-center space-x-2">
                         <button
@@ -400,6 +591,30 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
+                      {/* 대행사 어드민 전용 승인/완료 버튼 */}
+                      {loggedInUser?.role === '대행사 어드민' && (
+                        <>
+                          {request.status === '승인 대기' && (
+                            <button
+                              onClick={() => handleStatusUpdate(request.id, '승인됨')}
+                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="승인"
+                            >
+                              <CheckCircle size={16} />
+                            </button>
+                          )}
+                          {request.status === '승인됨' && (
+                            <button
+                              onClick={() => handleStatusUpdate(request.id, '완료됨')}
+                              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                              title="집행 완료"
+                            >
+                              <DollarSign size={16} />
+                            </button>
+                          )}
+                        </>
+                      )}
+                      
                       {canEditRequest(request) && (
                         <button
                           onClick={() => handleEditRequest(request)}
@@ -454,297 +669,33 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
           request={selectedRequest}
         />
       )}
+
+      {/* 삭제 확인 모달 */}
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, requestId: null })}
+        onConfirm={confirmDeleteRequest}
+        title="구매요청 삭제"
+        message="정말로 이 구매요청을 삭제하시겠습니까?"
+        type="warning"
+        confirmText="삭제"
+        cancelText="취소"
+      />
+
+      {/* 상태 업데이트 확인 모달 */}
+      <ConfirmModal
+        isOpen={statusUpdateConfirm.isOpen}
+        onClose={() => setStatusUpdateConfirm({ isOpen: false, requestId: null, newStatus: null })}
+        onConfirm={confirmStatusUpdate}
+        title="상태 변경 확인"
+        message={`이 구매요청을 ${statusUpdateConfirm.newStatus === '승인됨' ? '승인' : statusUpdateConfirm.newStatus === '완료됨' ? '완료' : statusUpdateConfirm.newStatus} 처리하시겠습니까?`}
+        type="info"
+        confirmText={statusUpdateConfirm.newStatus === '승인됨' ? '승인' : statusUpdateConfirm.newStatus === '완료됨' ? '완료' : '확인'}
+        cancelText="취소"
+      />
     </div>
   );
 };
 
-// 구매요청 생성/수정 모달
-const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, request = null }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    amount: '',
-    resourceType: '광고비',
-    priority: '보통',
-    dueDate: '',
-    campaignId: '',
-    postId: '',
-    status: '승인 대기',
-    approverComment: '',
-    rejectReason: ''
-  });
-  const [campaigns, setCampaigns] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (request) {
-      setFormData({
-        title: request.title || '',
-        description: request.description || '',
-        amount: request.amount || '',
-        resourceType: request.resourceType || '광고비',
-        priority: request.priority || '보통',
-        dueDate: request.dueDate ? new Date(request.dueDate).toISOString().split('T')[0] : '',
-        campaignId: request.campaignId || '',
-        postId: request.postId || '',
-        status: request.status || '승인 대기',
-        approverComment: request.approverComment || '',
-        rejectReason: request.rejectReason || ''
-      });
-    }
-    
-    // 캠페인 목록 로드
-    fetchCampaigns();
-  }, [request]);
-
-  const fetchCampaigns = async () => {
-    try {
-      const { data } = await api.get('/api/campaigns', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      setCampaigns(data || []);
-    } catch (error) {
-      console.error('캠페인 목록 로딩 실패:', error);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const submitData = {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        campaignId: formData.campaignId || null,
-        postId: formData.postId || null,
-        dueDate: formData.dueDate || null
-      };
-
-      if (request) {
-        await api.put(`/api/purchase-requests/${request.id}`, submitData, {
-          params: {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          }
-        });
-      } else {
-        await api.post('/api/purchase-requests', submitData, {
-          params: {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          }
-        });
-      }
-
-      onSuccess();
-    } catch (error) {
-      console.error('구매요청 저장 실패:', error);
-      alert('저장에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const isAdminRole = loggedInUser?.role === '대행사 어드민' || loggedInUser?.role === '슈퍼 어드민';
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h3 className="text-2xl font-bold mb-6">
-          {request ? '구매요청 수정' : '새 구매요청 작성'}
-        </h3>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* 기본 정보 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">제목 *</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                placeholder="구매요청 제목을 입력하세요"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">리소스 종류 *</label>
-              <select
-                name="resourceType"
-                value={formData.resourceType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="광고비">광고비</option>
-                <option value="콘텐츠 제작비">콘텐츠 제작비</option>
-                <option value="도구 구독료">도구 구독료</option>
-                <option value="외부 용역비">외부 용역비</option>
-                <option value="소재 구매비">소재 구매비</option>
-                <option value="기타">기타</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">긴급도</label>
-              <select
-                name="priority"
-                value={formData.priority}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="낮음">낮음</option>
-                <option value="보통">보통</option>
-                <option value="높음">높음</option>
-                <option value="긴급">긴급</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">금액 (원) *</label>
-              <input
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                placeholder="0"
-                min="0"
-                step="1000"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">희망 완료일</label>
-              <input
-                type="date"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">연관 캠페인</label>
-              <select
-                name="campaignId"
-                value={formData.campaignId}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">선택하지 않음</option>
-                {campaigns.map(campaign => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">상세 설명</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows="4"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                placeholder="구매요청에 대한 상세한 설명을 입력하세요"
-              />
-            </div>
-          </div>
-
-          {/* 관리자 전용 필드 */}
-          {isAdminRole && request && (
-            <div className="border-t pt-6">
-              <h4 className="text-lg font-semibold text-gray-800 mb-4">관리자 승인/거절</h4>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="승인 대기">승인 대기</option>
-                    <option value="검토 중">검토 중</option>
-                    <option value="승인됨">승인됨</option>
-                    <option value="거절됨">거절됨</option>
-                    <option value="보류">보류</option>
-                    <option value="구매 완료">구매 완료</option>
-                    <option value="정산 완료">정산 완료</option>
-                  </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">승인자 코멘트</label>
-                  <textarea
-                    name="approverComment"
-                    value={formData.approverComment}
-                    onChange={handleChange}
-                    rows="3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="승인 또는 거절에 대한 코멘트를 입력하세요"
-                  />
-                </div>
-
-                {formData.status === '거절됨' && (
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">거절 사유 *</label>
-                    <textarea
-                      name="rejectReason"
-                      value={formData.rejectReason}
-                      onChange={handleChange}
-                      rows="3"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
-                      placeholder="거절 사유를 상세히 입력하세요"
-                      required={formData.status === '거절됨'}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 액션 버튼 */}
-          <div className="flex justify-end space-x-3 pt-6 border-t">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              취소
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? '저장 중...' : (request ? '수정' : '작성')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 export default PurchaseRequestsPage;

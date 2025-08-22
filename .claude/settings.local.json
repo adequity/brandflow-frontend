@@ -3,10 +3,34 @@
     "allow": [
       "Bash(choco install:*)",
       "Bash(npm run build:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(node:*)",
+      "Bash(python manage.py startapp:*)",
+      "Bash(python manage.py:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_console_messages",
+      "Bash(npm start)",
+      "Bash(taskkill:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_select_option"
     ],
     "deny": [],
     "ask": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\Users\\User\\Desktop\\brandflow-backend\\src\\models",
+      "C:\\c\\Users\\User\\Desktop",
+      "C:\\Users\\User\\Desktop\\brandflow-backend"
+    ]
   }
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import CampaignList from '../components/campaigns/CampaignList';
 import CampaignDetail from '../components/campaigns/CampaignDetail';
 
-const CampaignManagement = ({ users, initialCampaigns, setCampaigns, onDataChange }) => {
+const CampaignManagement = ({ users, initialCampaigns, setCampaigns, onDataChange, loggedInUser }) => {
     // [수정] 전체 캠페인 객체 대신 ID만 저장하여 데이터 정합성을 보장합니다.
     const [selectedCampaignId, setSelectedCampaignId] = useState(null);
 
@@ -19,6 +19,7 @@ const CampaignManagement = ({ users, initialCampaigns, setCampaigns, onDataChang
                 users={users}
                 // [수정] 캠페인 객체 대신 ID를 전달하도록 onSelectCampaign을 변경합니다.
                 onSelectCampaign={setSelectedCampaignId}
+                currentUser={loggedInUser}
             />
         );
     }
@@ -30,6 +31,7 @@ const CampaignManagement = ({ users, initialCampaigns, setCampaigns, onDataChang
             onBack={() => setSelectedCampaignId(null)}
             setCampaigns={setCampaigns}
             onDataChange={onDataChange}
+            loggedInUser={loggedInUser}
         />
     );
 };
