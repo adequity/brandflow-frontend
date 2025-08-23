@@ -73,10 +73,17 @@ const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
 
             const logoData = response.data;
             
-            // localStorage에도 저장하여 즉시 반영
-            localStorage.setItem('companyLogo', JSON.stringify({
+            // 현재 사용자의 회사 정보 가져오기
+            const userData = localStorage.getItem('user');
+            const user = userData ? JSON.parse(userData) : null;
+            const companyName = user?.company || 'default';
+            
+            // 회사별 localStorage에 저장하여 즉시 반영
+            const companyLogoKey = `companyLogo_${companyName}`;
+            localStorage.setItem(companyLogoKey, JSON.stringify({
                 logoUrl: logoData.logoUrl,
-                uploadedAt: logoData.uploadedAt
+                uploadedAt: logoData.uploadedAt,
+                companyId: logoData.companyId
             }));
             
             onLogoUpdate?.({
@@ -106,8 +113,14 @@ const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
             // API 호출로 로고 제거
             await api.delete('/api/company/logo');
 
-            // localStorage에서도 제거
-            localStorage.removeItem('companyLogo');
+            // 현재 사용자의 회사 정보 가져오기
+            const userData = localStorage.getItem('user');
+            const user = userData ? JSON.parse(userData) : null;
+            const companyName = user?.company || 'default';
+            
+            // 회사별 localStorage에서 제거
+            const companyLogoKey = `companyLogo_${companyName}`;
+            localStorage.removeItem(companyLogoKey);
             onLogoUpdate?.(null);
             alert('로고가 제거되었습니다.');
         } catch (error) {
