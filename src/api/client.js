@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // API 백엔드 URL
 const DEV_BACKEND_URL = 'http://localhost:5004';
-const PROD_BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production.up.railway.app';
+const PROD_BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend2.onrender.com';
 
 const API_BASE = import.meta.env.DEV 
   ? DEV_BACKEND_URL // 개발환경
