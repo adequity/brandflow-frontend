@@ -1,8 +1,8 @@
 // src/api/client.js
 import axios from 'axios';
 
-// API 백엔드 URL
-const DEV_BACKEND_URL = 'http://localhost:5004';
+// API 백엔드 URL (FastAPI 서버)
+const DEV_BACKEND_URL = 'http://127.0.0.1:8001';
 const PROD_BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend2.onrender.com';
 
 const API_BASE = import.meta.env.DEV 

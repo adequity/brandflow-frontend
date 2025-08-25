@@ -7,7 +7,6 @@ import { OrderProvider } from './contexts/OrderContext';
 // 각 UI 레이아웃과 로그인 페이지를 import 합니다.
 import LazyRoutes from './components/LazyRoutes';
 import Login from './pages/Login';
-import LoginDebug from './pages/LoginDebug';
 
 export default function App() {
     const [user, setUser] = useState(null);

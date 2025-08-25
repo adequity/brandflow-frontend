@@ -16,28 +16,27 @@ const Login = ({ onLogin, userType = 'admin' }) => {
     setLoading(true);
 
     try {
-      // Express API 로그인
+      // FastAPI 로그인 - JSON 형태로 전송
       console.log('로그인 시도:', { email, password });
       console.log('API Base URL:', api.defaults.baseURL);
       
-      const { data } = await api.post('/api/auth/login', { email, password });
+      const { data } = await api.post('/api/auth/login-json', { email, password });
       console.log('로그인 응답:', data);
       
-      // Express API는 사용자 정보를 직접 반환
-      if (data?.id) {
-        // 간단한 토큰 생성 (Express 백엔드가 JWT를 사용하지 않으므로)
-        const simpleToken = btoa(`${data.id}:${data.email}:${Date.now()}`);
-        localStorage.setItem('authToken', simpleToken);
+      // FastAPI는 JWT access_token과 사용자 정보를 반환
+      if (data?.access_token && data?.user) {
+        // JWT 토큰 저장
+        localStorage.setItem('authToken', data.access_token);
         
-        // 사용자 정보 저장 (Express API 구조에 맞게)
+        // 사용자 정보 저장 (FastAPI 구조에 맞게)
         const userInfo = {
-          id: data.id,
-          name: data.name || data.username || '',
-          email: data.email,
-          role: data.role || '클라이언트',
-          company: data.company || '',
-          contact: data.contact || '',
-          incentiveRate: data.incentiveRate || 0
+          id: data.user.id,
+          name: data.user.name || '',
+          email: data.user.email,
+          role: data.user.role || '클라이언트',
+          company: data.user.company || '',
+          contact: data.user.contact || '',
+          incentiveRate: data.user.incentive_rate || 0
         };
         
         localStorage.setItem('user', JSON.stringify(userInfo));

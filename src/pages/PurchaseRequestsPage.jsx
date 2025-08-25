@@ -70,82 +70,14 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
           console.log('구매요청:', transformedRequests.length, '개');
           setRequests(transformedRequests);
         } catch (apiError) {
-          console.warn('PurchaseRequestsPage: API 호출 실패, 더미 데이터 사용', apiError);
-          // API 실패시 더미 데이터 사용
-          const dummyRequests = [
-            {
-              id: 1,
-              title: '페이스북 광고비',
-              description: '브랜드 A 마케팅 캠페인용 페이스북 광고비',
-              amount: 3000000,
-              resourceType: '광고비',
-              priority: '높음',
-              status: '승인됨',
-              requesterId: 3,
-              requester: { name: '직원1', email: 'staff1@agency.com' },
-              requestedDate: new Date().toISOString(),
-              dueDate: new Date(Date.now() + 86400000).toISOString(),
-              campaign: { name: '브랜드 A 마케팅 캠페인' }
-            },
-        {
-          id: 2,
-          title: '콘텐츠 제작비',
-          description: '인스타그램 포스트 디자인 제작',
-          amount: 800000,
-          resourceType: '콘텐츠 제작비',
-          priority: '보통',
-          status: '승인 대기',
-          requesterId: 4,
-          requester: { name: '직원2', email: 'staff2@agency.com' },
-          requestedDate: new Date(Date.now() - 86400000).toISOString(), // 어제
-          dueDate: new Date(Date.now() + 3 * 86400000).toISOString() // 3일 후
-        },
-        {
-          id: 3,
-          title: '도구 구독료',
-          description: 'Canva Pro 월간 구독',
-          amount: 15000,
-          resourceType: '도구 구독료',
-          priority: '낮음',
-          status: '검토 중',
-          requesterId: 3,
-          requester: { name: '직원1', email: 'staff1@agency.com' },
-          requestedDate: new Date(Date.now() - 2 * 86400000).toISOString(), // 2일 전
-          dueDate: new Date(Date.now() + 7 * 86400000).toISOString() // 7일 후
-        }
-      ];
-      
-      // 필터 적용
-      let filteredRequests = dummyRequests;
-      if (filters.status) {
-        filteredRequests = filteredRequests.filter(r => r.status === filters.status);
-      }
-      if (filters.resourceType) {
-        filteredRequests = filteredRequests.filter(r => r.resourceType === filters.resourceType);
-      }
-      
-          setRequests(filteredRequests);
+          console.warn('PurchaseRequestsPage: API 호출 실패', apiError);
+          // API 실패시 빈 배열로 설정
+          setRequests([]);
         }
       } else {
-        console.warn('PurchaseRequestsPage: 인증 토큰이 없어 더미 데이터 사용');
-        // 토큰이 없으면 더미 데이터 사용
-        const dummyRequests = [
-          {
-            id: 1,
-            title: '페이스북 광고비',
-            description: '브랜드 A 마케팅 캠페인용 페이스북 광고비',
-            amount: 3000000,
-            resourceType: '광고비',
-            priority: '높음',
-            status: '승인됨',
-            requesterId: 3,
-            requester: { name: '직원1', email: 'staff1@agency.com' },
-            requestedDate: new Date().toISOString(),
-            dueDate: new Date(Date.now() + 86400000).toISOString(),
-            campaign: { name: '브랜드 A 마케팅 캠페인' }
-          }
-        ];
-        setRequests(dummyRequests);
+        console.warn('PurchaseRequestsPage: 인증 토큰이 없음');
+        // 토큰이 없으면 빈 배열로 설정
+        setRequests([]);
       }
     } catch (error) {
       console.error('구매요청 목록 로딩 실패:', error);

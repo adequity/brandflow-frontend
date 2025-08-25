@@ -5,16 +5,7 @@ import api from '../api/client';
 
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
-import Dashboard from './Dashboard';
-import CampaignListPage from './CampaignListPage';
-import CampaignDetailPage from './CampaignDetailPage';
-import UserManagement from './UserManagement';
-import PurchaseRequestsPage from './PurchaseRequestsPage';
-import ProductManagement from './ProductManagement';
-import SalesRegistration from './SalesRegistration';
-import SystemSettings from './SystemSettings';
-import MonthlyIncentives from './MonthlyIncentives';
-import OrderManagement from './OrderManagement';
+// 모든 페이지를 지연 로딩으로 변경하여 번들 크기 최적화
 import LazyRoutes from '../components/LazyRoutes';
 
 export default function AdminUI({ user, onLogout }) {

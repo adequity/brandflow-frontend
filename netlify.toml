@@ -5,8 +5,56 @@
 [build.environment]
   NODE_ENV = "production"
   NODE_VERSION = "18"
+  VITE_API_BASE_URL = "https://brandflow-backend2.onrender.com"
+  VITE_WS_BASE_URL = "wss://brandflow-backend2.onrender.com"
 
+# SPA 라우팅 처리
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# API 프록시 (선택사항 - CORS 문제 해결용)
+[[redirects]]
+  from = "/api/*"
+  to = "https://brandflow-backend2.onrender.com/api/:splat"
+  status = 200
+  force = false
+
+# 보안 헤더 적용
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff" 
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://brandflow-backend2.onrender.com wss://brandflow-backend2.onrender.com;"
+
+# 정적 자산 캐시 설정  
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# 프리렌더링 설정 (선택사항)
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true

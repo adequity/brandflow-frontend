@@ -107,49 +107,7 @@ const SalesRegistration = ({ loggedInUser }) => {
       
       const salesData = await Promise.all(salesPromises);
       
-      // 기존 더미 데이터도 유지 (호환성을 위해)
-      const dummySales = [
-        {
-          id: 1,
-          saleNumber: 'S2024-001',
-          projectName: '브랜드 A 마케팅 캠페인',
-          projectBudget: 5000000,
-          clientName: '브랜드 A',
-          clientContact: '김대표',
-          assignedEmployee: { name: '직원1', company: '대행사A' },
-          invoiceIssued: true,
-          paymentCompleted: true,
-          totalSales: 4500000,
-          marginRate: 15,
-          status: '승인',
-          saleDate: new Date().toISOString(),
-          quantity: 1,
-          actualSellingPrice: 4500000,
-          actualCostPrice: 3825000,
-          salesPersonId: loggedInUser?.id || 1
-        },
-        {
-          id: 2,
-          saleNumber: 'S2024-002', 
-          projectName: '브랜드 B SNS 광고',
-          projectBudget: 3000000,
-          clientName: '브랜드 B',
-          clientContact: '이팀장',
-          assignedEmployee: { name: '직원2', company: '대행사A' },
-          invoiceIssued: false,
-          paymentCompleted: false,
-          totalSales: 2800000,
-          marginRate: 12,
-          status: '검토중',
-          saleDate: new Date().toISOString(),
-          quantity: 1,
-          actualSellingPrice: 2800000,
-          actualCostPrice: 2464000,
-          salesPersonId: loggedInUser?.id || 1
-        }
-      ];
-      
-      // 실제 캠페인 데이터와 더미 데이터 합치기
+      // API에서 매출 데이터 로드 (현재는 빈 배열)
       setSales(salesData);
       
       // 통계 계산
@@ -179,12 +137,9 @@ const SalesRegistration = ({ loggedInUser }) => {
 
   const fetchProducts = async () => {
     try {
-      // 더미 상품 데이터
-      const dummyProducts = [
-        { id: 1, name: 'SNS 마케팅 패키지', category: 'SNS 광고', sellingPrice: 2000000, costPrice: 1600000 },
-        { id: 2, name: '브랜드 컨설팅', category: '컨설팅', sellingPrice: 5000000, costPrice: 4000000 }
-      ];
-      setProducts(dummyProducts);
+      // API에서 상품 데이터 로드 (현재는 빈 배열)
+      const productsData = [];
+      setProducts(productsData);
     } catch (error) {
       console.error('상품 목록 로딩 실패:', error);
     }
@@ -192,12 +147,9 @@ const SalesRegistration = ({ loggedInUser }) => {
 
   const fetchCampaigns = async () => {
     try {
-      // 더미 캠페인 데이터
-      const dummyCampaigns = [
-        { id: 1, name: '브랜드 A 캠페인' },
-        { id: 2, name: '브랜드 B 캠페인' }
-      ];
-      setCampaigns(dummyCampaigns);
+      // API에서 캠페인 데이터 로드 (현재는 빈 배열)
+      const campaignsData = [];
+      setCampaigns(campaignsData);
     } catch (error) {
       console.error('캠페인 목록 로딩 실패:', error);
     }
@@ -222,12 +174,9 @@ const SalesRegistration = ({ loggedInUser }) => {
     if (loggedInUser?.role !== '대행사 어드민') return;
     
     try {
-      // 더미 직원 데이터
-      const dummyEmployees = [
-        { id: 3, name: '직원1', email: 'staff1@agency.com', company: '대행사A' },
-        { id: 4, name: '직원2', email: 'staff2@agency.com', company: '대행사A' }
-      ];
-      setEmployees(dummyEmployees);
+      // API에서 직원 데이터 로드 (현재는 빈 배열)
+      const employeesData = [];
+      setEmployees(employeesData);
     } catch (error) {
       console.error('직원 목록 로딩 실패:', error);
     }

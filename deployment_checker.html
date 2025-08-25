@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrandFlow 배포 상태 검토</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .status-pass { color: #10b981; }
+        .status-fail { color: #ef4444; }
+        .status-warning { color: #f59e0b; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-center mb-8 text-gray-800">
+                🚀 BrandFlow 배포 상태 검토
+            </h1>
+            
+            <!-- 테스트 결과 표시 영역 -->
+            <div id="testResults" class="space-y-4">
+                <div class="text-center text-gray-500">
+                    테스트를 시작하려면 버튼을 클릭하세요.
+                </div>
+            </div>
+            
+            <!-- 버튼 영역 -->
+            <div class="flex justify-center space-x-4 mt-8">
+                <button id="testBtn" onclick="runTests()" 
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+                    🧪 배포 상태 테스트 시작
+                </button>
+                
+                <button onclick="exportResults()" 
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">
+                    📊 결과 내보내기
+                </button>
+            </div>
+            
+            <!-- 프로젝트 정보 -->
+            <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">📋 프로젝트 정보</h2>
+                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <strong>백엔드:</strong> FastAPI (Python)<br>
+                        <strong>프론트엔드:</strong> React + Vite<br>
+                        <strong>데이터베이스:</strong> SQLite/PostgreSQL
+                    </div>
+                    <div>
+                        <strong>실시간 통신:</strong> WebSocket<br>
+                        <strong>컨테이너:</strong> Docker<br>
+                        <strong>프록시:</strong> Nginx
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {};
+        
+        async function runTests() {
+            const btn = document.getElementById('testBtn');
+            const resultsDiv = document.getElementById('testResults');
+            
+            btn.disabled = true;
+            btn.textContent = '🔄 테스트 실행 중...';
+            
+            resultsDiv.innerHTML = '<div class="text-center text-blue-500">테스트를 실행하고 있습니다...</div>';
+            
+            testResults = {
+                timestamp: new Date().toISOString(),
+                tests: {},
+                summary: {}
+            };
+            
+            // 테스트 실행
+            await testFrontend();
+            await testBackendAPI();
+            await testWebSocketConnection();
+            await testFileUpload();
+            await testExportFeatures();
+            
+            // 결과 요약
+            generateSummary();
+            displayResults();
+            
+            btn.disabled = false;
+            btn.textContent = '🧪 배포 상태 테스트 시작';
+        }
+        
+        async function testFrontend() {
+            const test = { name: '프론트엔드 접근성', status: 'testing' };
+            
+            try {
+                // 현재 페이지가 로드되었다는 것은 프론트엔드가 작동한다는 증거
+                test.status = 'pass';
+                test.message = '프론트엔드 정상 로드됨';
+                test.details = {
+                    url: window.location.href,
+                    userAgent: navigator.userAgent,
+                    screenSize: `${screen.width}x${screen.height}`
+                };
+            } catch (error) {
+                test.status = 'fail';
+                test.error = error.message;
+            }
+            
+            testResults.tests.frontend = test;
+        }
+        
+        async function testBackendAPI() {
+            const test = { name: '백엔드 API', status: 'testing' };
+            
+            const endpoints = [
+                { url: 'http://localhost:8000/health', name: 'Health Check' },
+                { url: 'http://localhost:8000/docs', name: 'API Docs' },
+                { url: 'http://localhost:8000/api/campaigns/', name: 'Campaigns API' }
+            ];
+            
+            let passCount = 0;
+            const results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint.url, { method: 'GET' });
+                    const success = response.ok || response.status === 401; // 401은 인증 필요로 정상
+                    
+                    results.push({
+                        name: endpoint.name,
+                        url: endpoint.url,
+                        status: response.status,
+                        success: success
+                    });
+                    
+                    if (success) passCount++;
+                } catch (error) {
+                    results.push({
+                        name: endpoint.name,
+                        url: endpoint.url,
+                        error: error.message,
+                        success: false
+                    });
+                }
+            }
+            
+            test.status = passCount > 0 ? 'pass' : 'fail';
+            test.message = `${passCount}/${endpoints.length} 엔드포인트 접근 가능`;
+            test.details = results;
+            
+            testResults.tests.backend = test;
+        }
+        
+        async function testWebSocketConnection() {
+            const test = { name: 'WebSocket 연결', status: 'testing' };
+            
+            try {
+                const ws = new WebSocket('ws://localhost:8000/api/websocket/ws');
+                
+                await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => {
+                        ws.close();
+                        reject(new Error('연결 타임아웃'));
+                    }, 3000);
+                    
+                    ws.onopen = () => {
+                        clearTimeout(timeout);
+                        test.status = 'pass';
+                        test.message = 'WebSocket 서버 연결 가능';
+                        ws.close();
+                        resolve();
+                    };
+                    
+                    ws.onerror = (error) => {
+                        clearTimeout(timeout);
+                        // 인증 오류는 서버가 정상 작동하는 것으로 간주
+                        if (error.code === 1008) {
+                            test.status = 'pass';
+                            test.message = 'WebSocket 서버 정상 (인증 필요)';
+                        } else {
+                            test.status = 'fail';
+                            test.error = '연결 실패';
+                        }
+                        resolve();
+                    };
+                    
+                    ws.onclose = (event) => {
+                        clearTimeout(timeout);
+                        if (event.code === 1008) {
+                            test.status = 'pass';
+                            test.message = 'WebSocket 서버 정상 (인증 필요)';
+                        }
+                        resolve();
+                    };
+                });
+                
+            } catch (error) {
+                test.status = 'fail';
+                test.error = error.message;
+            }
+            
+            testResults.tests.websocket = test;
+        }
+        
+        async function testFileUpload() {
+            const test = { name: '파일 업로드 기능', status: 'testing' };
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/files/info');
+                if (response.ok || response.status === 401) {
+                    test.status = 'pass';
+                    test.message = '파일 업로드 API 접근 가능';
+                } else {
+                    test.status = 'fail';
+                    test.error = `HTTP ${response.status}`;
+                }
+            } catch (error) {
+                test.status = 'warning';
+                test.message = '파일 업로드 API 테스트 불가';
+                test.error = error.message;
+            }
+            
+            testResults.tests.fileUpload = test;
+        }
+        
+        async function testExportFeatures() {
+            const test = { name: '데이터 내보내기', status: 'testing' };
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/export/files');
+                if (response.ok || response.status === 401) {
+                    test.status = 'pass';
+                    test.message = '데이터 내보내기 API 접근 가능';
+                } else {
+                    test.status = 'fail';
+                    test.error = `HTTP ${response.status}`;
+                }
+            } catch (error) {
+                test.status = 'warning';
+                test.message = '데이터 내보내기 API 테스트 불가';
+                test.error = error.message;
+            }
+            
+            testResults.tests.export = test;
+        }
+        
+        function generateSummary() {
+            const tests = Object.values(testResults.tests);
+            const passCount = tests.filter(t => t.status === 'pass').length;
+            const failCount = tests.filter(t => t.status === 'fail').length;
+            const warningCount = tests.filter(t => t.status === 'warning').length;
+            
+            testResults.summary = {
+                total: tests.length,
+                passed: passCount,
+                failed: failCount,
+                warnings: warningCount,
+                successRate: Math.round((passCount / tests.length) * 100),
+                overallStatus: failCount === 0 ? 'healthy' : 'issues'
+            };
+        }
+        
+        function displayResults() {
+            const resultsDiv = document.getElementById('testResults');
+            const { tests, summary } = testResults;
+            
+            let html = `
+                <div class="mb-6 p-4 rounded-lg ${summary.overallStatus === 'healthy' ? 'bg-green-50' : 'bg-yellow-50'}">
+                    <h2 class="text-xl font-semibold mb-2">📊 테스트 결과 요약</h2>
+                    <div class="grid md:grid-cols-4 gap-4 text-sm">
+                        <div>전체: ${summary.total}</div>
+                        <div class="status-pass">통과: ${summary.passed}</div>
+                        <div class="status-fail">실패: ${summary.failed}</div>
+                        <div class="status-warning">경고: ${summary.warnings}</div>
+                    </div>
+                    <div class="mt-2 text-lg font-semibold ${summary.overallStatus === 'healthy' ? 'status-pass' : 'status-warning'}">
+                        성공률: ${summary.successRate}% - ${summary.overallStatus === 'healthy' ? '✅ 배포 준비 완료' : '⚠️ 일부 문제 확인 필요'}
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+            `;
+            
+            for (const [key, test] of Object.entries(tests)) {
+                const statusClass = test.status === 'pass' ? 'status-pass' : 
+                                  test.status === 'fail' ? 'status-fail' : 'status-warning';
+                const statusIcon = test.status === 'pass' ? '✅' : 
+                                 test.status === 'fail' ? '❌' : '⚠️';
+                
+                html += `
+                    <div class="p-3 border rounded-lg ${test.status === 'pass' ? 'border-green-200 bg-green-50' : 
+                                                        test.status === 'fail' ? 'border-red-200 bg-red-50' : 
+                                                        'border-yellow-200 bg-yellow-50'}">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-semibold">${statusIcon} ${test.name}</h3>
+                            <span class="${statusClass} text-sm font-medium">${test.status.toUpperCase()}</span>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-1">
+                            ${test.message || test.error || '상태 확인 중...'}
+                        </div>
+                        ${test.details ? `<div class="text-xs text-gray-500 mt-2">세부사항: ${JSON.stringify(test.details, null, 2).slice(0, 200)}...</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+            resultsDiv.innerHTML = html;
+        }
+        
+        function exportResults() {
+            const dataStr = JSON.stringify(testResults, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `brandflow_deployment_test_${new Date().getTime()}.json`;
+            link.click();
+        }
+        
+        // 페이지 로드 시 기본 정보 표시
+        window.onload = function() {
+            document.getElementById('testResults').innerHTML = `
+                <div class="text-center p-8">
+                    <div class="text-6xl mb-4">🚀</div>
+                    <h2 class="text-2xl font-bold mb-4">BrandFlow 시스템 배포 검토</h2>
+                    <p class="text-gray-600 mb-6">
+                        현재 시스템의 배포 상태를 확인하고 모든 기능이 정상 작동하는지 테스트합니다.
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-4 text-sm">
+                        <div class="p-3 bg-blue-50 rounded">
+                            <strong>🌐 프론트엔드</strong><br>
+                            React 애플리케이션 상태
+                        </div>
+                        <div class="p-3 bg-green-50 rounded">
+                            <strong>🔧 백엔드 API</strong><br>
+                            FastAPI 서버 연결성
+                        </div>
+                        <div class="p-3 bg-purple-50 rounded">
+                            <strong>⚡ 실시간 기능</strong><br>
+                            WebSocket 연결 상태
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>

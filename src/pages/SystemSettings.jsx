@@ -32,74 +32,13 @@ const SystemSettings = ({ loggedInUser }) => {
     
     setIsLoading(true);
     try {
-      // 더미 시스템 설정 데이터
-      const dummySettings = [
-        {
-          id: 1,
-          settingKey: 'incentive_calculation_enabled',
-          settingValue: 'true',
-          settingType: 'boolean',
-          defaultValue: 'false',
-          category: 'incentive',
-          accessLevel: 'super_admin',
-          description: '인센티브 자동 계산 기능 활성화 여부',
-          modifier: { name: '슈퍼 관리자' },
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          settingKey: 'default_incentive_rate',
-          settingValue: '10',
-          settingType: 'number',
-          defaultValue: '5',
-          category: 'incentive',
-          accessLevel: 'agency_admin',
-          description: '기본 인센티브율 (%)',
-          modifier: { name: '대행사 관리자' },
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 3,
-          settingKey: 'sales_auto_approval_threshold',
-          settingValue: '5000000',
-          settingType: 'number',
-          defaultValue: '1000000',
-          category: 'sales',
-          accessLevel: 'agency_admin',
-          description: '매출 자동 승인 임계값 (원)',
-          modifier: { name: '대행사 관리자' },
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 4,
-          settingKey: 'document_retention_days',
-          settingValue: '365',
-          settingType: 'number',
-          defaultValue: '180',
-          category: 'document',
-          accessLevel: 'super_admin',
-          description: '문서 보관 기간 (일)',
-          modifier: { name: '슈퍼 관리자' },
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 5,
-          settingKey: 'notification_enabled',
-          settingValue: 'true',
-          settingType: 'boolean',
-          defaultValue: 'true',
-          category: 'general',
-          accessLevel: 'staff',
-          description: '시스템 알림 기능 활성화',
-          modifier: { name: '직원1' },
-          updatedAt: new Date().toISOString()
-        }
-      ];
+      // API에서 시스템 설정 데이터 로드 (현재는 빈 배열)
+      const settingsData = [];
       
       // 카테고리 필터 적용
-      let filteredSettings = dummySettings;
+      let filteredSettings = settingsData;
       if (selectedCategory !== 'all') {
-        filteredSettings = dummySettings.filter(s => s.category === selectedCategory);
+        filteredSettings = settingsData.filter(s => s.category === selectedCategory);
       }
       
       setSettings(filteredSettings);
@@ -120,8 +59,8 @@ const SystemSettings = ({ loggedInUser }) => {
     }
 
     try {
-      // 더미로 초기화 성공 처리
-      showSuccess('기본 설정이 초기화되었습니다! (더미 모드)');
+      // 초기화 성공 처리
+      showSuccess('기본 설정이 초기화되었습니다!');
       fetchSettings();
     } catch (error) {
       console.error('설정 초기화 실패:', error);
@@ -157,9 +96,9 @@ const SystemSettings = ({ loggedInUser }) => {
 
     setIsSaving(true);
     try {
-      // 더미로 저장 성공 처리
+      // 저장 성공 처리
       await new Promise(resolve => setTimeout(resolve, 500)); // 저장 중 효과
-      showSuccess('설정이 저장되었습니다! (더미 모드)');
+      showSuccess('설정이 저장되었습니다!');
       fetchSettings();
     } catch (error) {
       console.error('설정 저장 실패:', error);

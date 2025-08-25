@@ -25,7 +25,27 @@
       "mcp__playwright__browser_select_option",
       "WebSearch",
       "mcp__playwright__browser_take_screenshot",
-      "mcp__playwright__browser_close"
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_handle_dialog",
+      "mcp__playwright__browser_tab_new",
+      "mcp__playwright__browser_fill_form",
+      "Bash(docker-compose up:*)",
+      "Bash(docker:*)",
+      "Bash(pip install:*)",
+      "Bash(powershell:*)",
+      "Bash(where psql)",
+      "Bash(copy brandflow.db brandflow_backup.db)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" --version)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -U postgres -d postgres -c \"SELECT version();\")",
+      "Bash(setup_postgres.bat)",
+      "Bash(cmd:*)",
+      "Bash(copy .env.postgresql .env)",
+      "Bash(set PGPASSWORD=postgres)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\17\\bin\\psql.exe\" -U postgres -d postgres -c \"SELECT version();\")",
+      "Bash(create_db.bat)",
+      "Bash(sc query:*)",
+      "Bash(for i in {1..5})",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": [],
@@ -33,7 +53,8 @@
     "additionalDirectories": [
       "C:\\Users\\User\\Desktop\\brandflow-backend\\src\\models",
       "C:\\c\\Users\\User\\Desktop",
-      "C:\\Users\\User\\Desktop\\brandflow-backend"
+      "C:\\Users\\User\\Desktop\\brandflow-backend",
+      "C:\\Users\\User\\Desktop\\brandflow-fastapi"
     ]
   }
 }

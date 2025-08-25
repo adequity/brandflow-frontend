@@ -146,48 +146,31 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         };
         
         try {
-          // 구매요청 데이터 가져오기
+          // 구매요청 데이터 가져오기 (구매요청과 발주요청은 동일한 데이터)
           const purchaseResponse = await api.get('/api/purchase-requests');
           const purchaseRequests = purchaseResponse.data.requests || [];
           
-          // 발주요청 데이터 가져오기
-          const orderResponse = await api.get('/api/purchase-requests');
-          const orderRequests = orderResponse.data.requests || [];
-          
-          // 구매요청 통계 계산
-          const purchasePending = purchaseRequests.filter(p => p.status === '승인 대기').length;
-          const purchaseApproved = purchaseRequests.filter(p => p.status === '승인됨' || p.status === '완료됨').length;
-          const purchaseTotalAmount = purchaseRequests.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-          
-          // 발주요청 통계 계산
-          const orderPending = orderRequests.filter(o => o.status === '승인 대기').length;
-          const orderApproved = orderRequests.filter(o => o.status === '승인됨' || o.status === '완료됨').length;
-          const orderTotalAmount = orderRequests.reduce((sum, o) => sum + (parseFloat(o.amount) || 0), 0);
+          // 통계 계산
+          const pending = purchaseRequests.filter(p => p.status === '승인 대기').length;
+          const approved = purchaseRequests.filter(p => p.status === '승인됨' || p.status === '완료됨').length;
+          const totalAmount = purchaseRequests.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
           
           // 이번 달 금액 계산
           const thisMonth = new Date();
-          const thisMonthPurchase = purchaseRequests
+          const thisMonthAmount = purchaseRequests
             .filter(p => {
               const createdDate = new Date(p.created_at || p.createdAt);
               return createdDate.getFullYear() === thisMonth.getFullYear() && 
                      createdDate.getMonth() === thisMonth.getMonth();
             })
             .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-            
-          const thisMonthOrder = orderRequests
-            .filter(o => {
-              const createdDate = new Date(o.created_at || o.createdAt);
-              return createdDate.getFullYear() === thisMonth.getFullYear() && 
-                     createdDate.getMonth() === thisMonth.getMonth();
-            })
-            .reduce((sum, o) => sum + (parseFloat(o.amount) || 0), 0);
           
           realPurchaseStats = {
-            totalRequests: purchaseRequests.length + orderRequests.length,
-            pendingRequests: purchasePending + orderPending,
-            approvedRequests: purchaseApproved + orderApproved,
-            totalAmount: purchaseTotalAmount + orderTotalAmount,
-            thisMonthAmount: thisMonthPurchase + thisMonthOrder
+            totalRequests: purchaseRequests.length,
+            pendingRequests: pending,
+            approvedRequests: approved,
+            totalAmount: totalAmount,
+            thisMonthAmount: thisMonthAmount
           };
           
         } catch (error) {

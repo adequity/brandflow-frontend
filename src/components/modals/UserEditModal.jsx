@@ -27,13 +27,21 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
             });
         } else {
             console.log('UserEditModal - setting formData for new user');
+            // 기본 역할을 로그인한 사용자에 따라 설정
+            let defaultRole = '클라이언트';
+            if (loggedInUser?.role === '대행사 어드민') {
+                defaultRole = '직원'; // 대행사 어드민은 기본적으로 직원 생성
+            } else if (loggedInUser?.role === '직원') {
+                defaultRole = '클라이언트'; // 직원은 클라이언트만 생성 가능
+            }
+            
             setFormData({
                 name: '',
                 email: '',
                 password: '',
                 contact: '',
                 company: (loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : '',
-                role: '클라이언트',
+                role: defaultRole,
                 incentiveRate: 0,
             });
         }

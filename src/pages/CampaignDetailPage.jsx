@@ -39,6 +39,8 @@ const CampaignDetailPage = () => {
     const [editingValue, setEditingValue] = useState('');
     const [orderRequestConfirm, setOrderRequestConfirm] = useState({ isOpen: false, post: null });
     const [reorderRequestConfirm, setReorderRequestConfirm] = useState({ isOpen: false, post: null });
+    const [isCampaignEditing, setIsCampaignEditing] = useState(false);
+    const [campaignEditData, setCampaignEditData] = useState({ name: '', description: '' });
     const [filters, setFilters] = useState({
         workType: 'all',
         status: 'all', 
@@ -501,6 +503,32 @@ const CampaignDetailPage = () => {
             showError('문서 생성에 실패했습니다.');
         }
     };
+
+    // 캠페인 편집 기능
+    const handleCampaignEdit = () => {
+        setCampaignEditData({
+            name: campaign.name || '',
+            description: campaign.description || ''
+        });
+        setIsCampaignEditing(true);
+    };
+
+    const handleCampaignSave = async () => {
+        try {
+            const response = await api.put(`/api/campaigns/${campaignId}`, campaignEditData);
+            setCampaign(prev => ({ ...prev, ...response.data }));
+            setIsCampaignEditing(false);
+            showSuccess('캠페인 정보가 성공적으로 수정되었습니다!');
+        } catch (error) {
+            console.error('캠페인 수정 실패:', error);
+            showError('캠페인 수정에 실패했습니다.');
+        }
+    };
+
+    const handleCampaignCancel = () => {
+        setIsCampaignEditing(false);
+        setCampaignEditData({ name: '', description: '' });
+    };
     
     const canRegisterOutline = selectedRows.length === 1 && (filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.topicStatus === '승인' && !(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.outline;
     const canRegisterLink = selectedRows.length === 1;
@@ -517,8 +545,21 @@ const CampaignDetailPage = () => {
         <div className="p-6 h-full flex flex-col">
             <div className="flex-shrink-0">
                 <button onClick={() => navigate('/admin/campaigns')} className="text-sm text-blue-600 hover:underline mb-2">&larr; 전체 캠페인 목록으로</button>
-                <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
-                <p className="text-gray-600 mt-1">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
+                        <p className="text-gray-600 mt-1">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
+                    </div>
+                    <button 
+                        onClick={handleCampaignEdit}
+                        className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 flex items-center space-x-1"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>캠페인 편집</span>
+                    </button>
+                </div>
             </div>
             <div className="flex-grow bg-white p-6 rounded-xl border border-gray-200 flex flex-col mt-4">
                 <div className="flex justify-between items-center mb-4 flex-shrink-0">
@@ -816,6 +857,56 @@ const CampaignDetailPage = () => {
                 confirmText="재요청"
                 cancelText="취소"
             />
+
+            {/* 캠페인 편집 모달 */}
+            {isCampaignEditing && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 className="text-lg font-semibold mb-4">캠페인 편집</h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    캠페인명
+                                </label>
+                                <input
+                                    type="text"
+                                    value={campaignEditData.name}
+                                    onChange={(e) => setCampaignEditData(prev => ({ ...prev, name: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="캠페인명을 입력하세요"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    설명
+                                </label>
+                                <textarea
+                                    value={campaignEditData.description}
+                                    onChange={(e) => setCampaignEditData(prev => ({ ...prev, description: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="캠페인 설명을 입력하세요"
+                                    rows="3"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end space-x-2 mt-6">
+                            <button
+                                onClick={handleCampaignCancel}
+                                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleCampaignSave}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                                disabled={!campaignEditData.name.trim()}
+                            >
+                                저장
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
