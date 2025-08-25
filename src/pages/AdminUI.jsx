@@ -296,11 +296,11 @@ export default function AdminUI({ user, onLogout }) {
         <Header title={getPageTitle()} onLogout={onLogout} user={user} />
         <div className="flex-1 overflow-y-auto">
           <Routes>
-            <Route path="dashboard" element={<Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
+            <Route path="dashboard" element={<LazyRoutes.Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
             <Route
               path="campaigns"
               element={
-                <CampaignListPage
+                <LazyRoutes.CampaignListPage
                   campaigns={campaigns}
                   setCampaigns={setCampaigns}
                   users={users}
@@ -310,17 +310,17 @@ export default function AdminUI({ user, onLogout }) {
             />
             <Route
               path="campaigns/:campaignId"
-              element={<CampaignDetailPage campaigns={campaigns} setCampaigns={setCampaigns} />}
+              element={<LazyRoutes.CampaignDetailPage campaigns={campaigns} setCampaigns={setCampaigns} />}
             />
-            <Route path="purchase-requests" element={<PurchaseRequestsPage loggedInUser={user} />} />
-            <Route path="order-management" element={<OrderManagement loggedInUser={user} />} />
-            <Route path="products" element={<ProductManagement loggedInUser={user} />} />
-            <Route path="sales" element={<SalesRegistration loggedInUser={user} />} />
-            <Route path="monthly-incentives" element={<MonthlyIncentives loggedInUser={user} />} />
+            <Route path="purchase-requests" element={<LazyRoutes.PurchaseRequestsPage loggedInUser={user} />} />
+            <Route path="order-management" element={<LazyRoutes.OrderManagement loggedInUser={user} />} />
+            <Route path="products" element={<LazyRoutes.ProductManagement loggedInUser={user} />} />
+            <Route path="sales" element={<LazyRoutes.SalesRegistration loggedInUser={user} />} />
+            <Route path="monthly-incentives" element={<LazyRoutes.MonthlyIncentives loggedInUser={user} />} />
             <Route path="calendar" element={<LazyRoutes.CalendarPage user={user} />} />
-            <Route path="system-settings" element={<SystemSettings loggedInUser={user} />} />
-            <Route path="users" element={<UserManagement loggedInUser={user} />} />
-            <Route path="*" element={<Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
+            <Route path="system-settings" element={<LazyRoutes.SystemSettings loggedInUser={user} />} />
+            <Route path="users" element={<LazyRoutes.UserManagement loggedInUser={user} />} />
+            <Route path="*" element={<LazyRoutes.Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
           </Routes>
         </div>
       </main>
