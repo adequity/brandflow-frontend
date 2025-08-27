@@ -1,13 +1,11 @@
 // src/api/client.js
 import axios from 'axios';
 
-// API 백엔드 URL (FastAPI 서버)
-const DEV_BACKEND_URL = 'http://127.0.0.1:8001';
-const PROD_BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-1.onrender.com';
+// API 백엔드 URL (실사용 Railway 서버)
+const DEV_BACKEND_URL = ''; // Vite 프록시 사용 - 빈 문자열
+const PROD_BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production.up.railway.app';
 
-const API_BASE = import.meta.env.DEV 
-  ? DEV_BACKEND_URL // 개발환경
-  : PROD_BACKEND_URL; // 프로덕션환경
+const API_BASE = PROD_BACKEND_URL; // 실사용 Railway 백엔드 사용
 
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);
@@ -162,6 +160,37 @@ api.withTimeout = (timeout) => {
     ...api.defaults,
     timeout
   });
+};
+
+// 승인/반려 관련 API 함수들
+export const approvalAPI = {
+  // 업무(Post) 승인/반려
+  approvePost: (postId, status, reason = '') => {
+    return api.put(`/api/posts/${postId}/approve`, { 
+      status, 
+      rejectionReason: reason 
+    });
+  },
+
+  // 발주요청 승인/반려
+  approvePurchaseRequest: (requestId, status, adjustmentAmount = 0, adjustmentReason = '', paymentMemo = '') => {
+    return api.put(`/api/purchase-requests/${requestId}/approve`, {
+      status,
+      adjustmentAmount,
+      adjustmentReason,
+      paymentMemo
+    });
+  },
+
+  // 인센티브 승인/반려
+  approveIncentive: (incentiveId, status, adjustmentAmount = 0, adjustmentReason = '', paymentMemo = '') => {
+    return api.put(`/api/monthly-incentives/${incentiveId}/approve`, {
+      status,
+      adjustmentAmount,
+      adjustmentReason,
+      paymentMemo
+    });
+  }
 };
 
 export default api;

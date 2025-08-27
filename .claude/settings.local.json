@@ -51,7 +51,12 @@
       "Bash(git push:*)",
       "Bash(start site_review_checklist.html)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(timeout:*)",
+      "Bash(npx vercel:*)",
+      "Bash(git init:*)",
+      "Bash(npm install:*)",
+      "Bash(railway login:*)"
     ],
     "deny": [],
     "ask": [],

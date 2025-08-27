@@ -13,6 +13,7 @@ import OutlineRegisterModal from '../modals/OutlineRegisterModal';
 import TopicRegisterModal from '../modals/TopicRegisterModal';
 import LinkRegisterModal from '../modals/LinkRegisterModal';
 import PurchaseRequestModal from '../modals/PurchaseRequestModal';
+import ApprovalButtons from '../ApprovalButtons';
 
 const formatUrl = (url) => {
   if (!url) return '#';
@@ -427,6 +428,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                 <th className="p-2">작성 시간</th>
                 <th className="p-2 bg-yellow-50">원가</th>
                 <th className="p-2 bg-blue-50">구매요청</th>
+                <th className="p-2 bg-green-50">승인/반려</th>
                 <th className="p-2">관리</th>
               </tr>
             </thead>
@@ -503,6 +505,25 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                           </button>
                         )}
                       </div>
+                    </td>
+                    <td className="p-2 bg-green-50">
+                      <ApprovalButtons
+                        resourceType="post"
+                        resource={{ ...post, Campaign: campaign }}
+                        onApproved={(updatedPost) => {
+                          const updatedPosts = posts.map(p => 
+                            p.id === updatedPost.id ? updatedPost : p
+                          );
+                          setPosts(updatedPosts);
+                        }}
+                        onRejected={(updatedPost) => {
+                          const updatedPosts = posts.map(p => 
+                            p.id === updatedPost.id ? updatedPost : p
+                          );
+                          setPosts(updatedPosts);
+                        }}
+                        compact={true}
+                      />
                     </td>
                     <td className="p-2">
                       <div className="flex items-center space-x-2">
