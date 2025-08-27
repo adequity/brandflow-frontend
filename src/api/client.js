@@ -5,7 +5,7 @@ import axios from 'axios';
 const DEV_BACKEND_URL = ''; // Vite 프록시 사용 - 빈 문자열
 const PROD_BACKEND_URL = 'https://brandflow-backend-production.up.railway.app';
 
-const API_BASE = PROD_BACKEND_URL; // 실사용 Railway 백엔드 사용
+const API_BASE = import.meta.env.PROD ? PROD_BACKEND_URL : DEV_BACKEND_URL; // 개발환경은 프록시, 프로덕션은 Railway
 
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);
