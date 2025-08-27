@@ -13,8 +13,7 @@ console.log('[API_BASE]', API_BASE);
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 
-    'Content-Type': 'application/json',
-    'User-Agent': 'BrandFlow-Frontend/1.0'
+    'Content-Type': 'application/json'
   },
   timeout: 30000, // 30초 타임아웃
 });
