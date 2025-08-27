@@ -184,7 +184,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
               </tr>
             </thead>
             <tbody>
-              {workTypes.map((workType) => (
+              {(Array.isArray(workTypes) ? workTypes : []).map((workType) => (
                 <tr key={workType.id} className="bg-white border-b hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="font-medium text-gray-900">{workType.name}</div>
