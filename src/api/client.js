@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // API 백엔드 URL (실사용 Railway 서버)
 const DEV_BACKEND_URL = ''; // Vite 프록시 사용 - 빈 문자열
-const PROD_BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production.up.railway.app';
+const PROD_BACKEND_URL = 'https://brandflow-backend-production.up.railway.app';
 
 const API_BASE = PROD_BACKEND_URL; // 실사용 Railway 백엔드 사용
 
