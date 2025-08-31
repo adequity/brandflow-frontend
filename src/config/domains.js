@@ -45,11 +45,22 @@ export const DEFAULT_BACKEND_URL = 'https://brandflow-backend-production-99ae.up
 // 백엔드 URL 자동 결정 함수
 export const getBackendUrlByDomain = (hostname) => {
   const config = DOMAIN_MAPPINGS[hostname];
+  let backendUrl;
+  
   if (config) {
     console.log(`🌐 도메인 매핑: ${hostname} → ${config.backend} (${config.environment})`);
-    return config.backend;
+    backendUrl = config.backend;
+  } else {
+    console.log(`⚠️ 알 수 없는 도메인: ${hostname}, 기본 URL 사용: ${DEFAULT_BACKEND_URL}`);
+    backendUrl = DEFAULT_BACKEND_URL;
   }
   
-  console.log(`⚠️ 알 수 없는 도메인: ${hostname}, 기본 URL 사용: ${DEFAULT_BACKEND_URL}`);
-  return DEFAULT_BACKEND_URL;
+  // Mixed Content 방지: 모든 URL을 강제로 HTTPS로 변환
+  if (backendUrl && backendUrl.startsWith('http://')) {
+    const httpsUrl = backendUrl.replace('http://', 'https://');
+    console.log(`🔒 HTTP → HTTPS 강제 변환: ${backendUrl} → ${httpsUrl}`);
+    return httpsUrl;
+  }
+  
+  return backendUrl;
 };

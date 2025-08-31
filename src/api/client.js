@@ -45,14 +45,36 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     try {
-      // URL 강제 HTTPS 변환 (Mixed Content 방지)
-      if (config.url && config.url.startsWith('http://')) {
-        config.url = config.url.replace('http://', 'https://');
-        console.log('HTTP를 HTTPS로 변환:', config.url);
+      // 강력한 HTTPS 강제 변환 (Mixed Content 완전 방지)
+      
+      // 1. 절대 URL의 경우
+      if (config.url && config.url.includes('://')) {
+        if (config.url.startsWith('http://')) {
+          config.url = config.url.replace('http://', 'https://');
+          console.log('🔒 절대 URL HTTP → HTTPS:', config.url);
+        }
       }
+      
+      // 2. baseURL 강제 변환
       if (config.baseURL && config.baseURL.startsWith('http://')) {
         config.baseURL = config.baseURL.replace('http://', 'https://');
-        console.log('Base URL을 HTTPS로 변환:', config.baseURL);
+        console.log('🔒 Base URL HTTP → HTTPS:', config.baseURL);
+      }
+      
+      // 3. 상대 URL의 경우 baseURL과 결합해서 최종 체크
+      let finalUrl = config.url;
+      if (!config.url?.includes('://') && config.baseURL) {
+        finalUrl = config.baseURL + config.url;
+      }
+      
+      if (finalUrl && finalUrl.startsWith('http://')) {
+        const httpsUrl = finalUrl.replace('http://', 'https://');
+        if (config.url?.includes('://')) {
+          config.url = httpsUrl;
+        } else {
+          config.baseURL = config.baseURL?.replace('http://', 'https://');
+        }
+        console.log('🔒 최종 URL HTTP → HTTPS 강제:', httpsUrl);
       }
       
       // 로그인 요청에는 토큰을 추가하지 않음
