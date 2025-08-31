@@ -14,6 +14,10 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
+        // 🚨 Mixed Content 해결을 위한 강제 캐시 무효화
+        assetFileNames: 'assets/[name]-[hash]-' + Date.now() + '.[ext]',
+        chunkFileNames: 'assets/[name]-[hash]-' + Date.now() + '.js',
+        entryFileNames: 'assets/[name]-[hash]-' + Date.now() + '.js',
         manualChunks(id) {
           // 기본 React 라이브러리
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
@@ -25,8 +29,8 @@ export default defineConfig({
             return 'ui-vendor';
           }
           
-          // API 관련
-          if (id.includes('axios') || id.includes('api')) {
+          // API 관련 (axios 제거됨)
+          if (id.includes('api')) {
             return 'api-vendor';
           }
           
