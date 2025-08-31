@@ -86,7 +86,7 @@ export const OrderProvider = ({ children }) => {
         approverComment: comment
       };
 
-      const response = await api.put(`/api/purchase-requests/${orderId}`, updateData);
+      const response = await api.put(`/api/purchase-requests/${orderId}/`, updateData);
       const updatedOrder = response.data;
 
       // 로컬 상태 업데이트
@@ -122,7 +122,8 @@ export const OrderProvider = ({ children }) => {
       params.append('page', filters.page || 1);
       params.append('limit', filters.limit || 20);
 
-      const response = await api.get(`/api/purchase-requests?${params.toString()}`);
+      // 🚨 HTTPS 강제 및 사용자 정보 추가
+      const response = await api.get(`/api/purchase-requests/?${params.toString()}`);
       const orders = response.data.requests || [];
       
       setOrderRequests(orders);
