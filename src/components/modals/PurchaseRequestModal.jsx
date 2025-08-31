@@ -130,7 +130,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
           }
         });
       } else {
-        await api.post('/api/purchase-requests', submitData, {
+        await api.post('/api/purchase-requests/', submitData, {
           params: {
             viewerId: loggedInUser.id,
             viewerRole: loggedInUser.role

@@ -68,7 +68,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
       if (!campaign?.id || !loggedInUser?.id) return;
       
       try {
-        const { data } = await api.get('/api/purchase-requests', {
+        const { data } = await api.get('/api/purchase-requests/', {
           params: {
             viewerId: loggedInUser.id,
             viewerRole: loggedInUser.role,
@@ -317,7 +317,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
       if (!campaign?.id || !loggedInUser?.id) return;
       
       try {
-        const { data } = await api.get('/api/purchase-requests', {
+        const { data } = await api.get('/api/purchase-requests/', {
           params: {
             viewerId: loggedInUser.id,
             viewerRole: loggedInUser.role,

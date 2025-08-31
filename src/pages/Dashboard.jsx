@@ -147,7 +147,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         
         try {
           // 구매요청 데이터 가져오기 (구매요청과 발주요청은 동일한 데이터)
-          const purchaseResponse = await api.get('/api/purchase-requests');
+          const purchaseResponse = await api.get('/api/purchase-requests/');
           const purchaseRequests = purchaseResponse.data.requests || [];
           
           // 통계 계산

@@ -190,7 +190,7 @@ const EnhancedPurchaseRequestModal = ({
         requesterEmail: loggedInUser.email
       };
 
-      let endpoint = '/api/purchase-requests';
+      let endpoint = '/api/purchase-requests/';
       let method = 'post';
 
       if (mode === 'order_request') {

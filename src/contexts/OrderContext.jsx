@@ -35,7 +35,7 @@ export const OrderProvider = ({ children }) => {
         postId: orderData.linkedPostId
       };
 
-      const response = await api.post('/api/purchase-requests', requestData);
+      const response = await api.post('/api/purchase-requests/', requestData);
       const newOrder = response.data;
 
       // 로컬 상태에 추가
