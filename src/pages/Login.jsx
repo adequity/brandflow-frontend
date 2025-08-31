@@ -1,6 +1,6 @@
 // src/pages/Login.jsx
 import React, { useState } from 'react';
-import api from '../api/client'; // ✅ VITE_API_URL이 설정된 공통 axios 인스턴스
+import api from '../api/client'; // ✅ fetch API 기반 공통 클라이언트
 import LogoDisplay from '../components/LogoDisplay';
 
 const Login = ({ onLogin, userType = 'admin' }) => {
@@ -18,7 +18,7 @@ const Login = ({ onLogin, userType = 'admin' }) => {
     try {
       // FastAPI 로그인 - JSON 형태로 전송
       console.log('로그인 시도:', { email, password: '***' });
-      console.log('API Base URL:', api.defaults.baseURL);
+      console.log('API Base URL: HTTPS만 사용');
       
       const { data } = await api.post('/api/auth/login-json', { email, password });
       console.log('로그인 응답:', data);

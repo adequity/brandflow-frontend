@@ -1,5 +1,5 @@
 // src/api/client.js
-import axios from 'axios';
+// 🚨 axios 완전 제거
 
 import { getBackendUrlByDomain } from '../config/domains.js';
 
