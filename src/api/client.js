@@ -164,157 +164,72 @@ const forcedHttpsFetch = async (url, config = {}) => {
   });
 };
 
-// Axios에 fetch 래퍼 덮어씌우기
-api.request = async (config) => {
-  const url = config.url?.startsWith('/') ? config.url : config.baseURL + config.url;
-  const response = await forcedHttpsFetch(url, {
-    method: config.method?.toUpperCase() || 'GET',
-    headers: config.headers,
-    body: config.data ? JSON.stringify(config.data) : undefined,
-    ...config.params && { 
-      // 쿼리 파라미터 추가
-      ...Object.fromEntries(new URLSearchParams(config.params))
-    }
+// 🚨 Axios 완전 대체: fetch API로 모든 요청 처리
+const createFetchRequest = async (method, url, data = null, config = {}) => {
+  // 무조건 HTTPS URL로 강제 변환
+  let finalUrl = url;
+  if (url?.startsWith('/')) {
+    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+  } else if (url?.includes('http://brandflow-backend')) {
+    finalUrl = url.replace('http://', 'https://');
+  }
+  
+  // 쿼리 파라미터 처리
+  if (config.params) {
+    const searchParams = new URLSearchParams();
+    Object.entries(config.params).forEach(([key, value]) => {
+      searchParams.append(key, value);
+    });
+    finalUrl += (finalUrl.includes('?') ? '&' : '?') + searchParams.toString();
+  }
+  
+  // 헤더 설정
+  const headers = {
+    'Content-Type': 'application/json',
+    'User-Agent': 'BrandFlow-Frontend/1.0',
+    ...config.headers
+  };
+  
+  // JWT 토큰 추가
+  const token = localStorage.getItem('authToken');
+  if (token && !finalUrl.includes('/auth/login')) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
+  // 사용자 정보 쿼리 파라미터 추가
+  const userData = localStorage.getItem('user');
+  if (userData && !finalUrl.includes('/auth/login')) {
+    const user = JSON.parse(userData);
+    const separator = finalUrl.includes('?') ? '&' : '?';
+    finalUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
+  }
+  
+  console.log(`🚨 FETCH ${method} 강제 HTTPS:`, finalUrl);
+  
+  const response = await fetch(finalUrl, {
+    method: method.toUpperCase(),
+    headers,
+    body: data ? JSON.stringify(data) : null
   });
   
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
   
-  const data = await response.json();
-  return { data, status: response.status, headers: response.headers };
+  const responseData = await response.json();
+  return { data: responseData, status: response.status, headers: response.headers };
 };
 
-// 응답 인터셉터: 자동 재시도 및 에러 처리
-api.interceptors.response.use(
-  (response) => {
-    // 성공 응답은 그대로 반환
-    return response;
-  },
-  async (error) => {
-    const config = error.config;
-    
-    // 재시도 카운트 초기화
-    if (!config.__retryCount) {
-      config.__retryCount = 0;
-    }
-    
-    // HTTP → HTTPS 자동 전환 (Mixed Content 해결)
-    if (error.code === 'ERR_NETWORK' && config.url && config.url.includes('http://')) {
-      console.warn('🔒 Mixed Content 감지: HTTP → HTTPS 자동 전환 시도');
-      config.url = config.url.replace('http://', 'https://');
-      config.baseURL = config.baseURL?.replace('http://', 'https://');
-      config.__httpsRetry = true;
-      return api(config);
-    }
-    
-    // 리다이렉트 에러 시 HTTPS로 재시도  
-    if (error.response?.status >= 300 && error.response?.status < 400 && !config.__httpsRetry) {
-      console.warn('🔄 리다이렉트 감지: HTTPS로 강제 재시도');
-      config.url = config.url?.replace('http://', 'https://');
-      config.baseURL = config.baseURL?.replace('http://', 'https://');
-      config.__httpsRetry = true;
-      return api(config);
-    }
-    
-    // 재시도 가능한 에러이고 최대 재시도 횟수를 초과하지 않았으면 재시도
-    if (
-      isRetryableError(error) && 
-      config.__retryCount < MAX_RETRIES &&
-      !config._noRetry // 재시도 비활성화 플래그
-    ) {
-      config.__retryCount++;
-      
-      // 🚨 재시도 전 반드시 HTTPS 강제 적용
-      config.baseURL = 'https://brandflow-backend-production-99ae.up.railway.app';
-      if (config.url && config.url.includes('http://brandflow-backend')) {
-        config.url = config.url.replace('http://brandflow-backend', 'https://brandflow-backend');
-      }
-      
-      // 지연 시간 계산 (지수 백오프)
-      const delayTime = RETRY_DELAY * Math.pow(2, config.__retryCount - 1);
-      
-      console.warn(
-        `API 요청 실패 (${config.__retryCount}/${MAX_RETRIES}): ${config.url}`,
-        `${delayTime}ms 후 HTTPS 재시도...`
-      );
-      
-      await delay(delayTime);
-      return api(config);
-    }
-    
-    // 에러 로깅
-    if (error.response) {
-      // 404 알림 관련 에러는 조용히 처리
-      const isNotificationAPI = error.config?.url?.includes('/notifications');
-      const is404Error = error.response.status === 404;
-      
-      if (!(isNotificationAPI && is404Error)) {
-        console.error('API 응답 에러:', {
-          url: error.config?.url,
-          status: error.response.status,
-          data: error.response.data,
-          retries: config.__retryCount || 0
-        });
-      }
-    } else if (error.request) {
-      console.error('API 요청 에러 (응답 없음):', {
-        url: error.config?.url,
-        message: error.message,
-        retries: config.__retryCount || 0
-      });
-    } else {
-      console.error('API 설정 에러:', {
-        url: error.config?.url,
-        message: error.message
-      });
-    }
-    
-    return Promise.reject(error);
-  }
-);
+// Axios 메소드 완전 대체
+api.get = (url, config = {}) => createFetchRequest('GET', url, null, config);
+api.post = (url, data, config = {}) => createFetchRequest('POST', url, data, config);
+api.put = (url, data, config = {}) => createFetchRequest('PUT', url, data, config);
+api.delete = (url, config = {}) => createFetchRequest('DELETE', url, null, config);
+api.request = (config) => createFetchRequest(config.method || 'GET', config.url, config.data, config);
 
-// 🚨 Mixed Content 완전 방지: 모든 HTTP 메소드 재정의
-const originalGet = api.get;
-const originalPost = api.post;
-const originalPut = api.put;
-const originalDelete = api.delete;
+// 🚨 Axios 인터셉터 완전 제거 - fetch로 대체됨
 
-api.get = (url, config = {}) => {
-  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
-  console.log('🚨 GET 강제 HTTPS:', httpsUrl);
-  return originalGet.call(api, httpsUrl, {
-    ...config,
-    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
-  });
-};
-
-api.post = (url, data, config = {}) => {
-  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
-  console.log('🚨 POST 강제 HTTPS:', httpsUrl);
-  return originalPost.call(api, httpsUrl, data, {
-    ...config,
-    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
-  });
-};
-
-api.put = (url, data, config = {}) => {
-  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
-  console.log('🚨 PUT 강제 HTTPS:', httpsUrl);
-  return originalPut.call(api, httpsUrl, data, {
-    ...config,
-    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
-  });
-};
-
-api.delete = (url, config = {}) => {
-  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
-  console.log('🚨 DELETE 강제 HTTPS:', httpsUrl);
-  return originalDelete.call(api, httpsUrl, {
-    ...config,
-    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
-  });
-};
+// 🚨 중복 제거됨 - 위에서 fetch로 완전 대체
 
 // API 유틸리티 함수들
 api.withNoRetry = (config) => {
