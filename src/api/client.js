@@ -16,12 +16,23 @@ const api = axios.create({
     'Content-Type': 'application/json'
   },
   timeout: 30000, // 30초 타임아웃
+  maxRedirects: 0, // 리다이렉트 방지 - HTTPS 강제
 });
 
 // 요청 인터셉터: JWT 토큰 및 사용자 권한 정보 자동 추가
 api.interceptors.request.use(
   (config) => {
     try {
+      // URL 강제 HTTPS 변환 (Mixed Content 방지)
+      if (config.url && config.url.startsWith('http://')) {
+        config.url = config.url.replace('http://', 'https://');
+        console.log('HTTP를 HTTPS로 변환:', config.url);
+      }
+      if (config.baseURL && config.baseURL.startsWith('http://')) {
+        config.baseURL = config.baseURL.replace('http://', 'https://');
+        console.log('Base URL을 HTTPS로 변환:', config.baseURL);
+      }
+      
       // 로그인 요청에는 토큰을 추가하지 않음
       if (config.url?.includes('/auth/login/')) {
         return config;
