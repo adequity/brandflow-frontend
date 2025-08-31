@@ -17,7 +17,7 @@ const Login = ({ onLogin, userType = 'admin' }) => {
 
     try {
       // FastAPI 로그인 - JSON 형태로 전송
-      console.log('로그인 시도:', { email, password });
+      console.log('로그인 시도:', { email, password: '***' });
       console.log('API Base URL:', api.defaults.baseURL);
       
       const { data } = await api.post('/api/auth/login', { email, password });

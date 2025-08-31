@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrandFlow 사용자 가이드</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e40af;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 20px;
+        }
+        h2 {
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        .role-section {
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .feature-card h4 {
+            color: #3b82f6;
+            margin-top: 0;
+        }
+        .step-list {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success {
+            background: #dcfce7;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        .screenshot {
+            max-width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 20px; }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 BrandFlow 사용자 가이드</h1>
+        
+        <div class="success">
+            <strong>환영합니다!</strong> BrandFlow는 마케팅 대행사와 클라이언트를 위한 통합 업무 관리 시스템입니다.
+        </div>
+
+        <h2>📋 시스템 개요</h2>
+        <p>BrandFlow는 <strong>역할 기반 접근 제어(RBAC)</strong>를 통해 안전하고 효율적인 업무 환경을 제공합니다.</p>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>🎯 캠페인 관리</h4>
+                <p>마케팅 캠페인 생성, 진행 상황 추적, 성과 분석</p>
+            </div>
+            <div class="feature-card">
+                <h4>💰 재무 관리</h4>
+                <p>매출 등록, 구매요청, 인센티브 관리</p>
+            </div>
+            <div class="feature-card">
+                <h4>👥 팀 관리</h4>
+                <p>사용자 권한 관리, 팀원 초대, 역할 할당</p>
+            </div>
+            <div class="feature-card">
+                <h4>📊 대시보드</h4>
+                <p>실시간 업무 현황, 성과 지표, 알림</p>
+            </div>
+        </div>
+
+        <h2>👥 사용자 역할별 기능</h2>
+
+        <div class="role-section">
+            <h3>🔑 슈퍼 어드민</h3>
+            <ul>
+                <li><strong>전체 시스템 관리</strong>: 모든 데이터 접근 및 관리</li>
+                <li><strong>대행사 어드민 생성</strong>: 새로운 대행사 관리자 계정 생성</li>
+                <li><strong>시스템 설정</strong>: 전역 설정 및 정책 관리</li>
+                <li><strong>통계 및 분석</strong>: 전체 시스템 성과 분석</li>
+            </ul>
+        </div>
+
+        <div class="role-section">
+            <h3>🏢 대행사 어드민</h3>
+            <ul>
+                <li><strong>회사 내 데이터만 접근</strong>: 본인 소속 회사 데이터만 조회</li>
+                <li><strong>팀원 관리</strong>: 소속 직원 및 클라이언트 생성/관리</li>
+                <li><strong>구매요청 승인</strong>: 팀원의 구매요청 검토 및 승인</li>
+                <li><strong>캠페인 총괄 관리</strong>: 회사 캠페인 전체 관리</li>
+            </ul>
+        </div>
+
+        <div class="role-section">
+            <h3>👤 직원</h3>
+            <ul>
+                <li><strong>본인 데이터만 접근</strong>: 자신이 담당하는 업무만 조회</li>
+                <li><strong>캠페인 실행</strong>: 할당된 캠페인 업무 수행</li>
+                <li><strong>구매요청 제출</strong>: 업무 수행에 필요한 자원 요청</li>
+                <li><strong>매출 등록</strong>: 완료된 업무의 매출 데이터 입력</li>
+            </ul>
+        </div>
+
+        <div class="role-section">
+            <h3>🤝 클라이언트</h3>
+            <ul>
+                <li><strong>캠페인 현황 조회</strong>: 의뢰한 캠페인 진행 상황 확인</li>
+                <li><strong>결과물 확인</strong>: 완성된 컨텐츠 및 성과 리포트 조회</li>
+                <li><strong>커뮤니케이션</strong>: 담당자와 실시간 소통</li>
+            </ul>
+        </div>
+
+        <h2>🚀 시작하기</h2>
+
+        <div class="step-list">
+            <h3>1단계: 로그인</h3>
+            <ol>
+                <li>BrandFlow 시스템에 접속</li>
+                <li>관리자로부터 받은 <strong>이메일</strong>과 <strong>비밀번호</strong> 입력</li>
+                <li>로그인 버튼 클릭</li>
+            </ol>
+        </div>
+
+        <div class="step-list">
+            <h3>2단계: 대시보드 확인</h3>
+            <ol>
+                <li>로그인 후 <strong>대시보드</strong> 화면 확인</li>
+                <li>현재 진행 중인 업무 현황 파악</li>
+                <li>알림 확인 (우상단 알림 아이콘)</li>
+                <li>본인의 역할에 맞는 메뉴 확인</li>
+            </ol>
+        </div>
+
+        <div class="step-list">
+            <h3>3단계: 주요 기능 활용</h3>
+            <ol>
+                <li><strong>캠페인 관리</strong>: 새 캠페인 생성 또는 기존 캠페인 관리</li>
+                <li><strong>업무 등록</strong>: 캠페인 상세에서 세부 업무 등록</li>
+                <li><strong>구매요청</strong>: 필요한 자원 구매요청 제출</li>
+                <li><strong>매출 등록</strong>: 완료된 업무의 매출 데이터 입력</li>
+            </ol>
+        </div>
+
+        <h2>💡 주요 기능 사용법</h2>
+
+        <h3>🎯 캠페인 생성하기</h3>
+        <div class="step-list">
+            <ol>
+                <li><strong>캠페인 관리</strong> 메뉴 선택</li>
+                <li><strong>"새 캠페인 등록"</strong> 버튼 클릭</li>
+                <li>클라이언트 선택 (드롭다운에서 검색 후 선택)</li>
+                <li>캠페인 제목, 기간, 예산 등 입력</li>
+                <li><strong>"등록"</strong> 버튼으로 저장</li>
+            </ol>
+        </div>
+
+        <h3>📝 업무 등록하기</h3>
+        <div class="step-list">
+            <ol>
+                <li>캠페인 목록에서 해당 캠페인 클릭</li>
+                <li>캠페인 상세 페이지에서 <strong>"주제 등록"</strong> 클릭</li>
+                <li>업무 제목, 업무 타입, 담당자 등 입력</li>
+                <li>시작일과 마감일 설정</li>
+                <li><strong>"등록"</strong> 버튼으로 저장</li>
+            </ol>
+        </div>
+
+        <h3>💸 구매요청 하기</h3>
+        <div class="step-list">
+            <ol>
+                <li><strong>구매요청 관리</strong> 메뉴 선택</li>
+                <li><strong>"구매요청 작성"</strong> 버튼 클릭</li>
+                <li>필요한 자원의 종류와 금액 입력</li>
+                <li>용도 및 상세 설명 작성</li>
+                <li>관련 캠페인 연결 (선택사항)</li>
+                <li><strong>"요청"</strong> 버튼으로 제출</li>
+            </ol>
+        </div>
+
+        <h3>💰 매출 등록하기</h3>
+        <div class="step-list">
+            <ol>
+                <li><strong>매출 관리</strong> 메뉴 선택</li>
+                <li><strong>"매출 등록"</strong> 버튼 클릭</li>
+                <li>담당자, 상품, 수량 선택</li>
+                <li>실제 판매 금액 입력</li>
+                <li>관련 캠페인 연결</li>
+                <li><strong>"등록"</strong> 버튼으로 저장</li>
+            </ol>
+        </div>
+
+        <h2>⚠️ 중요 사항</h2>
+
+        <div class="warning">
+            <h3>🔐 보안 주의사항</h3>
+            <ul>
+                <li><strong>비밀번호 관리</strong>: 정기적으로 비밀번호 변경</li>
+                <li><strong>로그아웃</strong>: 작업 완료 후 반드시 로그아웃</li>
+                <li><strong>권한 준수</strong>: 본인 권한 범위 내에서만 데이터 접근</li>
+                <li><strong>정보 보안</strong>: 고객 정보 외부 유출 금지</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h3>📊 데이터 입력 시 주의사항</h3>
+            <ul>
+                <li><strong>정확성</strong>: 모든 금액과 날짜는 정확히 입력</li>
+                <li><strong>완료 확인</strong>: 데이터 저장 후 반드시 확인</li>
+                <li><strong>승인 프로세스</strong>: 구매요청은 승인 후 실행</li>
+                <li><strong>백업</strong>: 중요 데이터는 정기적으로 백업됨</li>
+            </ul>
+        </div>
+
+        <h2>🆘 문제 해결</h2>
+
+        <h3>자주 발생하는 문제</h3>
+
+        <div class="feature-card">
+            <h4>❌ 로그인이 안 됩니다</h4>
+            <ul>
+                <li>이메일과 비밀번호를 정확히 입력했는지 확인</li>
+                <li>관리자에게 계정 활성화 상태 문의</li>
+                <li>브라우저 캐시 삭제 후 재시도</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h4>📄 데이터가 로딩되지 않습니다</h4>
+            <ul>
+                <li>인터넷 연결 상태 확인</li>
+                <li>페이지 새로고침 (F5 또는 Ctrl+R)</li>
+                <li>권한 범위 내 데이터인지 확인</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <h4>💾 데이터 저장이 안 됩니다</h4>
+            <ul>
+                <li>필수 입력 항목 모두 작성 확인</li>
+                <li>금액 형식 확인 (숫자만 입력)</li>
+                <li>파일 업로드 크기 제한 확인</li>
+            </ul>
+        </div>
+
+        <h2>📞 고객 지원</h2>
+
+        <div class="success">
+            <h3>도움이 필요하신가요?</h3>
+            <ul>
+                <li><strong>이메일</strong>: support@brandflow.co.kr</li>
+                <li><strong>전화</strong>: 1588-0000 (평일 9시-18시)</li>
+                <li><strong>실시간 채팅</strong>: 시스템 내 알림 기능 활용</li>
+            </ul>
+        </div>
+
+        <h2>🔄 업데이트 내역</h2>
+        
+        <div class="feature-card">
+            <h4>v2.2.0 (최신)</h4>
+            <ul>
+                <li>✅ 보안 강화: 패스워드 로깅 제거</li>
+                <li>✅ 성능 개선: 모바일 터치 최적화</li>
+                <li>✅ 권한 시스템: 회사별 데이터 격리 완성</li>
+                <li>✅ 백업 시스템: 자동 데이터 백업 구축</li>
+                <li>✅ 모니터링: 시스템 상태 실시간 추적</li>
+            </ul>
+        </div>
+
+        <footer style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <p><strong>BrandFlow v2.2.0</strong> | © 2025 BrandFlow Team</p>
+            <p style="font-size: 14px; color: #6b7280;">이 가이드는 실시간으로 업데이트됩니다.</p>
+        </footer>
+    </div>
+</body>
+</html>
