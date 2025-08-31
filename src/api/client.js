@@ -103,12 +103,15 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
   
-  // 사용자 정보 쿼리 파라미터 추가
+  // 사용자 정보 쿼리 파라미터 추가 (중복 방지)
   const userData = localStorage.getItem('user');
   if (userData && !finalUrl.includes('/auth/login')) {
     const user = JSON.parse(userData);
-    const separator = finalUrl.includes('?') ? '&' : '?';
-    finalUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
+    // 이미 viewerId가 있는지 확인하여 중복 방지
+    if (!finalUrl.includes('viewerId=')) {
+      const separator = finalUrl.includes('?') ? '&' : '?';
+      finalUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
+    }
   }
   
   console.log(`🚨 FETCH ${method} 강제 HTTPS:`, finalUrl);
