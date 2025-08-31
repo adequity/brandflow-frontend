@@ -20,16 +20,18 @@ const Login = ({ onLogin, userType = 'admin' }) => {
       console.log('로그인 시도:', { email, password: '***' });
       console.log('API Base URL:', api.defaults.baseURL);
       
-      const { data } = await api.post('/api/auth/login', { email, password });
+      const { data } = await api.post('/api/auth/login-json', { email, password });
       console.log('로그인 응답:', data);
       
-      // Express 백엔드는 사용자 정보를 직접 반환
-      if (data && data.id) {
+      // FastAPI는 access_token과 user 정보를 함께 반환
+      if (data && data.access_token && data.user) {
+        // JWT 토큰 저장
+        localStorage.setItem('authToken', data.access_token);
         // 사용자 정보 저장
-        localStorage.setItem('user', JSON.stringify(data));
-        console.log('사용자 정보 저장 완료:', data);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        console.log('로그인 성공:', { token: data.access_token.substring(0, 20) + '...', user: data.user });
         
-        onLogin?.(data);
+        onLogin?.(data.user);
       } else {
         setError('로그인 응답에 필요한 정보가 없습니다.');
       }
