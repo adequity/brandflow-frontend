@@ -225,12 +225,18 @@ api.interceptors.response.use(
     ) {
       config.__retryCount++;
       
+      // 🚨 재시도 전 반드시 HTTPS 강제 적용
+      config.baseURL = 'https://brandflow-backend-production-99ae.up.railway.app';
+      if (config.url && config.url.includes('http://brandflow-backend')) {
+        config.url = config.url.replace('http://brandflow-backend', 'https://brandflow-backend');
+      }
+      
       // 지연 시간 계산 (지수 백오프)
       const delayTime = RETRY_DELAY * Math.pow(2, config.__retryCount - 1);
       
       console.warn(
         `API 요청 실패 (${config.__retryCount}/${MAX_RETRIES}): ${config.url}`,
-        `${delayTime}ms 후 재시도...`
+        `${delayTime}ms 후 HTTPS 재시도...`
       );
       
       await delay(delayTime);
