@@ -30,10 +30,15 @@ console.log('[API_BASE]', API_BASE);
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Upgrade-Insecure-Requests': '1', // HTTPS 강제 요청
   },
   timeout: 30000, // 30초 타임아웃
-  maxRedirects: 0, // 리다이렉트 방지 - HTTPS 강제
+  maxRedirects: 0, // 리다이렉트 완전 차단
+  validateStatus: function (status) {
+    // 3xx 리다이렉트도 에러로 처리하여 HTTPS로 재시도
+    return status >= 200 && status < 300;
+  },
 });
 
 // 요청 인터셉터: JWT 토큰 및 사용자 권한 정보 자동 추가
@@ -124,6 +129,24 @@ api.interceptors.response.use(
     // 재시도 카운트 초기화
     if (!config.__retryCount) {
       config.__retryCount = 0;
+    }
+    
+    // HTTP → HTTPS 자동 전환 (Mixed Content 해결)
+    if (error.code === 'ERR_NETWORK' && config.url && config.url.includes('http://')) {
+      console.warn('🔒 Mixed Content 감지: HTTP → HTTPS 자동 전환 시도');
+      config.url = config.url.replace('http://', 'https://');
+      config.baseURL = config.baseURL?.replace('http://', 'https://');
+      config.__httpsRetry = true;
+      return api(config);
+    }
+    
+    // 리다이렉트 에러 시 HTTPS로 재시도  
+    if (error.response?.status >= 300 && error.response?.status < 400 && !config.__httpsRetry) {
+      console.warn('🔄 리다이렉트 감지: HTTPS로 강제 재시도');
+      config.url = config.url?.replace('http://', 'https://');
+      config.baseURL = config.baseURL?.replace('http://', 'https://');
+      config.__httpsRetry = true;
+      return api(config);
     }
     
     // 재시도 가능한 에러이고 최대 재시도 횟수를 초과하지 않았으면 재시도
