@@ -132,6 +132,59 @@ const isRetryableError = (error) => {
 // 지연 함수
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// 🚨 Mixed Content 완전 해결: fetch API 래퍼
+const forcedHttpsFetch = async (url, config = {}) => {
+  // 모든 HTTP를 HTTPS로 강제 변환
+  let finalUrl = url;
+  if (typeof url === 'string') {
+    if (url.startsWith('http://brandflow-backend')) {
+      finalUrl = url.replace('http://', 'https://');
+      console.log('🚨 Fetch HTTP → HTTPS:', finalUrl);
+    } else if (url.startsWith('/')) {
+      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+      console.log('🚨 Fetch 상대 URL → HTTPS:', finalUrl);
+    }
+  }
+  
+  // 헤더 설정
+  const headers = {
+    'Content-Type': 'application/json',
+    ...config.headers
+  };
+  
+  // JWT 토큰 추가
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
+  return fetch(finalUrl, {
+    ...config,
+    headers
+  });
+};
+
+// Axios에 fetch 래퍼 덮어씌우기
+api.request = async (config) => {
+  const url = config.url?.startsWith('/') ? config.url : config.baseURL + config.url;
+  const response = await forcedHttpsFetch(url, {
+    method: config.method?.toUpperCase() || 'GET',
+    headers: config.headers,
+    body: config.data ? JSON.stringify(config.data) : undefined,
+    ...config.params && { 
+      // 쿼리 파라미터 추가
+      ...Object.fromEntries(new URLSearchParams(config.params))
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  return { data, status: response.status, headers: response.headers };
+};
+
 // 응답 인터셉터: 자동 재시도 및 에러 처리
 api.interceptors.response.use(
   (response) => {
@@ -214,6 +267,48 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// 🚨 Mixed Content 완전 방지: 모든 HTTP 메소드 재정의
+const originalGet = api.get;
+const originalPost = api.post;
+const originalPut = api.put;
+const originalDelete = api.delete;
+
+api.get = (url, config = {}) => {
+  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
+  console.log('🚨 GET 강제 HTTPS:', httpsUrl);
+  return originalGet.call(api, httpsUrl, {
+    ...config,
+    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
+  });
+};
+
+api.post = (url, data, config = {}) => {
+  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
+  console.log('🚨 POST 강제 HTTPS:', httpsUrl);
+  return originalPost.call(api, httpsUrl, data, {
+    ...config,
+    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
+  });
+};
+
+api.put = (url, data, config = {}) => {
+  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
+  console.log('🚨 PUT 강제 HTTPS:', httpsUrl);
+  return originalPut.call(api, httpsUrl, data, {
+    ...config,
+    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
+  });
+};
+
+api.delete = (url, config = {}) => {
+  const httpsUrl = url?.replace('http://brandflow-backend', 'https://brandflow-backend') || url;
+  console.log('🚨 DELETE 강제 HTTPS:', httpsUrl);
+  return originalDelete.call(api, httpsUrl, {
+    ...config,
+    baseURL: 'https://brandflow-backend-production-99ae.up.railway.app'
+  });
+};
 
 // API 유틸리티 함수들
 api.withNoRetry = (config) => {
