@@ -22,7 +22,8 @@ const getBackendUrl = () => {
   return getBackendUrlByDomain(hostname);
 };
 
-const API_BASE = getBackendUrl();
+// Mixed Content 완전 방지: HTTPS 강제 하드코딩
+const API_BASE = 'https://brandflow-backend-production-99ae.up.railway.app';
 
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);
@@ -32,6 +33,7 @@ const api = axios.create({
   headers: { 
     'Content-Type': 'application/json',
     'Upgrade-Insecure-Requests': '1', // HTTPS 강제 요청
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', // HTTPS 강제
   },
   timeout: 30000, // 30초 타임아웃
   maxRedirects: 0, // 리다이렉트 완전 차단
@@ -45,36 +47,27 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     try {
-      // 강력한 HTTPS 강제 변환 (Mixed Content 완전 방지)
+      // 🚨 Mixed Content 완전 차단: 모든 요청 HTTPS 강제 재작성
       
-      // 1. 절대 URL의 경우
+      // 1. baseURL을 무조건 HTTPS로 고정
+      config.baseURL = 'https://brandflow-backend-production-99ae.up.railway.app';
+      
+      // 2. 절대 URL이 있다면 HTTPS로 강제 변환
       if (config.url && config.url.includes('://')) {
-        if (config.url.startsWith('http://')) {
+        if (config.url.includes('brandflow-backend-production-99ae.up.railway.app')) {
           config.url = config.url.replace('http://', 'https://');
-          console.log('🔒 절대 URL HTTP → HTTPS:', config.url);
+          console.log('🚨 절대 URL 강제 HTTPS:', config.url);
         }
       }
       
-      // 2. baseURL 강제 변환
-      if (config.baseURL && config.baseURL.startsWith('http://')) {
-        config.baseURL = config.baseURL.replace('http://', 'https://');
-        console.log('🔒 Base URL HTTP → HTTPS:', config.baseURL);
-      }
+      // 3. 최종 안전 체크: 혹시 남은 HTTP가 있다면 모두 HTTPS로
+      const currentUrl = config.url || '';
+      const currentBase = config.baseURL || '';
       
-      // 3. 상대 URL의 경우 baseURL과 결합해서 최종 체크
-      let finalUrl = config.url;
-      if (!config.url?.includes('://') && config.baseURL) {
-        finalUrl = config.baseURL + config.url;
-      }
-      
-      if (finalUrl && finalUrl.startsWith('http://')) {
-        const httpsUrl = finalUrl.replace('http://', 'https://');
-        if (config.url?.includes('://')) {
-          config.url = httpsUrl;
-        } else {
-          config.baseURL = config.baseURL?.replace('http://', 'https://');
-        }
-        console.log('🔒 최종 URL HTTP → HTTPS 강제:', httpsUrl);
+      if (currentUrl.includes('http://brandflow-backend') || currentBase.includes('http://brandflow-backend')) {
+        config.baseURL = config.baseURL?.replace('http://', 'https://') || 'https://brandflow-backend-production-99ae.up.railway.app';
+        config.url = config.url?.replace('http://', 'https://');
+        console.log('🚨 최종 HTTP 제거:', config.baseURL + (config.url || ''));
       }
       
       // 로그인 요청에는 토큰을 추가하지 않음
