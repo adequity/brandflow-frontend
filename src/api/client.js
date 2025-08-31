@@ -166,12 +166,16 @@ const forcedHttpsFetch = async (url, config = {}) => {
 
 // 🚨 Axios 완전 대체: fetch API로 모든 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
-  // 무조건 HTTPS URL로 강제 변환
+  // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
   if (url?.startsWith('/')) {
     finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
-  } else if (url?.includes('http://brandflow-backend')) {
-    finalUrl = url.replace('http://', 'https://');
+  } else if (url?.includes('brandflow-backend')) {
+    // HTTP든 HTTPS든 상관없이 brandflow-backend가 포함된 모든 URL을 HTTPS로 강제
+    finalUrl = url.replace(/https?:\/\/brandflow-backend/, 'https://brandflow-backend');
+  } else {
+    // 완전한 URL이 아닌 경우 HTTPS 베이스 추가
+    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url.startsWith('/') ? url : '/' + url);
   }
   
   // 쿼리 파라미터 처리
