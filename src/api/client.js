@@ -28,109 +28,12 @@ const API_BASE = 'https://brandflow-backend-production-99ae.up.railway.app';
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);
 
-const api = axios.create({
-  baseURL: API_BASE,
-  headers: { 
-    'Content-Type': 'application/json',
-    'Upgrade-Insecure-Requests': '1', // HTTPS 강제 요청
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains', // HTTPS 강제
-  },
-  timeout: 30000, // 30초 타임아웃
-  maxRedirects: 0, // 리다이렉트 완전 차단
-  validateStatus: function (status) {
-    // 3xx 리다이렉트도 에러로 처리하여 HTTPS로 재시도
-    return status >= 200 && status < 300;
-  },
-});
+// 🚨 axios 완전 제거 - 순수 객체로 대체
+const api = {};
 
-// 요청 인터셉터: JWT 토큰 및 사용자 권한 정보 자동 추가
-api.interceptors.request.use(
-  (config) => {
-    try {
-      // 🚨 Mixed Content 완전 차단: 모든 요청 HTTPS 강제 재작성
-      
-      // 1. baseURL을 무조건 HTTPS로 고정
-      config.baseURL = 'https://brandflow-backend-production-99ae.up.railway.app';
-      
-      // 2. 절대 URL이 있다면 HTTPS로 강제 변환
-      if (config.url && config.url.includes('://')) {
-        if (config.url.includes('brandflow-backend-production-99ae.up.railway.app')) {
-          config.url = config.url.replace('http://', 'https://');
-          console.log('🚨 절대 URL 강제 HTTPS:', config.url);
-        }
-      }
-      
-      // 3. 최종 안전 체크: 혹시 남은 HTTP가 있다면 모두 HTTPS로
-      const currentUrl = config.url || '';
-      const currentBase = config.baseURL || '';
-      
-      if (currentUrl.includes('http://brandflow-backend') || currentBase.includes('http://brandflow-backend')) {
-        config.baseURL = config.baseURL?.replace('http://', 'https://') || 'https://brandflow-backend-production-99ae.up.railway.app';
-        config.url = config.url?.replace('http://', 'https://');
-        console.log('🚨 최종 HTTP 제거:', config.baseURL + (config.url || ''));
-      }
-      
-      // 로그인 요청에는 토큰을 추가하지 않음
-      if (config.url?.includes('/auth/login/')) {
-        return config;
-      }
-      
-      // localStorage에서 JWT 토큰 가져오기
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      
-      // localStorage에서 사용자 정보 가져오기
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        
-        // 쿼리 파라미터에 권한 정보 추가 (Korean characters URL encoded)
-        if (config.method === 'get' || config.method === 'delete') {
-          config.params = {
-            ...config.params,
-            viewerId: user.id,
-            viewerRole: encodeURIComponent(user.role)
-          };
-        }
-        
-        // POST/PUT 요청의 경우 쿼리 파라미터로 추가 (Send Korean characters directly)
-        if (config.method === 'post' || config.method === 'put') {
-          config.params = {
-            ...config.params,
-            viewerId: user.id,
-            viewerRole: user.role
-          };
-        }
-      }
-    } catch (error) {
-      console.error('권한 정보 추가 중 오류:', error);
-    }
-    
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// 🚨 axios 인터셉터 완전 제거
 
-// 재시도 설정
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1초
-
-// 재시도 가능한 에러인지 확인
-const isRetryableError = (error) => {
-  return (
-    !error.response || // 네트워크 에러
-    error.code === 'ECONNABORTED' || // 타임아웃
-    error.response.status >= 500 || // 서버 에러
-    error.response.status === 429 // Too Many Requests
-  );
-};
-
-// 지연 함수
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// 🚨 재시도 로직 완전 제거
 
 // 🚨 Mixed Content 완전 해결: fetch API 래퍼
 const forcedHttpsFetch = async (url, config = {}) => {
@@ -235,17 +138,7 @@ api.request = (config) => createFetchRequest(config.method || 'GET', config.url,
 
 // 🚨 중복 제거됨 - 위에서 fetch로 완전 대체
 
-// API 유틸리티 함수들
-api.withNoRetry = (config) => {
-  return api({...config, _noRetry: true});
-};
-
-api.withTimeout = (timeout) => {
-  return axios.create({
-    ...api.defaults,
-    timeout
-  });
-};
+// 🚨 유틸리티 함수 완전 제거
 
 // 승인/반려 관련 API 함수들
 export const approvalAPI = {
