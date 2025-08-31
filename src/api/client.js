@@ -1,11 +1,28 @@
 // src/api/client.js
 import axios from 'axios';
 
-// API 백엔드 URL (실사용 Railway 서버)
-const DEV_BACKEND_URL = ''; // Vite 프록시 사용 - 빈 문자열
-const PROD_BACKEND_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+import { getBackendUrlByDomain } from '../config/domains.js';
 
-const API_BASE = PROD_BACKEND_URL; // Railway 백엔드 직접 연결
+// 환경변수 기반 백엔드 URL 설정 (유연한 배포 대응)
+const getBackendUrl = () => {
+  // 1순위: 환경변수에서 직접 지정된 URL
+  if (import.meta.env.VITE_API_BASE_URL) {
+    console.log('🔧 환경변수에서 백엔드 URL 사용:', import.meta.env.VITE_API_BASE_URL);
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // 2순위: 개발 환경 자동 감지
+  if (import.meta.env.DEV) {
+    console.log('🔧 개발 환경 감지: Vite 프록시 사용');
+    return ''; // Vite 프록시 사용
+  }
+  
+  // 3순위: 도메인 기반 자동 매핑
+  const hostname = window.location.hostname;
+  return getBackendUrlByDomain(hostname);
+};
+
+const API_BASE = getBackendUrl();
 
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);
