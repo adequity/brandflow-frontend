@@ -43,6 +43,13 @@ const API_BASE = 'https://brandflow-backend-production-99ae.up.railway.app';
 // 확인용 로그(옵션)
 console.log('[API_BASE]', API_BASE);
 
+// 백엔드 URL 확인 및 강제 HTTPS 변환
+const backendUrl = getBackendUrl();
+console.log('🔍 getBackendUrl() 결과:', backendUrl);
+if (backendUrl && backendUrl.startsWith('http://')) {
+  console.error('⚠️ HTTP URL 감지됨, HTTPS로 강제 변환이 필요합니다:', backendUrl);
+}
+
 // 🚨 axios 완전 제거 - 순수 객체로 대체
 const api = {};
 
@@ -90,18 +97,24 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
   
-  // 모든 HTTP URL을 HTTPS로 강제 변환
-  if (url?.startsWith('http://')) {
+  // 🔒 완전한 HTTPS 강제 변환 로직
+  if (url?.startsWith('/')) {
+    // 상대 경로는 무조건 HTTPS 베이스 사용
+    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+  } else if (url?.startsWith('http://')) {
+    // HTTP URL은 HTTPS로 강제 변환
     finalUrl = url.replace('http://', 'https://');
     console.log('🔒 createFetchRequest HTTP → HTTPS 강제 변환:', finalUrl);
-  } else if (url?.startsWith('/')) {
-    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
   } else if (url?.includes('brandflow-backend')) {
-    // HTTP든 HTTPS든 상관없이 brandflow-backend가 포함된 모든 URL을 HTTPS로 강제
-    finalUrl = url.replace(/https?:\/\/brandflow-backend/, 'https://brandflow-backend');
-  } else {
+    // brandflow-backend 포함 URL은 모두 HTTPS로 강제
+    finalUrl = url.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
+    console.log('🔒 brandflow-backend URL HTTPS 강제 변환:', finalUrl);
+  } else if (!url?.startsWith('https://')) {
     // 완전한 URL이 아닌 경우 HTTPS 베이스 추가
-    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url.startsWith('/') ? url : '/' + url);
+    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url?.startsWith('/') ? url : '/' + url);
+  } else {
+    // 이미 HTTPS URL인 경우 그대로 사용
+    finalUrl = url;
   }
   
   // 쿼리 파라미터 처리
@@ -135,6 +148,12 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       const separator = finalUrl.includes('?') ? '&' : '?';
       finalUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
     }
+  }
+  
+  // 최종 HTTPS 강제 변환 (쿼리 파라미터 추가 후에도 적용)
+  if (finalUrl.startsWith('http://')) {
+    finalUrl = finalUrl.replace('http://', 'https://');
+    console.log('🔒 최종 HTTPS 강제 변환:', finalUrl);
   }
   
   console.log(`🚨 FETCH ${method} 강제 HTTPS:`, finalUrl);
