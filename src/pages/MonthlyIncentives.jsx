@@ -45,12 +45,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
     setIsLoading(true);
     try {
       // 실제 사용자 데이터를 먼저 가져온다
-      const { data: usersData } = await api.get('/api/users', {
-        params: {
-          adminId: loggedInUser.id,
-          adminRole: loggedInUser.role
-        }
-      });
+      const { data: usersData } = await api.get('/api/users');
       
       // 인센티브 대상 직원 필터링
       const eligibleUsers = (usersData || []).filter(user => {
@@ -200,12 +195,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
     if (!loggedInUser?.id) return;
     
     try {
-      const { data } = await api.get('/api/users', {
-        params: {
-          adminId: loggedInUser.id,
-          adminRole: loggedInUser.role
-        }
-      });
+      const { data } = await api.get('/api/users');
       
       // 권한별 사용자 필터링
       const staffUsers = (data || []).filter(user => {

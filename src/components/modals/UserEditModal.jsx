@@ -58,12 +58,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     const fetchExistingCompanies = async () => {
         setIsLoadingCompanies(true);
         try {
-            const response = await api.get('/api/users', {
-                params: {
-                    adminId: loggedInUser.id,
-                    adminRole: loggedInUser.role,
-                },
-            });
+            const response = await api.get('/api/users');
             
             // API 응답 데이터 구조에 맞게 수정
             const usersData = response.data.results || response.data;
