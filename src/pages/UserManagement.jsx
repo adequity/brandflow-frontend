@@ -81,7 +81,7 @@ const UserManagement = ({ loggedInUser }) => {
         role: userData.role,
         company: userData.company || ((loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : ''),
         contact: userData.contact,
-        incentiveRate: userData.incentiveRate || 0
+        incentive_rate: userData.incentiveRate || 0
       };
       
       if (userData.password) {
