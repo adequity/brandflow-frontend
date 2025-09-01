@@ -146,7 +146,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     // 이미 viewerId가 있는지 확인하여 중복 방지
     if (!finalUrl.includes('viewerId=')) {
       const separator = finalUrl.includes('?') ? '&' : '?';
-      finalUrl += `${separator}viewerId=${user.id}&viewerRole=${user.role}`;
+      finalUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
     }
   }
   
