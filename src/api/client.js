@@ -6,9 +6,15 @@ import { getBackendUrlByDomain } from '../config/domains.js';
 // 환경변수 기반 백엔드 URL 설정 (유연한 배포 대응)
 const getBackendUrl = () => {
   // 1순위: 환경변수에서 직접 지정된 URL
-  if (import.meta.env.VITE_API_BASE_URL) {
-    console.log('🔧 환경변수에서 백엔드 URL 사용:', import.meta.env.VITE_API_BASE_URL);
-    return import.meta.env.VITE_API_BASE_URL;
+  let backendUrl = import.meta.env.VITE_API_BASE_URL;
+  if (backendUrl) {
+    console.log('🔧 환경변수에서 백엔드 URL 사용:', backendUrl);
+    // Mixed Content 방지: 강제 HTTPS 변환
+    if (backendUrl.startsWith('http://')) {
+      backendUrl = backendUrl.replace('http://', 'https://');
+      console.log('🔒 환경변수 URL HTTP → HTTPS 강제 변환:', backendUrl);
+    }
+    return backendUrl;
   }
   
   // 2순위: 개발 환경 자동 감지
@@ -19,7 +25,16 @@ const getBackendUrl = () => {
   
   // 3순위: 도메인 기반 자동 매핑
   const hostname = window.location.hostname;
-  return getBackendUrlByDomain(hostname);
+  const domainUrl = getBackendUrlByDomain(hostname);
+  
+  // Mixed Content 방지: 도메인 매핑에서도 강제 HTTPS 변환
+  if (domainUrl && domainUrl.startsWith('http://')) {
+    const httpsUrl = domainUrl.replace('http://', 'https://');
+    console.log('🔒 도메인 매핑 URL HTTP → HTTPS 강제 변환:', httpsUrl);
+    return httpsUrl;
+  }
+  
+  return domainUrl;
 };
 
 // Mixed Content 완전 방지: HTTPS 강제 하드코딩
@@ -40,7 +55,10 @@ const forcedHttpsFetch = async (url, config = {}) => {
   // 모든 HTTP를 HTTPS로 강제 변환
   let finalUrl = url;
   if (typeof url === 'string') {
-    if (url.startsWith('http://brandflow-backend')) {
+    if (url.startsWith('http://')) {
+      finalUrl = url.replace('http://', 'https://');
+      console.log('🚨 Fetch HTTP → HTTPS 강제 변환:', finalUrl);
+    } else if (url.startsWith('http://brandflow-backend')) {
       finalUrl = url.replace('http://', 'https://');
       console.log('🚨 Fetch HTTP → HTTPS:', finalUrl);
     } else if (url.startsWith('/')) {
@@ -71,7 +89,12 @@ const forcedHttpsFetch = async (url, config = {}) => {
 const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
-  if (url?.startsWith('/')) {
+  
+  // 모든 HTTP URL을 HTTPS로 강제 변환
+  if (url?.startsWith('http://')) {
+    finalUrl = url.replace('http://', 'https://');
+    console.log('🔒 createFetchRequest HTTP → HTTPS 강제 변환:', finalUrl);
+  } else if (url?.startsWith('/')) {
     finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
   } else if (url?.includes('brandflow-backend')) {
     // HTTP든 HTTPS든 상관없이 brandflow-backend가 포함된 모든 URL을 HTTPS로 강제
