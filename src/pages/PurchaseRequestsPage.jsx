@@ -38,7 +38,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
       if (token) {
         try {
           // 실제 API 호출 - 비품 구매 요청만 필터링
-          const response = await api.get('/api/purchase-requests/', {
+          const response = await api.get('/api/purchase-requests', {
             params: {
               viewerId: loggedInUser.id,
               viewerRole: loggedInUser.role,

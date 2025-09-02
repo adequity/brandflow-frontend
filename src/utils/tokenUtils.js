@@ -45,8 +45,8 @@ export const checkAuthToken = () => {
 
 export const testAuthenticatedRequest = async () => {
   try {
-    console.log('Testing authenticated request to /api/users/me/...');
-    const response = await api.get('/api/users/me/');
+    console.log('Testing authenticated request to /api/users/me...');
+    const response = await api.get('/api/users/me');
     console.log('✅ Authentication successful:', response.data);
     return { success: true, data: response.data };
   } catch (error) {

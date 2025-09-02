@@ -74,7 +74,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         // 캠페인 데이터가 없거나 매출 정보가 없으면 다시 로드
         if (!campaigns || campaigns.length === 0 || !campaigns[0].hasOwnProperty('posts')) {
           try {
-            const campaignsResponse = await api.get('/api/campaigns/', {
+            const campaignsResponse = await api.get('/api/campaigns', {
               params: { viewerId: user.id, viewerRole: user.role }
             });
             const campaignsData = campaignsResponse.data.results || campaignsResponse.data || [];
@@ -147,7 +147,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         
         try {
           // 구매요청 데이터 가져오기 (구매요청과 발주요청은 동일한 데이터)
-          const purchaseResponse = await api.get('/api/purchase-requests/');
+          const purchaseResponse = await api.get('/api/purchase-requests');
           const purchaseRequests = purchaseResponse.data.requests || [];
           
           // 통계 계산
@@ -184,7 +184,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         let totalIncentives = 0;
         try {
           // 모든 직원 데이터 가져오기
-          const usersResponse = await api.get('/api/users/');
+          const usersResponse = await api.get('/api/users');
           const allUsers = usersResponse.data.results || usersResponse.data || [];
           
           // 직원들의 캠페인 매출과 인센티브율 기반으로 계산

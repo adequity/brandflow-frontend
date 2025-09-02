@@ -26,7 +26,7 @@ const UserManagement = ({ loggedInUser }) => {
     setIsLoading(true);
     try {
       // Django API에서 사용자 데이터 가져오기
-      const response = await api.get('/api/users/');
+      const response = await api.get('/api/users');
       const usersData = response.data.results || response.data;
       
       // Express API 응답을 프론트엔드 형식에 맞게 변환
