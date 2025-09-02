@@ -299,7 +299,7 @@ const CampaignDetailPage = () => {
         const postId = selectedRows[0];
         try {
             // Django API로 목차 등록
-            await api.patch(`/api/posts/${postId}`, {
+            await api.put(`/api/posts/${postId}`, {
                 outline: outlineData.outline,
                 outline_status: 'pending'
             });
@@ -347,7 +347,7 @@ const CampaignDetailPage = () => {
         const postId = selectedRows[0];
         try {
             // Django API로 링크 등록
-            await api.patch(`/api/posts/${postId}`, {
+            await api.put(`/api/posts/${postId}`, {
                 published_url: url
             });
             showSuccess('링크가 등록되었습니다!');
