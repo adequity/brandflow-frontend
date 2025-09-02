@@ -35,7 +35,7 @@ export const OrderProvider = ({ children }) => {
         postId: orderData.linkedPostId
       };
 
-      const response = await api.post('/api/purchase-requests/', requestData);
+      const response = await api.post('/api/purchase-requests', requestData);
       const newOrder = response.data;
 
       // 로컬 상태에 추가
@@ -86,7 +86,7 @@ export const OrderProvider = ({ children }) => {
         approverComment: comment
       };
 
-      const response = await api.put(`/api/purchase-requests/${orderId}/`, updateData);
+      const response = await api.put(`/api/purchase-requests/${orderId}`, updateData);
       const updatedOrder = response.data;
 
       // 로컬 상태 업데이트
@@ -123,7 +123,7 @@ export const OrderProvider = ({ children }) => {
       params.append('limit', filters.limit || 20);
 
       // 🚨 HTTPS 강제 및 사용자 정보 추가
-      const response = await api.get(`/api/purchase-requests/?${params.toString()}`);
+      const response = await api.get(`/api/purchase-requests?${params.toString()}`);
       const orders = response.data.requests || [];
       
       setOrderRequests(orders);

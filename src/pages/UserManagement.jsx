@@ -118,7 +118,7 @@ const UserManagement = ({ loggedInUser }) => {
   const handleDeleteUser = async () => {
     try {
       // Django API로 사용자 삭제
-      await api.delete(`/api/users/${currentUser.id}/`);
+      await api.delete(`/api/users/${currentUser.id}`);
       showSuccess('사용자가 삭제되었습니다!');
       await fetchUsers();
       setDeleteModalOpen(false);

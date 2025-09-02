@@ -36,7 +36,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             }
 
             // 실제 캠페인 데이터에서 일정 생성
-            const response = await api.get('/api/campaigns/', {
+            const response = await api.get('/api/campaigns', {
                 params: {
                     viewerId: user.id,
                     viewerRole: user.role
@@ -57,7 +57,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                     // posts가 없거나 빈 배열인 경우에만 API 호출
                     if (!posts || posts.length === 0) {
                         try {
-                            const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts/`);
+                            const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts`);
                             posts = postsResponse.data || [];
                         } catch (postError) {
                             console.warn(`캠페인 ${campaign.id}의 posts 조회 실패:`, postError);
