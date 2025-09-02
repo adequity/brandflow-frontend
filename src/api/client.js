@@ -44,10 +44,12 @@ const API_BASE = 'https://brandflow-backend-production-99ae.up.railway.app';
 console.log('[API_BASE]', API_BASE);
 
 // 백엔드 URL 확인 및 강제 HTTPS 변환
-const backendUrl = getBackendUrl();
+let backendUrl = getBackendUrl();
 console.log('🔍 getBackendUrl() 결과:', backendUrl);
 if (backendUrl && backendUrl.startsWith('http://')) {
-  console.error('⚠️ HTTP URL 감지됨, HTTPS로 강제 변환이 필요합니다:', backendUrl);
+  console.error('⚠️ HTTP URL 감지됨, HTTPS로 강제 변환:', backendUrl);
+  backendUrl = backendUrl.replace('http://', 'https://');
+  console.log('🔒 getBackendUrl HTTP → HTTPS 강제 변환:', backendUrl);
 }
 
 // 🚨 axios 완전 제거 - 순수 객체로 대체
@@ -57,20 +59,26 @@ const api = {};
 
 // 🚨 재시도 로직 완전 제거
 
-// 🚨 Mixed Content 완전 해결: fetch API 래퍼
+// 🚨 Mixed Content 완전 해결: 최종 HTTP 차단 래퍼
 const forcedHttpsFetch = async (url, config = {}) => {
-  // 모든 HTTP를 HTTPS로 강제 변환
+  // 모든 HTTP를 HTTPS로 강제 변환 + 완전 차단
   let finalUrl = url;
   if (typeof url === 'string') {
+    // 완전한 HTTP 차단 로직
     if (url.startsWith('http://')) {
       finalUrl = url.replace('http://', 'https://');
-      console.log('🚨 Fetch HTTP → HTTPS 강제 변환:', finalUrl);
-    } else if (url.startsWith('http://brandflow-backend')) {
-      finalUrl = url.replace('http://', 'https://');
-      console.log('🚨 Fetch HTTP → HTTPS:', finalUrl);
+      console.error('🚨 HTTP URL 차단 및 HTTPS 강제 변환:', url, '→', finalUrl);
+    } else if (url.includes('http://')) {
+      finalUrl = url.replace(/http:\/\//g, 'https://');
+      console.error('🚨 URL 내 HTTP 프로토콜 발견, HTTPS 강제 변환:', finalUrl);
     } else if (url.startsWith('/')) {
       finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
       console.log('🚨 Fetch 상대 URL → HTTPS:', finalUrl);
+    }
+    
+    // 최종 안전장치 - HTTP가 남아있으면 완전 차단
+    if (finalUrl.includes('http://')) {
+      throw new Error(`🚨 보안 위반: HTTP URL 사용 금지 - ${finalUrl}`);
     }
   }
   
@@ -156,7 +164,14 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     console.log('🔒 최종 HTTPS 강제 변환:', finalUrl);
   }
   
-  console.log(`🚨 FETCH ${method} 강제 HTTPS:`, finalUrl);
+  // 🚨 최종 보안 검증 - HTTP 완전 차단
+  if (finalUrl.includes('http://')) {
+    const error = `🚨 보안 위반: HTTP URL 사용 금지 - ${method} ${finalUrl}`;
+    console.error(error);
+    throw new Error(error);
+  }
+  
+  console.log(`🚨 FETCH ${method} 강제 HTTPS 검증 완료:`, finalUrl);
   
   const response = await fetch(finalUrl, {
     method: method.toUpperCase(),
