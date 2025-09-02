@@ -206,6 +206,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
 api.get = (url, config = {}) => createFetchRequest('GET', url, null, config);
 api.post = (url, data, config = {}) => createFetchRequest('POST', url, data, config);
 api.put = (url, data, config = {}) => createFetchRequest('PUT', url, data, config);
+api.patch = (url, data, config = {}) => createFetchRequest('PATCH', url, data, config);
 api.delete = (url, config = {}) => createFetchRequest('DELETE', url, null, config);
 api.request = (config) => createFetchRequest(config.method || 'GET', config.url, config.data, config);
 
