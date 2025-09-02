@@ -3,17 +3,36 @@
 
 import { getBackendUrlByDomain } from '../config/domains.js';
 
+// 🚨 HTTP 완전 차단: 모든 HTTP URL을 HTTPS로 강제 변환하는 함수
+const forceHTTPS = (url) => {
+  if (typeof url !== 'string') return url;
+  
+  // HTTP 프로토콜을 HTTPS로 강제 변환
+  if (url.startsWith('http://')) {
+    const httpsUrl = url.replace('http://', 'https://');
+    console.error('🚨 HTTP URL 발견 → HTTPS 강제 변환:', url, '→', httpsUrl);
+    return httpsUrl;
+  }
+  
+  // brandflow-backend가 포함된 모든 URL을 Railway HTTPS로 통일
+  if (url.includes('brandflow-backend') && !url.includes('https://brandflow-backend-production-99ae.up.railway.app')) {
+    const railwayUrl = url.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
+    console.error('🚨 brandflow-backend URL 발견 → Railway HTTPS로 강제 변환:', url, '→', railwayUrl);
+    return railwayUrl;
+  }
+  
+  return url;
+};
+
 // 환경변수 기반 백엔드 URL 설정 (유연한 배포 대응)
 const getBackendUrl = () => {
-  // 1순위: 환경변수에서 직접 지정된 URL
+  // 1순위: 환경변수에서 직접 지정된 URL - 무조건 HTTPS 강제
   let backendUrl = import.meta.env.VITE_API_BASE_URL;
   if (backendUrl) {
     console.log('🔧 환경변수에서 백엔드 URL 사용:', backendUrl);
-    // Mixed Content 방지: 강제 HTTPS 변환
-    if (backendUrl.startsWith('http://')) {
-      backendUrl = backendUrl.replace('http://', 'https://');
-      console.log('🔒 환경변수 URL HTTP → HTTPS 강제 변환:', backendUrl);
-    }
+    // 🚨 무조건 HTTPS 강제 변환
+    backendUrl = forceHTTPS(backendUrl);
+    console.log('🔒 환경변수 URL HTTPS 강제 적용 완료:', backendUrl);
     return backendUrl;
   }
   
@@ -27,10 +46,10 @@ const getBackendUrl = () => {
   const hostname = window.location.hostname;
   const domainUrl = getBackendUrlByDomain(hostname);
   
-  // Mixed Content 방지: 도메인 매핑에서도 강제 HTTPS 변환
-  if (domainUrl && domainUrl.startsWith('http://')) {
-    const httpsUrl = domainUrl.replace('http://', 'https://');
-    console.log('🔒 도메인 매핑 URL HTTP → HTTPS 강제 변환:', httpsUrl);
+  // 🚨 도메인 매핑에서도 무조건 HTTPS 강제 변환
+  if (domainUrl) {
+    const httpsUrl = forceHTTPS(domainUrl);
+    console.log('🔒 도메인 매핑 URL HTTPS 강제 적용:', httpsUrl);
     return httpsUrl;
   }
   
@@ -53,13 +72,13 @@ const FORCE_HTTPS_API_BASE = (() => {
 // 확인용 로그(옵션)
 console.log('[FORCE_HTTPS_API_BASE]', FORCE_HTTPS_API_BASE);
 
-// 백엔드 URL 확인 및 강제 HTTPS 변환
+// 백엔드 URL 확인 및 무조건 HTTPS 강제 변환
 let backendUrl = getBackendUrl();
 console.log('🔍 getBackendUrl() 결과:', backendUrl);
-if (backendUrl && backendUrl.startsWith('http://')) {
-  console.error('⚠️ HTTP URL 감지됨, HTTPS로 강제 변환:', backendUrl);
-  backendUrl = backendUrl.replace('http://', 'https://');
-  console.log('🔒 getBackendUrl HTTP → HTTPS 강제 변환:', backendUrl);
+// 🚨 추가 안전장치: HTTPS 강제 변환
+if (backendUrl) {
+  backendUrl = forceHTTPS(backendUrl);
+  console.log('🔒 최종 HTTPS 강제 변환 적용:', backendUrl);
 }
 
 // 🚨 axios 완전 제거 - 순수 객체로 대체
@@ -115,28 +134,17 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
   
-  // 🔒 완전한 HTTPS 강제 변환 로직 - 더욱 강화
+  // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화
   if (url?.startsWith('/')) {
     // 상대 경로는 무조건 강제 HTTPS 베이스 사용
     finalUrl = FORCE_HTTPS_API_BASE + url;
-  } else if (url?.startsWith('http://')) {
-    // HTTP URL은 HTTPS로 강제 변환
-    finalUrl = url.replace('http://', 'https://');
-    console.error('🚨 HTTP URL 발견 및 HTTPS 강제 변환:', url, '→', finalUrl);
-  } else if (url?.includes('brandflow-backend')) {
-    // brandflow-backend 포함 URL은 모두 강제 HTTPS Railway URL로 변환
-    finalUrl = url.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
-    console.error('🚨 brandflow-backend URL 발견, Railway HTTPS URL로 강제 변환:', finalUrl);
-  } else if (!url?.startsWith('https://')) {
-    // 완전한 URL이 아닌 경우 강제 HTTPS 베이스 추가
-    finalUrl = FORCE_HTTPS_API_BASE + (url?.startsWith('/') ? url : '/' + url);
   } else {
-    // 이미 HTTPS URL인 경우에도 Railway URL인지 확인
-    if (url.includes('brandflow-backend') && !url.includes('brandflow-backend-production-99ae.up.railway.app')) {
-      finalUrl = url.replace(/https:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
-      console.error('🚨 다른 brandflow-backend URL 발견, Railway URL로 강제 변환:', finalUrl);
-    } else {
-      finalUrl = url;
+    // 모든 절대 경로 URL에 대해 forceHTTPS 적용
+    finalUrl = forceHTTPS(url);
+    // 추가로 FORCE_HTTPS_API_BASE 강제 적용
+    if (finalUrl?.includes('brandflow-backend')) {
+      finalUrl = finalUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
+      console.error('🚨 createFetchRequest: brandflow-backend URL → Railway HTTPS 강제 변환:', finalUrl);
     }
   }
   
