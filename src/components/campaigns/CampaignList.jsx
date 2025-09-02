@@ -144,7 +144,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
     setDeletingCampaignId(campaignId);
     try {
-      await api.delete(`/api/campaigns/${campaignId}/`);
+      await api.delete(`/api/campaigns/${campaignId}`);
       
       // 캠페인 목록에서 제거
       setCampaigns((prev) => prev.filter(c => c.id !== campaignId));

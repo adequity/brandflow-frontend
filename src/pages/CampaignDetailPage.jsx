@@ -58,7 +58,7 @@ const CampaignDetailPage = () => {
             if (token) {
                 try {
                     // 실제 API 호출
-                    const response = await api.get(`/api/campaigns/${campaignId}/`);
+                    const response = await api.get(`/api/campaigns/${campaignId}`);
                     const campaignData = response.data;
                     
                     setCampaign(campaignData);
@@ -299,7 +299,7 @@ const CampaignDetailPage = () => {
         const postId = selectedRows[0];
         try {
             // Django API로 목차 등록
-            await api.patch(`/api/posts/${postId}/`, {
+            await api.patch(`/api/posts/${postId}`, {
                 outline: outlineData.outline,
                 outline_status: 'pending'
             });
@@ -347,7 +347,7 @@ const CampaignDetailPage = () => {
         const postId = selectedRows[0];
         try {
             // Django API로 링크 등록
-            await api.patch(`/api/posts/${postId}/`, {
+            await api.patch(`/api/posts/${postId}`, {
                 published_url: url
             });
             showSuccess('링크가 등록되었습니다!');

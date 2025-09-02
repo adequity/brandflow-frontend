@@ -21,7 +21,7 @@ const CampaignListPage = ({ campaigns: propsCanpaigns, setCampaigns, users, logg
       
       // 각 캠페인별로 재무 요약 정보를 가져옴 (배치 처리로 최적화)
       const requests = campaignList.map(campaign => 
-        () => api.get(`/api/campaigns/${campaign.id}/financial_summary/`)
+        () => api.get(`/api/campaigns/${campaign.id}/financial_summary`)
       );
       
       const responses = await batchRequests(requests, 3);

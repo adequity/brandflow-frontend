@@ -83,7 +83,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             latestCampaigns = await Promise.all(
               campaignsData.map(async (campaign) => {
                 try {
-                  const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts/`);
+                  const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts`);
                   return {
                     ...campaign,
                     posts: postsResponse.data || [],
@@ -113,7 +113,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const campaignFinancials = await Promise.all(
             latestCampaigns.map(async (campaign) => {
               try {
-                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary`);
                 const summary = response.data;
                 
                 campaignTotalRevenue += summary.total_revenue || 0;
@@ -194,7 +194,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             
             for (const campaign of userCampaigns) {
               try {
-                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary`);
                 userRevenue += response.data.total_revenue || 0;
               } catch (error) {
                 console.error(`사용자 ${userItem.id} 캠페인 ${campaign.id} 매출 데이터 로딩 실패:`, error);
@@ -247,7 +247,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           
           for (const campaign of employeeCampaigns) {
             try {
-              const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+              const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary`);
               employeeRevenue += response.data.total_revenue || 0;
             } catch (error) {
               console.error(`직원 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);

@@ -73,7 +73,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         paymentDueDate: formData.paymentDueDate || null
       };
 
-      await api.patch(`/api/campaigns/${campaign.id}/`, updateData, {
+      await api.patch(`/api/campaigns/${campaign.id}`, updateData, {
         params: {
           viewerId: currentUser.id,
           viewerRole: currentUser.role
