@@ -40,8 +40,18 @@ const getBackendUrl = () => {
 // Mixed Content 완전 방지: HTTPS 강제 하드코딩
 const API_BASE = 'https://brandflow-backend-production-99ae.up.railway.app';
 
+// 🚨 HTTP 완전 차단: 환경변수에서 HTTP URL이 들어와도 HTTPS로 강제 변환
+const FORCE_HTTPS_API_BASE = (() => {
+  let baseUrl = import.meta.env.VITE_API_BASE_URL || API_BASE;
+  if (baseUrl.startsWith('http://')) {
+    console.error('🚨 환경변수에서 HTTP URL 발견, HTTPS로 강제 변환:', baseUrl);
+    baseUrl = baseUrl.replace('http://', 'https://');
+  }
+  return baseUrl;
+})();
+
 // 확인용 로그(옵션)
-console.log('[API_BASE]', API_BASE);
+console.log('[FORCE_HTTPS_API_BASE]', FORCE_HTTPS_API_BASE);
 
 // 백엔드 URL 확인 및 강제 HTTPS 변환
 let backendUrl = getBackendUrl();
@@ -72,7 +82,7 @@ const forcedHttpsFetch = async (url, config = {}) => {
       finalUrl = url.replace(/http:\/\//g, 'https://');
       console.error('🚨 URL 내 HTTP 프로토콜 발견, HTTPS 강제 변환:', finalUrl);
     } else if (url.startsWith('/')) {
-      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+      finalUrl = FORCE_HTTPS_API_BASE + url;
       console.log('🚨 Fetch 상대 URL → HTTPS:', finalUrl);
     }
     
@@ -105,24 +115,29 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
   
-  // 🔒 완전한 HTTPS 강제 변환 로직
+  // 🔒 완전한 HTTPS 강제 변환 로직 - 더욱 강화
   if (url?.startsWith('/')) {
-    // 상대 경로는 무조건 HTTPS 베이스 사용
-    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+    // 상대 경로는 무조건 강제 HTTPS 베이스 사용
+    finalUrl = FORCE_HTTPS_API_BASE + url;
   } else if (url?.startsWith('http://')) {
     // HTTP URL은 HTTPS로 강제 변환
     finalUrl = url.replace('http://', 'https://');
-    console.log('🔒 createFetchRequest HTTP → HTTPS 강제 변환:', finalUrl);
+    console.error('🚨 HTTP URL 발견 및 HTTPS 강제 변환:', url, '→', finalUrl);
   } else if (url?.includes('brandflow-backend')) {
-    // brandflow-backend 포함 URL은 모두 HTTPS로 강제
-    finalUrl = url.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
-    console.log('🔒 brandflow-backend URL HTTPS 강제 변환:', finalUrl);
+    // brandflow-backend 포함 URL은 모두 강제 HTTPS Railway URL로 변환
+    finalUrl = url.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
+    console.error('🚨 brandflow-backend URL 발견, Railway HTTPS URL로 강제 변환:', finalUrl);
   } else if (!url?.startsWith('https://')) {
-    // 완전한 URL이 아닌 경우 HTTPS 베이스 추가
-    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url?.startsWith('/') ? url : '/' + url);
+    // 완전한 URL이 아닌 경우 강제 HTTPS 베이스 추가
+    finalUrl = FORCE_HTTPS_API_BASE + (url?.startsWith('/') ? url : '/' + url);
   } else {
-    // 이미 HTTPS URL인 경우 그대로 사용
-    finalUrl = url;
+    // 이미 HTTPS URL인 경우에도 Railway URL인지 확인
+    if (url.includes('brandflow-backend') && !url.includes('brandflow-backend-production-99ae.up.railway.app')) {
+      finalUrl = url.replace(/https:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
+      console.error('🚨 다른 brandflow-backend URL 발견, Railway URL로 강제 변환:', finalUrl);
+    } else {
+      finalUrl = url;
+    }
   }
   
   // 쿼리 파라미터 처리
