@@ -24,50 +24,25 @@ const forceHTTPS = (url) => {
   return url;
 };
 
-// 환경변수 기반 백엔드 URL 설정 (유연한 배포 대응)
+// 🚨 완전한 HTTP 차단: 모든 HTTP URL을 HTTPS로 강제 변환
+const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+
+// 🚨 환경변수 무시 - 무조건 HTTPS Railway URL만 사용
 const getBackendUrl = () => {
-  // 1순위: 환경변수에서 직접 지정된 URL - 무조건 HTTPS 강제
-  let backendUrl = import.meta.env.VITE_API_BASE_URL;
-  if (backendUrl) {
-    console.log('🔧 환경변수에서 백엔드 URL 사용:', backendUrl);
-    // 🚨 무조건 HTTPS 강제 변환
-    backendUrl = forceHTTPS(backendUrl);
-    console.log('🔒 환경변수 URL HTTPS 강제 적용 완료:', backendUrl);
-    return backendUrl;
-  }
-  
-  // 2순위: 개발 환경 자동 감지
-  if (import.meta.env.DEV) {
-    console.log('🔧 개발 환경 감지: Vite 프록시 사용');
-    return ''; // Vite 프록시 사용
-  }
-  
-  // 3순위: 도메인 기반 자동 매핑
-  const hostname = window.location.hostname;
-  const domainUrl = getBackendUrlByDomain(hostname);
-  
-  // 🚨 도메인 매핑에서도 무조건 HTTPS 강제 변환
-  if (domainUrl) {
-    const httpsUrl = forceHTTPS(domainUrl);
-    console.log('🔒 도메인 매핑 URL HTTPS 강제 적용:', httpsUrl);
-    return httpsUrl;
-  }
-  
-  return domainUrl;
+  // 🚨 환경변수 완전 무시하고 Railway HTTPS URL만 반환
+  console.log('🔒 환경변수 무시 - Railway HTTPS URL 강제 사용:', RAILWAY_HTTPS_URL);
+  return RAILWAY_HTTPS_URL;
 };
 
-// Mixed Content 완전 방지: HTTPS 강제 하드코딩
-const API_BASE = 'https://brandflow-backend-production-99ae.up.railway.app';
-
-// 🚨 HTTP 완전 차단: 환경변수에서 HTTP URL이 들어와도 HTTPS로 강제 변환
+// 🚨 HTTP 완전 차단: 환경변수를 무시하고 무조건 HTTPS Railway URL 사용
 const FORCE_HTTPS_API_BASE = (() => {
-  let baseUrl = import.meta.env.VITE_API_BASE_URL || API_BASE;
-  if (baseUrl.startsWith('http://')) {
-    console.error('🚨 환경변수에서 HTTP URL 발견, HTTPS로 강제 변환:', baseUrl);
-    baseUrl = baseUrl.replace('http://', 'https://');
-  }
-  return baseUrl;
+  // 환경변수 무시하고 Railway HTTPS URL만 사용
+  console.log('🔒 모든 API 요청을 Railway HTTPS URL로 강제 설정:', RAILWAY_HTTPS_URL);
+  return RAILWAY_HTTPS_URL;
 })();
+
+// Mixed Content 완전 방지: HTTPS 강제 하드코딩 (백업용)
+const API_BASE = RAILWAY_HTTPS_URL;
 
 // 확인용 로그(옵션)
 console.log('[FORCE_HTTPS_API_BASE]', FORCE_HTTPS_API_BASE);
