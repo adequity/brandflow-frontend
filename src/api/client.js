@@ -167,6 +167,12 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   finalUrl = forceHTTPS(finalUrl);
   console.log('🔒 파라미터 추가 후 HTTPS 강제 변환:', finalUrl);
   
+  // 🚨 추가 안전장치: URL에서 모든 HTTP를 HTTPS로 강제 교체
+  if (finalUrl.includes('http://')) {
+    finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
+    console.error('🚨 HTTP 발견 및 HTTPS 강제 교체:', finalUrl);
+  }
+  
   // 🚨 최종 보안 검증 - HTTP 완전 차단
   if (finalUrl.includes('http://')) {
     const error = `🚨 보안 위반: HTTP URL 사용 금지 - ${method} ${finalUrl}`;
@@ -176,7 +182,13 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   
   console.log(`🚨 FETCH ${method} 강제 HTTPS 검증 완료:`, finalUrl);
   
-  const response = await fetch(finalUrl, {
+  // 🚨 fetch 호출 직전 마지막 HTTPS 강제 검증
+  if (finalUrl.includes('http://')) {
+    finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
+    console.error('🚨 fetch 호출 직전 HTTP 발견 및 HTTPS 강제 교체:', finalUrl);
+  }
+  
+  const response = await forcedHttpsFetch(finalUrl, {
     method: method.toUpperCase(),
     headers,
     body: data ? JSON.stringify(data) : null
