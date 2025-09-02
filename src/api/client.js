@@ -148,13 +148,18 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     }
   }
   
-  // 쿼리 파라미터 처리
+  // 🚨 쿼리 파라미터 처리 - HTTP 차단 강화
   if (config.params) {
     const searchParams = new URLSearchParams();
     Object.entries(config.params).forEach(([key, value]) => {
       searchParams.append(key, value);
     });
-    finalUrl += (finalUrl.includes('?') ? '&' : '?') + searchParams.toString();
+    const paramsString = searchParams.toString();
+    finalUrl += (finalUrl.includes('?') ? '&' : '?') + paramsString;
+    console.log('🔒 쿼리 파라미터 추가:', config.params, '→', paramsString);
+    
+    // 파라미터 추가 후 HTTP 차단
+    finalUrl = forceHTTPS(finalUrl);
   }
   
   // 헤더 설정
@@ -170,22 +175,22 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
   
-  // 사용자 정보 쿼리 파라미터 추가 (중복 방지)
+  // 사용자 정보 쿼리 파라미터 추가 (중복 방지) - HTTP 차단 강화
   const userData = localStorage.getItem('user');
   if (userData && !finalUrl.includes('/auth/login')) {
     const user = JSON.parse(userData);
     // 이미 viewerId가 있는지 확인하여 중복 방지
     if (!finalUrl.includes('viewerId=')) {
       const separator = finalUrl.includes('?') ? '&' : '?';
-      finalUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
+      const safeRole = encodeURIComponent(user.role);
+      finalUrl += `${separator}viewerId=${user.id}&viewerRole=${safeRole}`;
+      console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, viewerRole: user.role, encoded: safeRole});
     }
   }
   
-  // 최종 HTTPS 강제 변환 (쿼리 파라미터 추가 후에도 적용)
-  if (finalUrl.startsWith('http://')) {
-    finalUrl = finalUrl.replace('http://', 'https://');
-    console.log('🔒 최종 HTTPS 강제 변환:', finalUrl);
-  }
+  // 🚨 파라미터 추가 후 HTTPS 강제 변환 - 모든 경우 처리
+  finalUrl = forceHTTPS(finalUrl);
+  console.log('🔒 파라미터 추가 후 HTTPS 강제 변환:', finalUrl);
   
   // 🚨 최종 보안 검증 - HTTP 완전 차단
   if (finalUrl.includes('http://')) {
