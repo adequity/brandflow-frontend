@@ -100,7 +100,19 @@ const forcedHttpsFetch = async (url, config = {}) => {
   
   return fetch(finalUrl, {
     ...config,
-    headers
+    headers,
+    redirect: 'manual'  // 🚨 Railway 리디렉트 차단 - HTTP 리디렉트를 따라가지 않음
+  }).then(async (response) => {
+    // 🚨 307 리디렉트 감지 및 HTTPS 강제 재요청
+    if (response.status === 307 && response.headers.get('location')) {
+      const redirectUrl = response.headers.get('location');
+      if (redirectUrl.startsWith('http://')) {
+        const httpsUrl = redirectUrl.replace('http://', 'https://');
+        console.error('🚨 Railway HTTP 리디렉트 감지 → HTTPS 강제 재요청:', redirectUrl, '→', httpsUrl);
+        return fetch(httpsUrl, { ...config, headers });
+      }
+    }
+    return response;
   });
 };
 
@@ -191,7 +203,8 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   const response = await forcedHttpsFetch(finalUrl, {
     method: method.toUpperCase(),
     headers,
-    body: data ? JSON.stringify(data) : null
+    body: data ? JSON.stringify(data) : null,
+    redirect: 'manual'  // 🚨 Railway 리디렉트 차단
   });
   
   if (!response.ok) {
