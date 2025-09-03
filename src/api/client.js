@@ -208,7 +208,15 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   });
   
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { message: response.statusText };
+    }
+    const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+    error.response = { data: errorData, status: response.status };
+    throw error;
   }
   
   const responseData = await response.json();

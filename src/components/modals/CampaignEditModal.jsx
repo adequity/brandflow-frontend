@@ -84,7 +84,10 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
       onSave();
     } catch (error) {
       console.error('캠페인 수정 실패:', error);
-      showError(error?.response?.data?.message || '캠페인 수정에 실패했습니다.');
+      const errorMessage = error?.response?.data?.detail === 'Not implemented yet' 
+        ? '캠페인 편집 기능은 현재 백엔드에서 개발 중입니다. 잠시 후 다시 시도해주세요.' 
+        : error?.response?.data?.message || '캠페인 수정에 실패했습니다.';
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
