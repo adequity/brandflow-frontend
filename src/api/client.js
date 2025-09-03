@@ -106,11 +106,27 @@ const forcedHttpsFetch = async (url, config = {}) => {
     // 🚨 307 리디렉트 감지 및 HTTPS 강제 재요청
     if (response.status === 307 && response.headers.get('location')) {
       const redirectUrl = response.headers.get('location');
+      console.error('🚨 307 리디렉트 감지:', redirectUrl);
+      
+      let httpsUrl = redirectUrl;
+      // HTTP → HTTPS 강제 변환
       if (redirectUrl.startsWith('http://')) {
-        const httpsUrl = redirectUrl.replace('http://', 'https://');
-        console.error('🚨 Railway HTTP 리디렉트 감지 → HTTPS 강제 재요청:', redirectUrl, '→', httpsUrl);
-        return fetch(httpsUrl, { ...config, headers });
+        httpsUrl = redirectUrl.replace('http://', 'https://');
+        console.error('🚨 Railway HTTP 리디렉트 → HTTPS 강제 변환:', redirectUrl, '→', httpsUrl);
       }
+      
+      // Railway URL로 강제 변환 (추가 안전장치)
+      if (httpsUrl.includes('brandflow-backend') && !httpsUrl.includes('https://brandflow-backend-production-99ae.up.railway.app')) {
+        httpsUrl = httpsUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
+        console.error('🚨 Railway URL 강제 변환:', httpsUrl);
+      }
+      
+      console.log('🔒 HTTPS 재요청 실행:', httpsUrl);
+      return fetch(httpsUrl, { 
+        ...config, 
+        headers,
+        redirect: 'manual'  // 재요청에서도 수동 리다이렉트 처리
+      });
     }
     return response;
   });
@@ -205,6 +221,24 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     headers,
     body: data ? JSON.stringify(data) : null,
     redirect: 'manual'  // 🚨 Railway 리디렉트 차단
+  }).catch(async (fetchError) => {
+    // 307 리다이렉트 또는 네트워크 오류 시 HTTPS 재시도
+    console.error('🚨 Fetch 오류 발생, HTTPS 재시도 시도:', fetchError.message);
+    
+    // Railway 백엔드 URL 강제 변환 후 재시도
+    if (finalUrl.includes('brandflow-backend')) {
+      const railwayUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + 
+                          (finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/users');
+      console.error('🚨 Railway HTTPS URL로 재시도:', railwayUrl);
+      
+      return forcedHttpsFetch(railwayUrl, {
+        method: method.toUpperCase(),
+        headers,
+        body: data ? JSON.stringify(data) : null,
+        redirect: 'manual'
+      });
+    }
+    throw fetchError;
   });
   
   if (!response.ok) {
