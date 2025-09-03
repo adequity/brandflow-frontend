@@ -21,11 +21,36 @@ const forceHTTPS = (url) => {
     return railwayUrl;
   }
   
-  return url;
+  // 🚨 Railway 307 리다이렉트 우회 적용
+  return fixRailwayUrl(url);
 };
 
 // 🚨 완전한 HTTP 차단: 모든 HTTP URL을 HTTPS로 강제 변환
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+
+// 🚨 Railway 307 리다이렉트 우회: trailing slash 자동 추가
+const fixRailwayUrl = (url) => {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Railway API 엔드포인트에 대해 trailing slash 자동 추가
+  if (url.includes('/api/') && url.includes('brandflow-backend')) {
+    // 쿼리 파라미터가 있는 경우와 없는 경우 모두 처리
+    const hasQuery = url.includes('?');
+    const [baseUrl, queryString] = hasQuery ? url.split('?') : [url, ''];
+    
+    // 이미 trailing slash가 있거나 파일 확장자가 있으면 그대로 둠
+    if (baseUrl.endsWith('/') || baseUrl.match(/\.[a-zA-Z0-9]+$/)) {
+      return url;
+    }
+    
+    // trailing slash 추가
+    const fixedUrl = baseUrl + '/' + (hasQuery ? '?' + queryString : '');
+    console.log('🚨 Railway 307 우회: trailing slash 추가:', url, '→', fixedUrl);
+    return fixedUrl;
+  }
+  
+  return url;
+};
 
 // 🚨 환경변수 무시 - 무조건 HTTPS Railway URL만 사용
 const getBackendUrl = () => {
@@ -137,21 +162,23 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
   
-  // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화
+  // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화 + Railway 307 우회
   if (url?.startsWith('/')) {
-    // 상대 경로는 무조건 강제 HTTPS 베이스 사용
-    finalUrl = FORCE_HTTPS_API_BASE + url;
+    // 상대 경로는 무조건 강제 HTTPS 베이스 사용 + trailing slash 자동 추가
+    finalUrl = fixRailwayUrl(FORCE_HTTPS_API_BASE + url);
   } else {
-    // 모든 절대 경로 URL에 대해 forceHTTPS 적용
+    // 모든 절대 경로 URL에 대해 forceHTTPS 적용 (내부적으로 fixRailwayUrl 호출됨)
     finalUrl = forceHTTPS(url);
     // 추가로 FORCE_HTTPS_API_BASE 강제 적용
     if (finalUrl?.includes('brandflow-backend')) {
       finalUrl = finalUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
-      console.error('🚨 createFetchRequest: brandflow-backend URL → Railway HTTPS 강제 변환:', finalUrl);
+      // Railway 307 우회 로직 적용
+      finalUrl = fixRailwayUrl(finalUrl);
+      console.error('🚨 createFetchRequest: brandflow-backend URL → Railway HTTPS + 307 우회 변환:', finalUrl);
     }
   }
   
-  // 🚨 쿼리 파라미터 처리 - HTTP 차단 강화
+  // 🚨 쿼리 파라미터 처리 - HTTP 차단 강화 + Railway 307 우회
   if (config.params) {
     const searchParams = new URLSearchParams();
     Object.entries(config.params).forEach(([key, value]) => {
@@ -161,7 +188,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     finalUrl += (finalUrl.includes('?') ? '&' : '?') + paramsString;
     console.log('🔒 쿼리 파라미터 추가:', config.params, '→', paramsString);
     
-    // 파라미터 추가 후 HTTP 차단
+    // 파라미터 추가 후 HTTP 차단 + Railway 307 우회
     finalUrl = forceHTTPS(finalUrl);
   }
   
@@ -178,7 +205,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
   
-  // 사용자 정보 쿼리 파라미터 추가 (중복 방지) - HTTP 차단 강화
+  // 사용자 정보 쿼리 파라미터 추가 (중복 방지) - HTTP 차단 강화 + Railway 307 우회
   const userData = localStorage.getItem('user');
   if (userData && !finalUrl.includes('/auth/login')) {
     const user = JSON.parse(userData);
@@ -191,9 +218,9 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     }
   }
   
-  // 🚨 파라미터 추가 후 HTTPS 강제 변환 - 모든 경우 처리
+  // 🚨 파라미터 추가 후 HTTPS 강제 변환 + Railway 307 우회 - 모든 경우 처리
   finalUrl = forceHTTPS(finalUrl);
-  console.log('🔒 파라미터 추가 후 HTTPS 강제 변환:', finalUrl);
+  console.log('🔒 파라미터 추가 후 HTTPS + Railway 307 우회 변환:', finalUrl);
   
   // 🚨 추가 안전장치: URL에서 모든 HTTP를 HTTPS로 강제 교체
   if (finalUrl.includes('http://')) {
