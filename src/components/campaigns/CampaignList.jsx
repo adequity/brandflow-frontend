@@ -33,13 +33,15 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       
       console.log('Auth token exists, proceeding with campaign creation');
       
-      // 실제 폼 데이터를 사용한 페이로드
+      // 실제 폼 데이터를 사용한 페이로드 - 백엔드 요구사항에 맞춘 필드명
       const payload = {
         name: campaignData.name?.trim() || '테스트 캠페인',
-        client: campaignData.clientName || 'Unknown Client',
+        client_company: campaignData.clientName || 'Unknown Client', // 백엔드는 client_company 필드명 사용
         userId: campaignData.UserId || currentUser?.id || 1,
         managerId: campaignData.UserId || currentUser?.id || 1,
-        budget: campaignData.budget || 0,
+        budget: Math.max(campaignData.budget || 1000000, 1), // 백엔드 요구사항: budget > 0
+        start_date: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString(),
+        end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
         notes: campaignData.notes || null,
         reminders: campaignData.reminders || null,
         invoiceIssued: campaignData.invoiceIssued || false,
