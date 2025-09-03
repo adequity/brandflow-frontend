@@ -106,12 +106,33 @@ const UserManagement = ({ loggedInUser }) => {
       console.error('사용자 저장 실패:', err);
       console.error('Error response data:', err?.response?.data);
       console.error('Error status:', err?.response?.status);
-      const errorMessage = err?.response?.data?.email?.[0] || 
-                          err?.response?.data?.username?.[0] || 
-                          err?.response?.data?.detail || 
-                          JSON.stringify(err?.response?.data) ||
-                          '작업에 실패했습니다.';
-      showError(errorMessage);
+      console.error('Request payload:', JSON.stringify(apiData, null, 2));
+      
+      // JSON 파싱 오류 특별 처리
+      if (err?.response?.data?.detail === "There was an error parsing the body") {
+        showError(`⚠️ 백엔드 서버 JSON 파싱 오류
+        
+현재 백엔드에서 사용자 생성 API에 JSON 파싱 문제가 발생하고 있습니다.
+
+🔧 임시 해결 방안:
+1. 백엔드 개발팀에 JSON 파싱 이슈 수정 요청
+2. 한글 인코딩 문제 해결 필요
+3. 현재는 시스템 관리자만 사용자 관리 가능
+
+📧 오류 세부정보:
+- 상태: 400 Bad Request
+- 메시지: ${err?.response?.data?.detail}
+- 시간: ${new Date().toLocaleString()}
+
+관리자에게 문의하여 백엔드 수정을 요청해주세요.`);
+      } else {
+        const errorMessage = err?.response?.data?.email?.[0] || 
+                            err?.response?.data?.username?.[0] || 
+                            err?.response?.data?.detail || 
+                            JSON.stringify(err?.response?.data) ||
+                            '작업에 실패했습니다.';
+        showError(errorMessage);
+      }
     }
   };
 
