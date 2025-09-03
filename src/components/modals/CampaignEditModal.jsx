@@ -84,10 +84,18 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
       onSave();
     } catch (error) {
       console.error('캠페인 수정 실패:', error);
-      const errorMessage = error?.response?.data?.detail === 'Not implemented yet' 
-        ? '캠페인 편집 기능은 현재 백엔드에서 개발 중입니다. 잠시 후 다시 시도해주세요.' 
-        : error?.response?.data?.message || '캠페인 수정에 실패했습니다.';
-      showError(errorMessage);
+      
+      // 404 에러 또는 "Not implemented yet" 메시지 처리
+      if (error?.response?.status === 404 || 
+          error?.response?.data?.detail === 'Not implemented yet' ||
+          error?.message?.includes('404')) {
+        showError('⚠️ 캠페인 편집 기능은 현재 백엔드에서 개발 중입니다.\n잠시 후 다시 시도해주세요.');
+      } else {
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.detail || 
+                           '캠페인 수정에 실패했습니다.';
+        showError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +104,25 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
-        <h3 className="text-xl font-bold mb-6">캠페인 수정 - {campaign?.name}</h3>
+        <h3 className="text-xl font-bold mb-4">캠페인 수정 - {campaign?.name}</h3>
+        
+        {/* 개발 중 안내 메시지 */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <span className="text-amber-600">⚠️</span>
+            </div>
+            <div className="ml-3">
+              <h4 className="text-sm font-medium text-amber-800">
+                캠페인 편집 기능 개발 중
+              </h4>
+              <p className="text-sm text-amber-700 mt-1">
+                현재 백엔드에서 캠페인 수정 API를 개발 중입니다. 일시적으로 저장이 되지 않을 수 있습니다.
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* 캠페인 매출 */}
