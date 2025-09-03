@@ -108,8 +108,58 @@ const UserManagement = ({ loggedInUser }) => {
       console.error('Error status:', err?.response?.status);
       console.error('Request payload:', JSON.stringify(apiData, null, 2));
       
+      // 422 Pydantic 검증 오류 처리
+      if (err?.response?.status === 422 && Array.isArray(err?.response?.data?.detail)) {
+        const validationErrors = err.response.data.detail;
+        let errorMessages = [];
+        
+        validationErrors.forEach(error => {
+          const fieldPath = Array.isArray(error.loc) ? error.loc.slice(1).join('.') : 'unknown';
+          const fieldName = {
+            'password': '비밀번호',
+            'email': '이메일',
+            'name': '이름',
+            'role': '역할',
+            'company': '회사명',
+            'contact': '연락처',
+            'incentive_rate': '인센티브 비율'
+          }[fieldPath] || fieldPath;
+          
+          let message = '';
+          switch(error.type) {
+            case 'string_too_short':
+              message = `${fieldName}는 최소 ${error.ctx?.min_length || 6}자 이상이어야 합니다. (현재: ${error.input?.length || 0}자)`;
+              break;
+            case 'string_too_long':
+              message = `${fieldName}는 최대 ${error.ctx?.max_length}자까지 입력 가능합니다.`;
+              break;
+            case 'value_error':
+              message = `${fieldName} 형식이 올바르지 않습니다.`;
+              break;
+            case 'missing':
+              message = `${fieldName}는 필수 입력 항목입니다.`;
+              break;
+            case 'type_error':
+              message = `${fieldName}의 데이터 타입이 올바르지 않습니다.`;
+              break;
+            default:
+              message = `${fieldName}: ${error.msg}`;
+          }
+          errorMessages.push(message);
+        });
+        
+        showError(`📝 입력 데이터 검증 오류
+
+다음 항목을 확인하고 다시 시도해주세요:
+
+${errorMessages.map(msg => `• ${msg}`).join('\n')}
+
+💡 도움말:
+- 비밀번호는 최소 6자 이상으로 설정해주세요
+- 모든 필수 항목을 입력했는지 확인해주세요`);
+      }
       // JSON 파싱 오류 특별 처리
-      if (err?.response?.data?.detail === "There was an error parsing the body") {
+      else if (err?.response?.data?.detail === "There was an error parsing the body") {
         showError(`⚠️ 백엔드 서버 JSON 파싱 오류
         
 현재 백엔드에서 사용자 생성 API에 JSON 파싱 문제가 발생하고 있습니다.
@@ -126,11 +176,35 @@ const UserManagement = ({ loggedInUser }) => {
 
 관리자에게 문의하여 백엔드 수정을 요청해주세요.`);
       } else {
-        const errorMessage = err?.response?.data?.email?.[0] || 
-                            err?.response?.data?.username?.[0] || 
-                            err?.response?.data?.detail || 
-                            JSON.stringify(err?.response?.data) ||
-                            '작업에 실패했습니다.';
+        // 안전한 에러 메시지 추출 (React Minified Error #31 방지)
+        let errorMessage = '사용자 저장에 실패했습니다.';
+        
+        try {
+          if (typeof err?.response?.data?.detail === 'string') {
+            errorMessage = err.response.data.detail;
+          } else if (err?.response?.data?.email?.[0]) {
+            errorMessage = `이메일: ${err.response.data.email[0]}`;
+          } else if (err?.response?.data?.username?.[0]) {
+            errorMessage = `사용자명: ${err.response.data.username[0]}`;
+          } else if (err?.response?.data && typeof err.response.data === 'object') {
+            // 객체를 안전하게 문자열로 변환
+            const errorData = err.response.data;
+            const errorKeys = Object.keys(errorData);
+            if (errorKeys.length > 0) {
+              const firstKey = errorKeys[0];
+              const firstValue = errorData[firstKey];
+              if (typeof firstValue === 'string') {
+                errorMessage = `${firstKey}: ${firstValue}`;
+              } else if (Array.isArray(firstValue) && firstValue.length > 0) {
+                errorMessage = `${firstKey}: ${String(firstValue[0])}`;
+              }
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          errorMessage = `요청 처리 중 오류가 발생했습니다. (상태: ${err?.response?.status || 'unknown'})`;
+        }
+        
         showError(errorMessage);
       }
     }
