@@ -50,7 +50,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
         setQuantity(1); // 수량 초기화
     };
 
-    // 상품 목록과 업무타입 목록 로드 (실제 API 호출)
+    // 상품 목록과 업무타입 목록 로드 (모달이 열릴 때마다 최신 데이터 로드)
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -163,7 +163,34 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
         };
         
         fetchData();
-    }, []);
+    }, [campaignId]); // campaignId가 변경되거나 컴포넌트가 마운트될 때 데이터 로드
+
+    // 모달이 열릴 때마다 최신 상품/업무타입 데이터 새로고침
+    const refreshData = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('authToken');
+            
+            if (token) {
+                const [productsResponse, workTypesResponse] = await Promise.all([
+                    api.get('/api/products'),
+                    api.get('/api/work-types')
+                ]);
+                
+                const productsData = productsResponse.data?.products || [];
+                const workTypesData = workTypesResponse.data || [];
+                
+                setProducts(Array.isArray(productsData) ? productsData : []);
+                setWorkTypes(Array.isArray(workTypesData) ? workTypesData : []);
+                
+                console.log('TopicRegisterModal: 데이터 새로고침 완료');
+            }
+        } catch (error) {
+            console.error('데이터 새로고침 실패:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSave = () => {
         const data = {

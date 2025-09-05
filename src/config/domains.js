@@ -7,10 +7,6 @@ export const DOMAIN_MAPPINGS = {
     backend: 'https://brandflow-backend-production-99ae.up.railway.app',
     environment: 'production'
   },
-  'singular-peony-ea66d2.netlify.app': {
-    backend: 'https://brandflow-backend-production-99ae.up.railway.app', 
-    environment: 'production'
-  },
   
   // 커스텀 도메인 (미래 대비)
   'brandflow.app': {

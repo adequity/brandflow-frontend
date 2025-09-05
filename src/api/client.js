@@ -103,7 +103,8 @@ const fixRailwayUrl = (url) => {
       '/unread-count',
       '/login',
       '/approve',
-      '/users/'  // 🚨 PUT /api/users/1/ → /api/users/1 (trailing slash 제거)
+      '/users/',  // 🚨 PUT /api/users/1/ → /api/users/1 (trailing slash 제거)
+      '/work-types'  // 🚨 GET /api/work-types → trailing slash 없이 사용
     ];
     
     // 🚨 숫자 ID가 포함된 users API도 trailing slash 제거 (PUT /api/users/1/ 방지)

@@ -19,12 +19,15 @@ const WorkTypeManagement = ({ loggedInUser }) => {
     
     setIsLoading(true);
     try {
-      const response = await api.get('/work-types/manage', {
+      console.log('🔍 WorkTypeManagement v2: API 호출 시작 - /api/work-types');
+      console.log('🆕 캐시 무효화 테스트:', new Date().getTime());
+      const response = await api.get('/api/work-types', {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role
         }
       });
+      console.log('✅ WorkTypeManagement: API 호출 성공', response.data);
       setWorkTypes(response.data || []);
     } catch (error) {
       console.error('업무타입 목록 로딩 실패:', error);
@@ -41,7 +44,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
 
   const handleCreateWorkType = async (workTypeData) => {
     try {
-      const response = await api.post('/work-types', {
+      const response = await api.post('/api/work-types', {
         ...workTypeData,
         viewerId: loggedInUser.id,
         viewerRole: loggedInUser.role
@@ -64,7 +67,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
 
   const handleUpdateWorkType = async (workTypeId, workTypeData) => {
     try {
-      const response = await api.put(`/work-types/${workTypeId}`, workTypeData, {
+      const response = await api.put(`/api/work-types/${workTypeId}`, workTypeData, {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role
@@ -91,7 +94,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
     if (!workType) return;
     
     try {
-      await api.delete(`/work-types/${workType.id}`, {
+      await api.delete(`/api/work-types/${workType.id}`, {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role
@@ -117,7 +120,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
     if (!workType) return;
     
     try {
-      await api.put(`/work-types/${workType.id}`, {
+      await api.put(`/api/work-types/${workType.id}`, {
         isActive: !workType.isActive
       }, {
         params: {

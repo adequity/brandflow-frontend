@@ -14,6 +14,7 @@ import TopicRegisterModal from '../modals/TopicRegisterModal';
 import LinkRegisterModal from '../modals/LinkRegisterModal';
 import PurchaseRequestModal from '../modals/PurchaseRequestModal';
 import ApprovalButtons from '../ApprovalButtons';
+import { WORK_TYPES, POST_STATUSES, DEFAULT_VALUES } from '../../constants/campaignConstants';
 
 const formatUrl = (url) => {
   if (!url) return '#';
@@ -90,7 +91,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     // 업무 타입 필터
     if (filters.workType !== 'all') {
       filtered = filtered.filter(post => 
-        (post.workType || '블로그') === filters.workType
+        (post.workType || DEFAULT_VALUES.WORK_TYPE) === filters.workType
       );
     }
 
@@ -99,8 +100,8 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
       let statusFilter = filters.status;
       if (statusFilter === '승인 대기') {
         filtered = filtered.filter(post => 
-          post.topicStatus === '주제 승인 대기' || 
-          post.outlineStatus === '목차 승인 대기'
+          post.topicStatus === POST_STATUSES.TOPIC_PENDING || 
+          post.outlineStatus === POST_STATUSES.OUTLINE_PENDING
         );
       } else if (statusFilter === '승인') {
         filtered = filtered.filter(post => 
@@ -197,14 +198,14 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
           quantity: updatedContent.quantity,
           startDate: updatedContent.startDate,
           dueDate: updatedContent.dueDate,
-          topicStatus: '주제 승인 대기' // 수정 시 재승인 필요
+          topicStatus: POST_STATUSES.TOPIC_PENDING // 수정 시 재승인 필요
         };
       } else {
         // 기존 방식 호환성
-        payload = { title: updatedContent, topicStatus: '주제 승인 대기', outline: null, outlineStatus: null };
+        payload = { title: updatedContent, topicStatus: POST_STATUSES.TOPIC_PENDING, outline: null, outlineStatus: null };
       }
     } else {
-      payload = { outline: updatedContent, outlineStatus: '목차 승인 대기' };
+      payload = { outline: updatedContent, outlineStatus: POST_STATUSES.OUTLINE_PENDING };
     }
 
     try {
@@ -227,10 +228,10 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     if (!postId) return;
     try {
       const payload = typeof outlineData === 'string' 
-        ? { outline: outlineData, outlineStatus: '목차 승인 대기' }
+        ? { outline: outlineData, outlineStatus: POST_STATUSES.OUTLINE_PENDING }
         : { 
             outline: outlineData.text, 
-            outlineStatus: '목차 승인 대기',
+            outlineStatus: POST_STATUSES.OUTLINE_PENDING,
             images: outlineData.images || []
           };
       const { data: updated } = await api.put(`/api/posts/${postId}`, payload);
@@ -250,7 +251,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
   const handleRegisterTopic = async (topicData) => {
     try {
       const payload = typeof topicData === 'string' 
-        ? { title: topicData, workType: '블로그' } // 기존 호환성
+        ? { title: topicData, workType: DEFAULT_VALUES.WORK_TYPE } // 기존 호환성
         : { 
             title: topicData.title, 
             workType: topicData.workType,
@@ -446,7 +447,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                     </td>
                     <td className="p-2">
                       <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                        {post.workType || '블로그'}
+                        {post.workType || DEFAULT_VALUES.WORK_TYPE}
                       </span>
                     </td>
                     <td className="p-2 font-medium text-gray-900">{post.title}</td>
@@ -566,7 +567,14 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
         onClose={() => setDeleteModalOpen(false)}
       />
       {isOutlineModalOpen && <OutlineRegisterModal onSave={handleRegisterOutline} onClose={() => setOutlineModalOpen(false)} />}
-      {isTopicModalOpen && <TopicRegisterModal onSave={handleRegisterTopic} onClose={() => setTopicModalOpen(false)} />}
+      {isTopicModalOpen && (
+        <TopicRegisterModal 
+          key={`topic-modal-${Date.now()}`} // 매번 새로운 키로 컴포넌트를 재마운트
+          onSave={handleRegisterTopic} 
+          onClose={() => setTopicModalOpen(false)}
+          campaignId={campaign.id}
+        />
+      )}
       {isLinkModalOpen && (
         <LinkRegisterModal
           onSave={handleRegisterLink}
