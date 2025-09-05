@@ -17,108 +17,63 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 알림 목록 조회
+  // 알림 목록 조회 (백엔드 API 미구현으로 임시 비활성화)
   const fetchNotifications = useCallback(async (page = 1, unreadOnly = false) => {
-    console.log('fetchNotifications 호출됨:', { page, unreadOnly });
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get('/api/notifications', {
-        params: { page, limit: 20, unreadOnly }
-      });
-      
-      console.log('알림 API 응답:', response.data);
-      
-      if (page === 1) {
-        setNotifications(response.data.notifications);
-      } else {
-        setNotifications(prev => [...prev, ...response.data.notifications]);
-      }
-      
-      setUnreadCount(response.data.unreadCount);
-      return response.data;
-    } catch (err) {
-      console.error('알림 조회 실패:', err);
-      // 404 오류인 경우 (API 미구현) 빈 배열 반환
-      if (err.response?.status === 404) {
-        setNotifications([]);
-        setUnreadCount(0);
-        return { notifications: [], unreadCount: 0 };
-      }
-      setError('알림을 불러오는데 실패했습니다.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 미읽음 알림 개수 조회
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const response = await api.get('/api/notifications/unread-count');
-      setUnreadCount(response.data.unreadCount);
-      return response.data.unreadCount;
-    } catch (err) {
-      // 404 오류인 경우 (API 미구현) 조용히 처리
-      if (err.response?.status === 404) {
-        setUnreadCount(0);
-        return 0;
-      }
-      // 다른 에러는 로그 출력
-      console.error('미읽음 알림 개수 조회 실패:', err);
-      if (err.response?.status === 401) {
-        setUnreadCount(0);
-      }
-      return 0;
-    }
-  }, []);
-
-  // 알림 읽음 처리
-  const markAsRead = useCallback(async (notificationId) => {
-    try {
-      await api.put(`/api/notifications/${notificationId}/read`);
-      
-      // 로컬 상태 업데이트
-      setNotifications(prev => 
-        prev.map(notification => 
-          notification.id === notificationId 
-            ? { ...notification, isRead: true, readAt: new Date() }
-            : notification
-        )
-      );
-      
-      // 미읽음 개수 감소
-      setUnreadCount(prev => Math.max(0, prev - 1));
-      
-      return true;
-    } catch (err) {
-      console.error('알림 읽음 처리 실패:', err);
-      setError('알림 읽음 처리에 실패했습니다.');
-      throw err;
-    }
-  }, []);
-
-  // 모든 알림 읽음 처리
-  const markAllAsRead = useCallback(async () => {
-    try {
-      const response = await api.put('/api/notifications/read-all');
-      
-      // 로컬 상태 업데이트
-      setNotifications(prev => 
-        prev.map(notification => ({ 
-          ...notification, 
-          isRead: true, 
-          readAt: new Date() 
-        }))
-      );
-      
+    console.log('fetchNotifications 호출됨 (API 미구현으로 mock 데이터 반환):', { page, unreadOnly });
+    
+    // 백엔드에 알림 API가 구현되지 않아 임시로 빈 데이터 반환
+    setLoading(true);
+    setTimeout(() => {
+      setNotifications([]);
       setUnreadCount(0);
-      return response.data.updatedCount;
-    } catch (err) {
-      console.error('모든 알림 읽음 처리 실패:', err);
-      setError('모든 알림 읽음 처리에 실패했습니다.');
-      throw err;
-    }
+      setLoading(false);
+    }, 100);
+    
+    return { notifications: [], unreadCount: 0 };
+  }, []);
+
+  // 미읽음 알림 개수 조회 (백엔드 API 미구현으로 임시 비활성화)
+  const fetchUnreadCount = useCallback(async () => {
+    // 백엔드에 알림 API가 구현되지 않아 임시로 0 반환
+    console.log('fetchUnreadCount 호출됨 (API 미구현으로 0 반환)');
+    setUnreadCount(0);
+    return 0;
+  }, []);
+
+  // 알림 읽음 처리 (백엔드 API 미구현으로 임시 비활성화)
+  const markAsRead = useCallback(async (notificationId) => {
+    console.log('markAsRead 호출됨 (API 미구현으로 로컬 처리만):', notificationId);
+    
+    // 백엔드 API가 없으므로 로컬 상태만 업데이트
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === notificationId 
+          ? { ...notification, isRead: true, readAt: new Date() }
+          : notification
+      )
+    );
+    
+    // 미읽음 개수 감소
+    setUnreadCount(prev => Math.max(0, prev - 1));
+    
+    return true;
+  }, []);
+
+  // 모든 알림 읽음 처리 (백엔드 API 미구현으로 임시 비활성화)
+  const markAllAsRead = useCallback(async () => {
+    console.log('markAllAsRead 호출됨 (API 미구현으로 로컬 처리만)');
+    
+    // 백엔드 API가 없으므로 로컬 상태만 업데이트
+    setNotifications(prev => 
+      prev.map(notification => ({ 
+        ...notification, 
+        isRead: true, 
+        readAt: new Date() 
+      }))
+    );
+    
+    setUnreadCount(0);
+    return 0; // API 미구현으로 0 반환
   }, []);
 
   // 새 알림 추가 (실시간 업데이트용)
