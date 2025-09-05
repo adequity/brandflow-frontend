@@ -1,7 +1,7 @@
 // src/api/client.js
 // 🚨 axios 완전 제거
 
-// import { getBackendUrlByDomain } from '../config/domains.js'; // 🚨 완전 제거 - HTTP 차단
+// 🚨 domains.js 의존성 완전 제거 - Railway HTTPS 하드코딩만 사용
 
 // 🚨 HTTP 완전 차단: 모든 HTTP URL을 HTTPS로 강제 변환하는 함수
 const forceHTTPS = (url) => {
@@ -27,6 +27,20 @@ const forceHTTPS = (url) => {
 
 // 🚨 완전한 HTTP 차단: 모든 HTTP URL을 HTTPS로 강제 변환
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+
+// 🚨 환경변수 기반 백엔드 URL 설정
+const getBackendURL = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl) {
+    console.log('✅ 환경변수에서 백엔드 URL 로드:', envUrl);
+    return envUrl;
+  }
+  
+  // 환경변수가 없으면 기본값 (Railway)
+  const defaultUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
+  console.log('⚠️ 환경변수 없음, 기본값 사용:', defaultUrl);
+  return defaultUrl;
+};
 
 // 🚨 한글 UTF-8 인코딩 안전 처리
 const ensureUTF8Encoding = (data) => {
@@ -84,29 +98,27 @@ const fixRailwayUrl = (url) => {
   return url;
 };
 
-// 🚨 환경변수 무시 - 무조건 HTTPS Railway URL만 사용
+// 🚨 환경변수 기반 백엔드 URL (getBackendUrl은 getBackendURL과 동일)
 const getBackendUrl = () => {
-  // 🚨 domains.js 완전 무시하고 Railway HTTPS URL만 반환
-  console.log('🔒 domains.js 무시 - Railway HTTPS URL 강제 사용:', RAILWAY_HTTPS_URL);
-  return RAILWAY_HTTPS_URL;
+  return getBackendURL(); // 위에서 정의한 환경변수 기반 함수 사용
 };
 
-// 🚨 HTTP 완전 차단: 환경변수를 무시하고 무조건 HTTPS Railway URL 사용
-const FORCE_HTTPS_API_BASE = (() => {
-  // 환경변수 무시하고 Railway HTTPS URL만 사용
-  console.log('🔒 모든 API 요청을 Railway HTTPS URL로 강제 설정:', RAILWAY_HTTPS_URL);
-  return RAILWAY_HTTPS_URL;
-})();
+// 🚨 환경변수 기반 API 베이스 URL 설정
+const API_BASE_URL = getBackendURL();
 
-// Mixed Content 완전 방지: HTTPS 강제 하드코딩 (백업용)
-const API_BASE = RAILWAY_HTTPS_URL;
+// Mixed Content 완전 방지: HTTPS 강제 검증
+if (!API_BASE_URL.startsWith('https://')) {
+  console.error('🚨 HTTP URL 감지, HTTPS 강제 변환:', API_BASE_URL);
+}
 
-// 확인용 로그(옵션)
-console.log('[FORCE_HTTPS_API_BASE]', FORCE_HTTPS_API_BASE);
+const API_BASE = API_BASE_URL;
 
-// 백엔드 URL 확인 및 무조건 HTTPS 강제 변환 (domains.js 무시)
-let backendUrl = RAILWAY_HTTPS_URL; // 🚨 domains.js 완전 무시
-console.log('🔍 하드코딩된 Railway URL 사용:', backendUrl);
+// 확인용 로그
+console.log('[API_BASE_URL]', API_BASE_URL);
+
+// 백엔드 URL 확인 및 무조건 HTTPS 강제 변환
+let backendUrl = API_BASE_URL; // 🚨 환경변수 기반 URL 사용
+console.log('🔍 환경변수 기반 백엔드 URL 사용:', backendUrl);
 // 🚨 추가 안전장치: HTTPS 강제 변환
 if (backendUrl) {
   backendUrl = forceHTTPS(backendUrl);
@@ -133,7 +145,7 @@ const forcedHttpsFetch = async (url, config = {}) => {
       finalUrl = url.replace(/http:\/\//g, 'https://');
       console.error('🚨 URL 내 HTTP 프로토콜 발견, HTTPS 강제 변환:', finalUrl);
     } else if (url.startsWith('/')) {
-      finalUrl = FORCE_HTTPS_API_BASE + url;
+      finalUrl = API_BASE_URL + url;
       console.log('🚨 Fetch 상대 URL → HTTPS:', finalUrl);
     }
     
@@ -203,12 +215,12 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화 + Railway 307 우회 + 브라우저 캐시 우회
   if (url?.startsWith('/')) {
     // 상대 경로는 무조건 강제 HTTPS 베이스 사용 + trailing slash 자동 추가
-    finalUrl = fixRailwayUrl(RAILWAY_HTTPS_URL + url); // 🚨 FORCE_HTTPS_API_BASE 대신 직접 Railway URL 사용
+    finalUrl = fixRailwayUrl(API_BASE_URL + url); // 🚨 환경변수 기반 URL 사용
     console.error('🚨 상대 경로 → Railway HTTPS 직접 변환:', url, '→', finalUrl);
   } else {
     // 모든 절대 경로 URL에 대해 강제 Railway HTTPS 변환
     if (url?.includes('brandflow-backend') || url?.includes('localhost') || url?.includes('127.0.0.1')) {
-      finalUrl = RAILWAY_HTTPS_URL + (url.includes('/api/') ? url.substring(url.indexOf('/api/')) : '/api/users');
+      finalUrl = API_BASE_URL + (url.includes('/api/') ? url.substring(url.indexOf('/api/')) : '/api/users');
       finalUrl = fixRailwayUrl(finalUrl);
       console.error('🚨 brandflow-backend/localhost → Railway HTTPS 강제 변환:', url, '→', finalUrl);
     } else {
@@ -263,7 +275,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       if (finalUrl.includes('http://') || !finalUrl.includes('https://')) {
         // HTTP 발견 시 즉시 Railway HTTPS로 교체
         const apiPath = finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/notifications/unread-count';
-        finalUrl = RAILWAY_HTTPS_URL + apiPath;
+        finalUrl = API_BASE_URL + apiPath;
         console.error('🚨 파라미터 추가 후 HTTP/비정상 URL 발견, Railway HTTPS로 강제 교체:', finalUrl);
       }
     }

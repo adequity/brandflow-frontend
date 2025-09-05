@@ -22,13 +22,13 @@ export const DOMAIN_MAPPINGS = {
     environment: 'production'
   },
   
-  // 개발 환경
+  // 개발 환경 (HTTP 완전 차단 - Railway HTTPS로 통일)
   'localhost': {
-    backend: 'http://localhost:8000',
+    backend: 'https://brandflow-backend-production-99ae.up.railway.app',
     environment: 'development'
   },
   '127.0.0.1': {
-    backend: 'http://localhost:8000', 
+    backend: 'https://brandflow-backend-production-99ae.up.railway.app', 
     environment: 'development'
   },
   
