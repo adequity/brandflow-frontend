@@ -249,21 +249,38 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     body: data ? JSON.stringify(data) : null,
     redirect: 'manual'  // 🚨 Railway 리디렉트 차단
   }).catch(async (fetchError) => {
-    // 307 리다이렉트 또는 네트워크 오류 시 HTTPS 재시도
-    console.error('🚨 Fetch 오류 발생, HTTPS 재시도 시도:', fetchError.message);
+    // CORS 또는 네트워크 오류 감지 및 처리
+    console.error('🚨 Fetch 오류 발생:', fetchError.message);
+    console.error('🚨 Fetch 오류 타입:', fetchError.name);
     
-    // Railway 백엔드 URL 강제 변환 후 재시도
+    // CORS 오류 특별 처리
+    if (fetchError.message?.includes('CORS') || 
+        fetchError.message?.includes('Access-Control') ||
+        fetchError.name === 'TypeError' && fetchError.message?.includes('Failed to fetch')) {
+      const corsError = new Error('CORS 오류가 발생했습니다. 백엔드 서버 CORS 설정을 확인해주세요.');
+      corsError.name = 'CORSError';
+      corsError.isCORSError = true;
+      throw corsError;
+    }
+    
+    // 307 리다이렉트 또는 일반 네트워크 오류 시 HTTPS 재시도
     if (finalUrl.includes('brandflow-backend')) {
       const railwayUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + 
                           (finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/users');
       console.error('🚨 Railway HTTPS URL로 재시도:', railwayUrl);
       
-      return forcedHttpsFetch(railwayUrl, {
-        method: method.toUpperCase(),
-        headers,
-        body: data ? JSON.stringify(data) : null,
-        redirect: 'manual'
-      });
+      try {
+        return await forcedHttpsFetch(railwayUrl, {
+          method: method.toUpperCase(),
+          headers,
+          body: data ? JSON.stringify(data) : null,
+          redirect: 'manual'
+        });
+      } catch (retryError) {
+        console.error('🚨 재시도도 실패:', retryError.message);
+        // 재시도도 실패하면 원본 오류를 던짐
+        throw fetchError;
+      }
     }
     throw fetchError;
   });

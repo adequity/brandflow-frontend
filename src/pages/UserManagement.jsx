@@ -106,8 +106,33 @@ const UserManagement = ({ loggedInUser }) => {
       console.error('사용자 저장 실패:', err);
       console.error('Error response data:', err?.response?.data);
       console.error('Error status:', err?.response?.status);
+      console.error('Error message:', err?.message);
       console.error('Request payload:', JSON.stringify(apiData, null, 2));
       
+      // CORS 오류 또는 네트워크 오류 처리
+      if (err.isCORSError || !err.response && (err.message?.includes('CORS') || err.message?.includes('fetch') || err.message?.includes('Failed to fetch') || err.message?.includes('Network') || err.name === 'TypeError')) {
+        showError(`🚨 네트워크 연결 오류 (CORS/네트워크 문제)
+
+백엔드 서버와의 연결에 문제가 발생했습니다:
+
+🔍 가능한 원인:
+• CORS 정책 위반 (Cross-Origin Resource Sharing)
+• 백엔드 서버 500 오류 시 CORS 헤더 누락
+• 네트워크 연결 문제
+• 백엔드 서버 일시적 장애
+
+🔧 해결 방안:
+1. 잠시 후 다시 시도해보세요
+2. 백엔드 서버 상태 확인 필요
+3. 백엔드팀에 CORS 설정 및 500 에러 처리 개선 요청
+
+⚠️ 기술적 세부사항:
+- 오류: ${err.message}
+- 시간: ${new Date().toLocaleString()}
+- 요청 URL: /api/users
+
+잠시 후 다시 시도하거나 시스템 관리자에게 문의해주세요.`);
+      }
       // 422 Pydantic 검증 오류 처리
       if (err?.response?.status === 422 && Array.isArray(err?.response?.data?.detail)) {
         const validationErrors = err.response.data.detail;
