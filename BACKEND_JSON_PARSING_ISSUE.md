@@ -125,5 +125,19 @@ async def create_user(request: Request):
 - **배포 상태**: 개선된 에러 핸들링이 프로덕션에 배포됨
 
 ---
-*최종 업데이트: 2025-09-03*
+*최종 업데이트: 2025-01-05*
 *상태: 프론트엔드 에러 핸들링 완료, 백엔드 수정 대기중*
+
+## HTTP/HTTPS 혼합 콘텐츠 이슈 해결 (2025-01-05)
+
+### 문제점
+- 프로덕션 환경에서 HTTP URL이 계속 생성되는 이슈
+- 업무타입 관리 등에서 `Request URL: http://brandflow-backend-production-99ae.up.railway.app` 발생
+
+### 해결책
+- Vite 빌드 캐시 (`dist/`, `node_modules/.vite`) 완전 제거
+- 새로운 빌드로 캐시된 HTTP URL 제거
+- 모든 소스코드에서 HTTPS 강제 적용 검증 완료
+
+### 검증 필요
+- Netlify 재배포 후 업무타입 관리에서 HTTPS URL 사용 확인
