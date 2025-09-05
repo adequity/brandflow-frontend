@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import api from '../../api/client';
+import api, { apiEndpoints } from '../../api/client';
 import { canSelectClient, canSelectEmployee, ROLES, ROLE_MAPPING } from '../../utils/permissions';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -45,12 +45,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const { data } = await api.get('/api/users', {
-                    params: {
-                        viewerId: currentUser.id,
-                        viewerRole: currentUser.role
-                    }
-                });
+                const { data } = await apiEndpoints.getUsers();
                 setAllUsers(Array.isArray(data) ? data : (data?.results || []));
                 console.log('Latest users loaded:', data);
                 
@@ -131,12 +126,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         const fetchClients = async () => {
             try {
                 console.log('Fetching clients...');
-                const { data } = await api.get('/api/users', {
-                    params: {
-                        viewerId: currentUser.id,
-                        viewerRole: currentUser.role
-                    }
-                });
+                const { data } = await apiEndpoints.getUsers();
                 console.log('All users data received:', data);
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정

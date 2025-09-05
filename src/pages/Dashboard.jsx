@@ -10,7 +10,7 @@ import {
   MessageSquare,
   DollarSign
 } from 'lucide-react';
-import api from '../api/client';
+import api, { apiEndpoints } from '../api/client';
 
 const colorStyles = {
   blue:   { bg: 'bg-blue-100',   text: 'text-blue-600'   },
@@ -74,16 +74,17 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         // 캠페인 데이터가 없거나 매출 정보가 없으면 다시 로드
         if (!campaigns || campaigns.length === 0 || !campaigns[0].hasOwnProperty('posts')) {
           try {
-            const campaignsResponse = await api.get('/api/campaigns/', {
-              params: { viewerId: user.id, viewerRole: user.role }
+            const campaignsResponse = await apiEndpoints.getCampaigns({
+              viewerId: user.id, 
+              viewerRole: user.role
             });
-            const campaignsData = campaignsResponse.data.results || campaignsResponse.data || [];
+            const campaignsData = campaignsResponse.data || [];
             
             // posts 정보도 함께 로드
             latestCampaigns = await Promise.all(
               campaignsData.map(async (campaign) => {
                 try {
-                  const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts/`);
+                  const postsResponse = await apiEndpoints.getCampaignPosts(campaign.id);
                   return {
                     ...campaign,
                     posts: postsResponse.data || [],
@@ -113,7 +114,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const campaignFinancials = await Promise.all(
             latestCampaigns.map(async (campaign) => {
               try {
-                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+                const response = await apiEndpoints.getCampaignFinancialSummary(campaign.id);
                 const summary = response.data;
                 
                 campaignTotalRevenue += summary.total_revenue || 0;
@@ -147,8 +148,8 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         
         try {
           // 구매요청 데이터 가져오기 (구매요청과 발주요청은 동일한 데이터)
-          const purchaseResponse = await api.get('/api/purchase-requests');
-          const purchaseRequests = purchaseResponse.data.requests || [];
+          const purchaseResponse = await apiEndpoints.getPurchaseRequests();
+          const purchaseRequests = purchaseResponse.data.requests || purchaseResponse.data || [];
           
           // 통계 계산
           const pending = purchaseRequests.filter(p => p.status === '승인 대기').length;
@@ -184,8 +185,8 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         let totalIncentives = 0;
         try {
           // 모든 직원 데이터 가져오기
-          const usersResponse = await api.get('/api/users');
-          const allUsers = usersResponse.data.results || usersResponse.data || [];
+          const usersResponse = await apiEndpoints.getUsers();
+          const allUsers = usersResponse.data || [];
           
           // 직원들의 캠페인 매출과 인센티브율 기반으로 계산
           for (const userItem of allUsers.filter(u => u.role === '직원')) {
@@ -194,7 +195,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             
             for (const campaign of userCampaigns) {
               try {
-                const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+                const response = await apiEndpoints.getCampaignFinancialSummary(campaign.id);
                 userRevenue += response.data.total_revenue || 0;
               } catch (error) {
                 console.error(`사용자 ${userItem.id} 캠페인 ${campaign.id} 매출 데이터 로딩 실패:`, error);
@@ -247,7 +248,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           
           for (const campaign of employeeCampaigns) {
             try {
-              const response = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
+              const response = await apiEndpoints.getCampaignFinancialSummary(campaign.id);
               employeeRevenue += response.data.total_revenue || 0;
             } catch (error) {
               console.error(`직원 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);

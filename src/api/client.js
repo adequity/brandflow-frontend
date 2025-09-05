@@ -3,6 +3,9 @@
 
 // 🚨 domains.js 의존성 완전 제거 - Railway HTTPS 하드코딩만 사용
 
+// 🎭 Mock 데이터 지원 추가
+import { shouldUseMockData, getMockApiResponse, getMockPostResponse } from '../utils/mockData.js';
+
 // 🚨 HTTP 완전 차단: 모든 HTTP URL을 HTTPS로 강제 변환하는 함수
 const forceHTTPS = (url) => {
   if (typeof url !== 'string') return url;
@@ -459,12 +462,58 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   return { data: responseData, status: response.status, headers: response.headers };
 };
 
-// Axios 메소드 완전 대체
-api.get = (url, config = {}) => createFetchRequest('GET', url, null, config);
-api.post = (url, data, config = {}) => createFetchRequest('POST', url, data, config);
-api.put = (url, data, config = {}) => createFetchRequest('PUT', url, data, config);
-api.patch = (url, data, config = {}) => createFetchRequest('PATCH', url, data, config);
-api.delete = (url, config = {}) => createFetchRequest('DELETE', url, null, config);
+// 🎭 Mock 데이터 지원이 포함된 API 메소드들
+api.get = async (url, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    const mockResponse = getMockApiResponse(url);
+    if (mockResponse) {
+      console.log(`🎭 Mock GET 응답 사용: ${url}`, mockResponse);
+      return new Promise(resolve => setTimeout(() => resolve(mockResponse), 100));
+    }
+  }
+  return createFetchRequest('GET', url, null, config);
+};
+
+api.post = async (url, data, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    const mockResponse = getMockPostResponse(url, data);
+    if (mockResponse) {
+      console.log(`🎭 Mock POST 응답 사용: ${url}`, mockResponse);
+      return new Promise(resolve => setTimeout(() => resolve(mockResponse), 200));
+    }
+  }
+  return createFetchRequest('POST', url, data, config);
+};
+
+api.put = async (url, data, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    console.log(`🎭 Mock PUT 응답 사용: ${url}`);
+    return new Promise(resolve => setTimeout(() => resolve({ data: { message: "Updated successfully" }, status: 200 }), 200));
+  }
+  return createFetchRequest('PUT', url, data, config);
+};
+
+api.patch = async (url, data, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    console.log(`🎭 Mock PATCH 응답 사용: ${url}`);
+    return new Promise(resolve => setTimeout(() => resolve({ data: { message: "Patched successfully" }, status: 200 }), 200));
+  }
+  return createFetchRequest('PATCH', url, data, config);
+};
+
+api.delete = async (url, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    console.log(`🎭 Mock DELETE 응답 사용: ${url}`);
+    return new Promise(resolve => setTimeout(() => resolve({ data: { message: "Deleted successfully" }, status: 200 }), 200));
+  }
+  return createFetchRequest('DELETE', url, null, config);
+};
+
 api.request = (config) => createFetchRequest(config.method || 'GET', config.url, config.data, config);
 
 // 🚨 Axios 인터셉터 완전 제거 - fetch로 대체됨
@@ -502,6 +551,86 @@ export const approvalAPI = {
       paymentMemo
     });
   }
+};
+
+// 🚨 확장된 API 엔드포인트 함수들 (21개 API 완성)
+export const apiEndpoints = {
+  // 1. 사용자 관리
+  getUsers: () => api.get('/api/users/'),
+  createUser: (userData) => api.post('/api/users/', userData),
+  updateUser: (id, userData) => api.put(`/api/users/${id}`, userData),
+  deleteUser: (id) => api.delete(`/api/users/${id}`),
+
+  // 2. 캠페인 관리
+  getCampaigns: (params = {}) => api.get('/api/campaigns/', { params }),
+  createCampaign: (campaignData) => api.post('/api/campaigns/', campaignData),
+  updateCampaign: (id, campaignData) => api.put(`/api/campaigns/${id}/`, campaignData),
+  deleteCampaign: (id) => api.delete(`/api/campaigns/${id}/`),
+  getCampaignDetail: (id) => api.get(`/api/campaigns/${id}/`),
+  getCampaignPosts: (id) => api.get(`/api/campaigns/${id}/posts/`),
+  getCampaignFinancialSummary: (id) => api.get(`/api/campaigns/${id}/financial_summary/`),
+
+  // 3. 포스트/업무 관리
+  getPosts: (params = {}) => api.get('/api/posts/', { params }),
+  createPost: (postData) => api.post('/api/posts/', postData),
+  updatePost: (id, postData) => api.put(`/api/posts/${id}/`, postData),
+  deletePost: (id) => api.delete(`/api/posts/${id}/`),
+  approvePost: (id, status, reason = '') => api.put(`/api/posts/${id}/approve/`, { status, rejection_reason: reason }),
+
+  // 4. 구매 요청 관리
+  getPurchaseRequests: (params = {}) => api.get('/api/purchase-requests/', { params }),
+  createPurchaseRequest: (requestData) => api.post('/api/purchase-requests/', requestData),
+  updatePurchaseRequest: (id, requestData) => api.put(`/api/purchase-requests/${id}/`, requestData),
+  deletePurchaseRequest: (id) => api.delete(`/api/purchase-requests/${id}/`),
+  approvePurchaseRequest: (id, approvalData) => api.put(`/api/purchase-requests/${id}/approve/`, approvalData),
+
+  // 5. 인센티브 관리
+  getMonthlyIncentives: (params = {}) => api.get('/api/monthly-incentives/', { params }),
+  createMonthlyIncentive: (incentiveData) => api.post('/api/monthly-incentives/', incentiveData),
+  updateMonthlyIncentive: (id, incentiveData) => api.put(`/api/monthly-incentives/${id}/`, incentiveData),
+  approveMonthlyIncentive: (id, approvalData) => api.put(`/api/monthly-incentives/${id}/approve/`, approvalData),
+
+  // 6. 알림 시스템
+  getNotifications: (params = {}) => api.get('/api/notifications/', { params }),
+  getUnreadNotificationCount: (params = {}) => api.get('/api/notifications/unread-count', { params }),
+  markNotificationAsRead: (id) => api.put(`/api/notifications/${id}/read/`),
+  markAllNotificationsAsRead: () => api.put('/api/notifications/mark-all-read/'),
+  createNotification: (notificationData) => api.post('/api/notifications/', notificationData),
+
+  // 7. 대시보드 및 통계
+  getDashboardData: (params = {}) => api.get('/api/dashboard/', { params }),
+  getStatistics: (params = {}) => api.get('/api/statistics/', { params }),
+
+  // 8. 검색 기능
+  globalSearch: (query, params = {}) => api.get(`/api/search/?q=${encodeURIComponent(query)}`, { params }),
+
+  // 9. 업무 유형 관리
+  getWorkTypes: () => api.get('/api/work-types'),
+  createWorkType: (workTypeData) => api.post('/api/work-types/', workTypeData),
+  updateWorkType: (id, workTypeData) => api.put(`/api/work-types/${id}/`, workTypeData),
+  deleteWorkType: (id) => api.delete(`/api/work-types/${id}/`),
+
+  // 10. 로그인/인증
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  logout: () => api.post('/api/auth/logout'),
+  refreshToken: (token) => api.post('/api/auth/refresh', { token }),
+
+  // 11. 파일 업로드/다운로드
+  uploadFile: (formData) => api.post('/api/files/upload/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  downloadFile: (fileId) => api.get(`/api/files/${fileId}/download/`),
+  deleteFile: (fileId) => api.delete(`/api/files/${fileId}/`),
+};
+
+// 🚨 기존 compatibility를 위한 legacy 함수들 (기존 코드 호환성)
+export const legacyAPI = {
+  // 기존 코드에서 사용하던 방식들
+  fetchUsers: apiEndpoints.getUsers,
+  fetchCampaigns: apiEndpoints.getCampaigns,
+  fetchPosts: apiEndpoints.getPosts,
+  fetchPurchaseRequests: apiEndpoints.getPurchaseRequests,
+  fetchNotifications: apiEndpoints.getNotifications,
 };
 
 export default api;

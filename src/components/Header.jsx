@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, ChevronDown, LogOut } from 'lucide-react';
 import NotificationBell from './common/NotificationBell';
+import SearchComponent from './common/SearchComponent';
 
 const Header = ({ title, onLogout, user }) => {
     const [isProfileOpen, setProfileOpen] = useState(false);
@@ -8,6 +9,10 @@ const Header = ({ title, onLogout, user }) => {
         <div className="h-16 bg-white border-b flex items-center justify-between px-6 shrink-0">
             <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
             <div className="flex items-center space-x-4">
+                {/* 검색 컴포넌트 */}
+                <div className="hidden md:block w-80">
+                    <SearchComponent onSearchResults={(results) => console.log('검색 결과:', results)} />
+                </div>
                 <NotificationBell />
                 <div className="relative">
                 <div onClick={() => setProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 cursor-pointer">
