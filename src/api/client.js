@@ -132,7 +132,17 @@ const getBackendUrl = () => {
 };
 
 // 🚨 환경변수 기반 API 베이스 URL 설정
-const API_BASE_URL = getBackendURL();
+const API_BASE_URL = (() => {
+  const baseUrl = getBackendURL();
+  // 🚨 API_BASE_URL에서 강제 HTTPS 변환
+  if (baseUrl && baseUrl.startsWith('http://')) {
+    const httpsUrl = baseUrl.replace('http://', 'https://');
+    console.error('🚨 API_BASE_URL HTTP → HTTPS 강제 변환:', baseUrl, '→', httpsUrl);
+    return httpsUrl;
+  }
+  console.log('✅ API_BASE_URL 설정:', baseUrl);
+  return baseUrl;
+})();
 
 // Mixed Content 완전 방지: HTTPS 강제 검증
 if (!API_BASE_URL.startsWith('https://')) {
@@ -246,6 +256,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     finalUrl = fixRailwayUrl(API_BASE_URL + url); // 🚨 환경변수 기반 URL 사용
     console.error('🚨 상대 경로 → Railway HTTPS 직접 변환:', url, '→', finalUrl);
     console.error('🔍 API_BASE_URL 값:', API_BASE_URL);
+    console.error('🔍 최종 URL 확인:', finalUrl);
   } else {
     // 모든 절대 경로 URL에 대해 강제 Railway HTTPS 변환
     if (url?.includes('brandflow-backend') || url?.includes('localhost') || url?.includes('127.0.0.1')) {
