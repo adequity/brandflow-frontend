@@ -328,8 +328,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       const skipAuthParamsAPIs = [
         '/api/users',
         '/api/campaigns', 
-        '/api/purchase-requests',
-        '/api/notifications'
+        '/api/purchase-requests'
       ];
       
       const shouldSkipAuthParams = skipAuthParamsAPIs.some(api => finalUrl.includes(api));
