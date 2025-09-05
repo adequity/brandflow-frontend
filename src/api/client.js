@@ -51,6 +51,23 @@ const getBackendURL = () => {
   return defaultUrl;
 };
 
+// 🚨 한글 역할명을 영어로 매핑 (백엔드 호환성)
+const mapRoleToEnglish = (koreanRole) => {
+  const roleMapping = {
+    '슈퍼 어드민': 'super_admin',
+    '대행사 어드민': 'agency_admin', 
+    '대행사 직원': 'agency_staff',
+    '클라이언트': 'client',
+    '어드민': 'admin',
+    '직원': 'staff',
+    '관리자': 'admin'
+  };
+  
+  const englishRole = roleMapping[koreanRole] || koreanRole;
+  console.log('🔄 역할명 매핑:', koreanRole, '→', englishRole);
+  return englishRole;
+};
+
 // 🚨 한글 UTF-8 인코딩 안전 처리
 const ensureUTF8Encoding = (data) => {
   if (!data || typeof data !== 'object') return data;
@@ -306,19 +323,35 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     const user = JSON.parse(userData);
     // 이미 viewerId가 있는지 확인하여 중복 방지
     if (!finalUrl.includes('viewerId=')) {
-      const separator = finalUrl.includes('?') ? '&' : '?';
-      const safeRole = encodeURIComponent(user.role);
-      const newParams = `${separator}viewerId=${user.id}&viewerRole=${safeRole}`;
-      finalUrl += newParams;
-      console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, viewerRole: user.role, encoded: safeRole, params: newParams});
-      console.log('🔒 파라미터 추가 후 URL:', finalUrl);
       
-      // 파라미터 추가 후 즉시 HTTPS 검증 및 Railway URL 강제 적용
-      if (finalUrl.includes('http://') || !finalUrl.includes('https://')) {
-        // HTTP 발견 시 즉시 Railway HTTPS로 교체
-        const apiPath = finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/notifications/unread-count';
-        finalUrl = API_BASE_URL + apiPath;
-        console.error('🚨 파라미터 추가 후 HTTP/비정상 URL 발견, Railway HTTPS로 강제 교체:', finalUrl);
+      // 🚨 특정 API는 권한 파라미터 추가 시 404 발생으로 임시 제외
+      const skipAuthParamsAPIs = [
+        '/api/users',
+        '/api/campaigns', 
+        '/api/purchase-requests'
+      ];
+      
+      const shouldSkipAuthParams = skipAuthParamsAPIs.some(api => finalUrl.includes(api));
+      
+      if (shouldSkipAuthParams) {
+        console.log('🚨 권한 파라미터 스킵 (404 방지):', finalUrl);
+      } else {
+        const separator = finalUrl.includes('?') ? '&' : '?';
+        // 한글 역할명을 영어로 매핑하여 URL 인코딩 문제 해결
+        const englishRole = mapRoleToEnglish(user.role);
+        const safeRole = encodeURIComponent(englishRole);
+        const newParams = `${separator}viewerId=${user.id}&viewerRole=${safeRole}`;
+        finalUrl += newParams;
+        console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, originalRole: user.role, mappedRole: englishRole, encoded: safeRole, params: newParams});
+        console.log('🔒 파라미터 추가 후 URL:', finalUrl);
+        
+        // 파라미터 추가 후 즉시 HTTPS 검증 및 Railway URL 강제 적용
+        if (finalUrl.includes('http://') || !finalUrl.includes('https://')) {
+          // HTTP 발견 시 즉시 Railway HTTPS로 교체
+          const apiPath = finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/notifications/unread-count';
+          finalUrl = API_BASE_URL + apiPath;
+          console.error('🚨 파라미터 추가 후 HTTP/비정상 URL 발견, Railway HTTPS로 강제 교체:', finalUrl);
+        }
       }
     }
   }
