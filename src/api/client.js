@@ -255,6 +255,12 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       const safeRole = encodeURIComponent(user.role);
       finalUrl += `${separator}viewerId=${user.id}&viewerRole=${safeRole}`;
       console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, viewerRole: user.role, encoded: safeRole});
+      
+      // 파라미터 추가 후 HTTP 체크 및 HTTPS 강제 변환
+      if (finalUrl.includes('http://')) {
+        finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
+        console.error('🚨 파라미터 추가 후 HTTP 발견, HTTPS 강제 변환:', finalUrl);
+      }
     }
   }
   
