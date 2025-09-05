@@ -254,13 +254,17 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     if (!finalUrl.includes('viewerId=')) {
       const separator = finalUrl.includes('?') ? '&' : '?';
       const safeRole = encodeURIComponent(user.role);
-      finalUrl += `${separator}viewerId=${user.id}&viewerRole=${safeRole}`;
-      console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, viewerRole: user.role, encoded: safeRole});
+      const newParams = `${separator}viewerId=${user.id}&viewerRole=${safeRole}`;
+      finalUrl += newParams;
+      console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, viewerRole: user.role, encoded: safeRole, params: newParams});
+      console.log('🔒 파라미터 추가 후 URL:', finalUrl);
       
-      // 파라미터 추가 후 HTTP 체크 및 HTTPS 강제 변환
-      if (finalUrl.includes('http://')) {
-        finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
-        console.error('🚨 파라미터 추가 후 HTTP 발견, HTTPS 강제 변환:', finalUrl);
+      // 파라미터 추가 후 즉시 HTTPS 검증 및 Railway URL 강제 적용
+      if (finalUrl.includes('http://') || !finalUrl.includes('https://')) {
+        // HTTP 발견 시 즉시 Railway HTTPS로 교체
+        const apiPath = finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/notifications/unread-count';
+        finalUrl = RAILWAY_HTTPS_URL + apiPath;
+        console.error('🚨 파라미터 추가 후 HTTP/비정상 URL 발견, Railway HTTPS로 강제 교체:', finalUrl);
       }
     }
   }
