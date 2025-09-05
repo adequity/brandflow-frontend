@@ -32,7 +32,7 @@ const ProductManagement = ({ loggedInUser }) => {
       if (token) {
         try {
           // 실제 API 호출
-          const response = await api.get('/api/products');
+          const response = await api.get('/api/products/');
           let allProducts = response.data.products || response.data;
           
           console.log('ProductManagement: 실제 API 데이터 로드 성공', allProducts.length, '개');
@@ -368,7 +368,7 @@ const ProductManagement = ({ loggedInUser }) => {
   const handleCreateProduct = async (productData) => {
     try {
       // 실제 API 호출
-      const response = await api.post('/api/products', {
+      const response = await api.post('/api/products/', {
         ...productData,
         viewerId: loggedInUser?.id,
         viewerRole: loggedInUser?.role
@@ -385,7 +385,7 @@ const ProductManagement = ({ loggedInUser }) => {
   const handleUpdateProduct = async (productId, productData) => {
     try {
       // 실제 API 호출
-      const response = await api.put(`/api/products/${productId}`, {
+      const response = await api.put(`/api/products/${productId}/`, {
         ...productData,
         viewerId: loggedInUser?.id,
         viewerRole: loggedInUser?.role
@@ -403,7 +403,7 @@ const ProductManagement = ({ loggedInUser }) => {
   const handleDeleteProduct = async (productId) => {
     try {
       // 실제 API 호출
-      const response = await api.delete(`/api/products/${productId}`, {
+      const response = await api.delete(`/api/products/${productId}/`, {
         params: {
           viewerId: loggedInUser?.id,
           viewerRole: loggedInUser?.role

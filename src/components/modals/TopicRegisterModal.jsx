@@ -63,7 +63,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                     try {
                         // 실제 API 호출
                         const [productsResponse, workTypesResponse] = await Promise.all([
-                            api.get('/api/products'),
+                            api.get('/api/products/'),
                             api.get('/api/work-types/')
                         ]);
                         
@@ -173,7 +173,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
             
             if (token) {
                 const [productsResponse, workTypesResponse] = await Promise.all([
-                    api.get('/api/products'),
+                    api.get('/api/products/'),
                     api.get('/api/work-types/')
                 ]);
                 

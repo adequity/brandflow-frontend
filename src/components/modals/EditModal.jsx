@@ -89,7 +89,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
 
                 // 실제 API 호출 시도
                 const [productsResponse, workTypesResponse] = await Promise.all([
-                    api.get('/api/products').catch(err => {
+                    api.get('/api/products/').catch(err => {
                         console.warn('상품 API 실패, 더미 데이터 사용:', err.message);
                         return { data: { results: [] } };
                     }),
