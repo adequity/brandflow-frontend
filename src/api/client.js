@@ -200,19 +200,20 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
   
-  // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화 + Railway 307 우회
+  // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화 + Railway 307 우회 + 브라우저 캐시 우회
   if (url?.startsWith('/')) {
     // 상대 경로는 무조건 강제 HTTPS 베이스 사용 + trailing slash 자동 추가
-    finalUrl = fixRailwayUrl(FORCE_HTTPS_API_BASE + url);
+    finalUrl = fixRailwayUrl(RAILWAY_HTTPS_URL + url); // 🚨 FORCE_HTTPS_API_BASE 대신 직접 Railway URL 사용
+    console.error('🚨 상대 경로 → Railway HTTPS 직접 변환:', url, '→', finalUrl);
   } else {
-    // 모든 절대 경로 URL에 대해 forceHTTPS 적용 (내부적으로 fixRailwayUrl 호출됨)
-    finalUrl = forceHTTPS(url);
-    // 추가로 FORCE_HTTPS_API_BASE 강제 적용
-    if (finalUrl?.includes('brandflow-backend')) {
-      finalUrl = finalUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, FORCE_HTTPS_API_BASE);
-      // Railway 307 우회 로직 적용
+    // 모든 절대 경로 URL에 대해 강제 Railway HTTPS 변환
+    if (url?.includes('brandflow-backend') || url?.includes('localhost') || url?.includes('127.0.0.1')) {
+      finalUrl = RAILWAY_HTTPS_URL + (url.includes('/api/') ? url.substring(url.indexOf('/api/')) : '/api/users');
       finalUrl = fixRailwayUrl(finalUrl);
-      console.error('🚨 createFetchRequest: brandflow-backend URL → Railway HTTPS + 307 우회 변환:', finalUrl);
+      console.error('🚨 brandflow-backend/localhost → Railway HTTPS 강제 변환:', url, '→', finalUrl);
+    } else {
+      // 그 외의 경우 forceHTTPS 적용
+      finalUrl = forceHTTPS(url);
     }
   }
   
