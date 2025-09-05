@@ -173,6 +173,16 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                             {user && (
                                 <p className="text-xs text-gray-500 mt-1">비밀번호를 변경하지 않으려면 비워두세요.</p>
                             )}
+                            {!user && (
+                                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p className="text-xs text-blue-800 font-medium mb-1">📋 비밀번호 요구사항:</p>
+                                    <ul className="text-xs text-blue-700 space-y-1">
+                                        <li>• 최소 8자 이상</li>
+                                        <li>• 영문 대소문자, 숫자, 특수문자 중 3가지 이상 포함</li>
+                                        <li>• 예시: <code className="bg-blue-100 px-1 rounded">Password123!</code></li>
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
                         <div>
