@@ -1,7 +1,10 @@
 // src/api/client.js
-// 🚨 목데이터 완전 제거 - 실제 백엔드 연결만 사용
+// 🚨 axios 완전 제거
 
 // 🚨 domains.js 의존성 완전 제거 - Railway HTTPS 하드코딩만 사용
+
+// 🚨 목데이터 제거 - 실제 백엔드 연결만 사용
+// import { shouldUseMockData, getMockApiResponse, getMockPostResponse } from '../utils/mockData.js';
 
 // 🚨 HTTP 완전 차단: 모든 HTTP URL을 HTTPS로 강제 변환하는 함수
 const forceHTTPS = (url) => {
@@ -66,6 +69,38 @@ const mapRoleToEnglish = (koreanRole) => {
   const englishRole = roleMapping[koreanRole] || koreanRole;
   console.log('🔄 역할명 매핑:', koreanRole, '→', englishRole);
   return englishRole;
+};
+
+// 🚨 한글 UTF-8 인코딩 안전 처리
+const ensureUTF8Encoding = (data) => {
+  if (!data || typeof data !== 'object') return data;
+  
+  try {
+    // JSON 문자열로 변환 후 UTF-8 인코딩 확인
+    const jsonString = JSON.stringify(data);
+    
+    // 한글이 포함된 경우 명시적 UTF-8 처리
+    if (/[\u3131-\uD79D]/.test(jsonString)) {
+      console.log('🚨 한글 문자 감지 - UTF-8 인코딩 처리:', jsonString.substring(0, 100) + '...');
+      
+      // 한글 문자가 올바르게 인코딩되었는지 확인
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder('utf-8');
+      const encoded = encoder.encode(jsonString);
+      const decoded = decoder.decode(encoded);
+      
+      if (decoded !== jsonString) {
+        console.error('🚨 UTF-8 인코딩 불일치 감지');
+      } else {
+        console.log('✅ UTF-8 인코딩 검증 완료');
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('🚨 UTF-8 인코딩 처리 중 오류:', error);
+    return data;
+  }
 };
 
 // 🚨 Railway 307 리다이렉트 우회: 선별적 trailing slash 추가
@@ -148,7 +183,89 @@ if (backendUrl) {
   console.log('🔒 최종 HTTPS 강제 변환 적용:', backendUrl);
 }
 
-// 🚨 Fetch API로 모든 요청 처리 (목데이터 완전 제거)
+// 🚨 axios 완전 제거 - 순수 객체로 대체
+const api = {};
+
+// 🚨 axios 인터셉터 완전 제거
+
+// 🚨 재시도 로직 완전 제거
+
+// 🚨 Mixed Content 완전 해결: 최종 HTTP 차단 래퍼
+const forcedHttpsFetch = async (url, config = {}) => {
+  // 모든 HTTP를 HTTPS로 강제 변환 + 완전 차단
+  let finalUrl = url;
+  if (typeof url === 'string') {
+    // 완전한 HTTP 차단 로직
+    if (url.startsWith('http://')) {
+      finalUrl = url.replace('http://', 'https://');
+      console.error('🚨 HTTP URL 차단 및 HTTPS 강제 변환:', url, '→', finalUrl);
+    } else if (url.includes('http://')) {
+      finalUrl = url.replace(/http:\/\//g, 'https://');
+      console.error('🚨 URL 내 HTTP 프로토콜 발견, HTTPS 강제 변환:', finalUrl);
+    } else if (url.startsWith('/')) {
+      finalUrl = API_BASE_URL + url;
+      console.log('🚨 Fetch 상대 URL → HTTPS:', finalUrl);
+    }
+    
+    // 최종 안전장치 - HTTP가 남아있으면 완전 차단
+    if (finalUrl.includes('http://')) {
+      throw new Error(`🚨 보안 위반: HTTP URL 사용 금지 - ${finalUrl}`);
+    }
+  }
+  
+  // 헤더 설정 - UTF-8 인코딩 명시
+  const headers = {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+    'Accept-Charset': 'utf-8',
+    ...config.headers
+  };
+  
+  // JWT 토큰 추가
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  
+  // 🚨 JSON 데이터 UTF-8 인코딩 처리
+  const requestBody = config.body ? config.body : null;
+  
+  return fetch(finalUrl, {
+    ...config,
+    headers,
+    body: requestBody,
+    redirect: 'manual'  // 🚨 Railway 리디렉트 차단 - HTTP 리디렉트를 따라가지 않음
+  }).then(async (response) => {
+    // 🚨 307 리디렉트 감지 및 HTTPS 강제 재요청
+    if (response.status === 307 && response.headers.get('location')) {
+      const redirectUrl = response.headers.get('location');
+      console.error('🚨 307 리디렉트 감지:', redirectUrl);
+      
+      let httpsUrl = redirectUrl;
+      // HTTP → HTTPS 강제 변환
+      if (redirectUrl.startsWith('http://')) {
+        httpsUrl = redirectUrl.replace('http://', 'https://');
+        console.error('🚨 Railway HTTP 리디렉트 → HTTPS 강제 변환:', redirectUrl, '→', httpsUrl);
+      }
+      
+      // Railway URL로 강제 변환 (추가 안전장치)
+      if (httpsUrl.includes('brandflow-backend') && !httpsUrl.includes('https://brandflow-backend-production-99ae.up.railway.app')) {
+        httpsUrl = httpsUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
+        console.error('🚨 Railway URL 강제 변환:', httpsUrl);
+      }
+      
+      console.log('🔒 HTTPS 재요청 실행:', httpsUrl);
+      return fetch(httpsUrl, { 
+        ...config, 
+        headers,
+        redirect: 'manual'  // 재요청에서도 수동 리다이렉트 처리
+      });
+    }
+    return response;
+  });
+};
+
+// 🚨 Axios 완전 대체: fetch API로 모든 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
   let finalUrl = url;
@@ -260,9 +377,18 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   
   console.log(`🚨 FETCH ${method} 강제 HTTPS 검증 완료:`, finalUrl);
   
+  // 🚨 fetch 호출 직전 마지막 HTTPS 강제 검증
+  if (finalUrl.includes('http://')) {
+    finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
+    console.error('🚨 fetch 호출 직전 HTTP 발견 및 HTTPS 강제 교체:', finalUrl);
+  }
+  
   // 🚨 한글 UTF-8 인코딩 처리 + 백엔드 JSON 파싱 오류 해결
   let requestBody = null;
   if (data) {
+    data = ensureUTF8Encoding(data);
+    
+    // JSON 직렬화 시 UTF-8 인코딩 확실히 처리
     try {
       requestBody = JSON.stringify(data, null, 0); // 압축된 JSON
       console.log('🚨 JSON 직렬화 성공, 길이:', requestBody.length);
@@ -278,39 +404,11 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     }
   }
   
-  const response = await fetch(finalUrl, {
+  const response = await forcedHttpsFetch(finalUrl, {
     method: method.toUpperCase(),
     headers,
     body: requestBody,
     redirect: 'manual'  // 🚨 Railway 리디렉트 차단
-  }).then(async (response) => {
-    // 🚨 307 리디렉트 감지 및 HTTPS 강제 재요청
-    if (response.status === 307 && response.headers.get('location')) {
-      const redirectUrl = response.headers.get('location');
-      console.error('🚨 307 리디렉트 감지:', redirectUrl);
-      
-      let httpsUrl = redirectUrl;
-      // HTTP → HTTPS 강제 변환
-      if (redirectUrl.startsWith('http://')) {
-        httpsUrl = redirectUrl.replace('http://', 'https://');
-        console.error('🚨 Railway HTTP 리디렉트 → HTTPS 강제 변환:', redirectUrl, '→', httpsUrl);
-      }
-      
-      // Railway URL로 강제 변환 (추가 안전장치)
-      if (httpsUrl.includes('brandflow-backend') && !httpsUrl.includes('https://brandflow-backend-production-99ae.up.railway.app')) {
-        httpsUrl = httpsUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
-        console.error('🚨 Railway URL 강제 변환:', httpsUrl);
-      }
-      
-      console.log('🔒 HTTPS 재요청 실행:', httpsUrl);
-      return fetch(httpsUrl, { 
-        method: method.toUpperCase(),
-        headers,
-        body: requestBody,
-        redirect: 'manual'  // 재요청에서도 수동 리다이렉트 처리
-      });
-    }
-    return response;
   }).catch(async (fetchError) => {
     // CORS 또는 네트워크 오류 감지 및 처리
     console.error('🚨 Fetch 오류 발생:', fetchError.message);
@@ -333,10 +431,10 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       console.error('🚨 Railway HTTPS URL로 재시도:', railwayUrl);
       
       try {
-        return await fetch(railwayUrl, {
+        return await forcedHttpsFetch(railwayUrl, {
           method: method.toUpperCase(),
           headers,
-          body: requestBody,
+          body: data ? JSON.stringify(data) : null,
           redirect: 'manual'
         });
       } catch (retryError) {
@@ -364,166 +462,65 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   return { data: responseData, status: response.status, headers: response.headers };
 };
 
-// 🚨 실제 백엔드 API 메소드들 (목데이터 완전 제거)
-const api = {
-  get: (url, config = {}) => createFetchRequest('GET', url, null, config),
-  post: (url, data, config = {}) => createFetchRequest('POST', url, data, config),
-  put: (url, data, config = {}) => createFetchRequest('PUT', url, data, config),
-  patch: (url, data, config = {}) => createFetchRequest('PATCH', url, data, config),
-  delete: (url, config = {}) => createFetchRequest('DELETE', url, null, config),
-  request: (config) => createFetchRequest(config.method || 'GET', config.url, config.data, config)
-};
-
-// 🚨 21개 API 엔드포인트 완전 정의 (목데이터 제거)
-export const apiEndpoints = {
-  // 사용자 관리
-  users: {
-    list: () => api.get('/api/users/'),
-    create: (userData) => api.post('/api/users/', userData),
-    get: (id) => api.get(`/api/users/${id}/`),
-    update: (id, userData) => api.put(`/api/users/${id}`, userData), // trailing slash 제거
-    delete: (id) => api.delete(`/api/users/${id}/`)
-  },
-  
-  // 캠페인 관리
-  campaigns: {
-    list: () => api.get('/api/campaigns/'),
-    create: (campaignData) => api.post('/api/campaigns/', campaignData),
-    get: (id) => api.get(`/api/campaigns/${id}/`),
-    update: (id, campaignData) => api.put(`/api/campaigns/${id}/`, campaignData),
-    delete: (id) => api.delete(`/api/campaigns/${id}/`)
-  },
-  
-  // 인증
-  auth: {
-    login: (credentials) => api.post('/api/auth/login/', credentials),
-    logout: () => api.post('/api/auth/logout/'),
-    refresh: () => api.post('/api/auth/refresh/')
-  },
-  
-  // 구매 요청
-  purchaseRequests: {
-    list: () => api.get('/api/purchase-requests/'),
-    create: (requestData) => api.post('/api/purchase-requests/', requestData),
-    get: (id) => api.get(`/api/purchase-requests/${id}/`),
-    approve: (id, approvalData) => api.put(`/api/purchase-requests/${id}/approve/`, approvalData)
-  },
-  
-  // 알림
-  notifications: {
-    list: () => api.get('/api/notifications/'),
-    unreadCount: () => api.get('/api/notifications/unread-count'), // trailing slash 없음
-    markRead: (id) => api.put(`/api/notifications/${id}/read/`),
-    create: (notificationData) => api.post('/api/notifications/', notificationData)
-  },
-  
-  // 대시보드 (새로 추가)
-  dashboard: {
-    main: () => api.get('/api/dashboard/'),
-    simple: () => api.get('/api/dashboard-simple/'),
-    performance: () => api.get('/api/performance-dashboard/'),
-    security: () => api.get('/api/security-dashboard/')
-  },
-  
-  // 검색 (새로 추가)
-  search: {
-    all: (query) => api.get('/api/search/', { params: { q: query } }),
-    users: (query) => api.get('/api/search/users/', { params: { q: query } }),
-    campaigns: (query) => api.get('/api/search/campaigns/', { params: { q: query } })
-  },
-  
-  // 데이터 내보내기 (새로 추가)
-  export: {
-    campaigns: () => api.get('/api/export/campaigns/'),
-    users: () => api.get('/api/export/users/'),
-    reports: () => api.get('/api/export/reports/')
-  },
-  
-  // 파일 관리
-  files: {
-    upload: (fileData) => api.post('/api/files/upload/', fileData),
-    get: (id) => api.get(`/api/files/${id}/`)
-  },
-  
-  // 회사 정보
-  company: {
-    logo: () => api.get('/api/company/logo/'),
-    updateLogo: (logoData) => api.post('/api/company/logo/', logoData)
-  },
-  
-  // 상품 관리
-  products: {
-    list: () => api.get('/api/products/'),
-    create: (productData) => api.post('/api/products/', productData),
-    get: (id) => api.get(`/api/products/${id}/`)
-  },
-  
-  // 작업 유형
-  workTypes: {
-    list: () => api.get('/api/work-types'), // trailing slash 없음
-    create: (workTypeData) => api.post('/api/work-types/', workTypeData)
-  },
-  
-  // 성능 모니터링
-  performance: {
-    metrics: () => api.get('/api/performance/metrics/'),
-    dashboard: () => api.get('/api/performance/dashboard/')
-  },
-  
-  // 시스템 모니터링
-  monitoring: {
-    health: () => api.get('/api/monitoring/health/'),
-    metrics: () => api.get('/api/monitoring/metrics/')
-  },
-  
-  // 관리자 (새로 추가)
-  admin: {
-    stats: () => api.get('/api/admin/stats/'),
-    users: () => api.get('/api/admin/users/'),
-    settings: () => api.get('/api/admin/settings/')
-  },
-  
-  // 캐시 (새로 추가)
-  cache: {
-    clear: () => api.delete('/api/cache/'),
-    stats: () => api.get('/api/cache/stats/')
-  },
-  
-  // 시스템 상태 (새로 추가)
-  system: {
-    health: () => api.get('/api/system/health/'),
-    status: () => api.get('/api/system/status/')
+// 🎭 Mock 데이터 지원이 포함된 API 메소드들
+api.get = async (url, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    const mockResponse = getMockApiResponse(url);
+    if (mockResponse) {
+      console.log(`🎭 Mock GET 응답 사용: ${url}`, mockResponse);
+      return new Promise(resolve => setTimeout(() => resolve(mockResponse), 100));
+    }
   }
+  return createFetchRequest('GET', url, null, config);
 };
 
-// 기존 코드 호환성을 위한 레거시 API
-export const legacyAPI = {
-  // 사용자
-  getUsers: () => apiEndpoints.users.list(),
-  createUser: (userData) => apiEndpoints.users.create(userData),
-  updateUser: (id, userData) => apiEndpoints.users.update(id, userData),
-  deleteUser: (id) => apiEndpoints.users.delete(id),
-  
-  // 캠페인  
-  getCampaigns: () => apiEndpoints.campaigns.list(),
-  createCampaign: (campaignData) => apiEndpoints.campaigns.create(campaignData),
-  
-  // 알림
-  getNotifications: () => apiEndpoints.notifications.list(),
-  getUnreadCount: () => apiEndpoints.notifications.unreadCount(),
-  markAsRead: (id) => apiEndpoints.notifications.markRead(id),
-  
-  // 구매 요청
-  getPurchaseRequests: () => apiEndpoints.purchaseRequests.list(),
-  createPurchaseRequest: (requestData) => apiEndpoints.purchaseRequests.create(requestData),
-  approvePurchaseRequest: (id, approvalData) => apiEndpoints.purchaseRequests.approve(id, approvalData),
-  
-  // 대시보드
-  getDashboardData: () => apiEndpoints.dashboard.main(),
-  
-  // 검색
-  search: (query) => apiEndpoints.search.all(query)
+api.post = async (url, data, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    const mockResponse = getMockPostResponse(url, data);
+    if (mockResponse) {
+      console.log(`🎭 Mock POST 응답 사용: ${url}`, mockResponse);
+      return new Promise(resolve => setTimeout(() => resolve(mockResponse), 200));
+    }
+  }
+  return createFetchRequest('POST', url, data, config);
 };
+
+api.put = async (url, data, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    console.log(`🎭 Mock PUT 응답 사용: ${url}`);
+    return new Promise(resolve => setTimeout(() => resolve({ data: { message: "Updated successfully" }, status: 200 }), 200));
+  }
+  return createFetchRequest('PUT', url, data, config);
+};
+
+api.patch = async (url, data, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    console.log(`🎭 Mock PATCH 응답 사용: ${url}`);
+    return new Promise(resolve => setTimeout(() => resolve({ data: { message: "Patched successfully" }, status: 200 }), 200));
+  }
+  return createFetchRequest('PATCH', url, data, config);
+};
+
+api.delete = async (url, config = {}) => {
+  // Mock 데이터 사용 조건 확인
+  if (shouldUseMockData()) {
+    console.log(`🎭 Mock DELETE 응답 사용: ${url}`);
+    return new Promise(resolve => setTimeout(() => resolve({ data: { message: "Deleted successfully" }, status: 200 }), 200));
+  }
+  return createFetchRequest('DELETE', url, null, config);
+};
+
+api.request = (config) => createFetchRequest(config.method || 'GET', config.url, config.data, config);
+
+// 🚨 Axios 인터셉터 완전 제거 - fetch로 대체됨
+
+// 🚨 중복 제거됨 - 위에서 fetch로 완전 대체
+
+// 🚨 유틸리티 함수 완전 제거
 
 // 승인/반려 관련 API 함수들
 export const approvalAPI = {
@@ -554,6 +551,86 @@ export const approvalAPI = {
       paymentMemo
     });
   }
+};
+
+// 🚨 확장된 API 엔드포인트 함수들 (21개 API 완성)
+export const apiEndpoints = {
+  // 1. 사용자 관리
+  getUsers: () => api.get('/api/users/'),
+  createUser: (userData) => api.post('/api/users/', userData),
+  updateUser: (id, userData) => api.put(`/api/users/${id}`, userData),
+  deleteUser: (id) => api.delete(`/api/users/${id}`),
+
+  // 2. 캠페인 관리
+  getCampaigns: (params = {}) => api.get('/api/campaigns/', { params }),
+  createCampaign: (campaignData) => api.post('/api/campaigns/', campaignData),
+  updateCampaign: (id, campaignData) => api.put(`/api/campaigns/${id}/`, campaignData),
+  deleteCampaign: (id) => api.delete(`/api/campaigns/${id}/`),
+  getCampaignDetail: (id) => api.get(`/api/campaigns/${id}/`),
+  getCampaignPosts: (id) => api.get(`/api/campaigns/${id}/posts/`),
+  getCampaignFinancialSummary: (id) => api.get(`/api/campaigns/${id}/financial_summary/`),
+
+  // 3. 포스트/업무 관리
+  getPosts: (params = {}) => api.get('/api/posts/', { params }),
+  createPost: (postData) => api.post('/api/posts/', postData),
+  updatePost: (id, postData) => api.put(`/api/posts/${id}/`, postData),
+  deletePost: (id) => api.delete(`/api/posts/${id}/`),
+  approvePost: (id, status, reason = '') => api.put(`/api/posts/${id}/approve/`, { status, rejection_reason: reason }),
+
+  // 4. 구매 요청 관리
+  getPurchaseRequests: (params = {}) => api.get('/api/purchase-requests/', { params }),
+  createPurchaseRequest: (requestData) => api.post('/api/purchase-requests/', requestData),
+  updatePurchaseRequest: (id, requestData) => api.put(`/api/purchase-requests/${id}/`, requestData),
+  deletePurchaseRequest: (id) => api.delete(`/api/purchase-requests/${id}/`),
+  approvePurchaseRequest: (id, approvalData) => api.put(`/api/purchase-requests/${id}/approve/`, approvalData),
+
+  // 5. 인센티브 관리
+  getMonthlyIncentives: (params = {}) => api.get('/api/monthly-incentives/', { params }),
+  createMonthlyIncentive: (incentiveData) => api.post('/api/monthly-incentives/', incentiveData),
+  updateMonthlyIncentive: (id, incentiveData) => api.put(`/api/monthly-incentives/${id}/`, incentiveData),
+  approveMonthlyIncentive: (id, approvalData) => api.put(`/api/monthly-incentives/${id}/approve/`, approvalData),
+
+  // 6. 알림 시스템
+  getNotifications: (params = {}) => api.get('/api/notifications/', { params }),
+  getUnreadNotificationCount: (params = {}) => api.get('/api/notifications/unread-count', { params }),
+  markNotificationAsRead: (id) => api.put(`/api/notifications/${id}/read/`),
+  markAllNotificationsAsRead: () => api.put('/api/notifications/mark-all-read/'),
+  createNotification: (notificationData) => api.post('/api/notifications/', notificationData),
+
+  // 7. 대시보드 및 통계
+  getDashboardData: (params = {}) => api.get('/api/dashboard/', { params }),
+  getStatistics: (params = {}) => api.get('/api/statistics/', { params }),
+
+  // 8. 검색 기능
+  globalSearch: (query, params = {}) => api.get(`/api/search/?q=${encodeURIComponent(query)}`, { params }),
+
+  // 9. 업무 유형 관리
+  getWorkTypes: () => api.get('/api/work-types'),
+  createWorkType: (workTypeData) => api.post('/api/work-types/', workTypeData),
+  updateWorkType: (id, workTypeData) => api.put(`/api/work-types/${id}/`, workTypeData),
+  deleteWorkType: (id) => api.delete(`/api/work-types/${id}/`),
+
+  // 10. 로그인/인증
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  logout: () => api.post('/api/auth/logout'),
+  refreshToken: (token) => api.post('/api/auth/refresh', { token }),
+
+  // 11. 파일 업로드/다운로드
+  uploadFile: (formData) => api.post('/api/files/upload/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  downloadFile: (fileId) => api.get(`/api/files/${fileId}/download/`),
+  deleteFile: (fileId) => api.delete(`/api/files/${fileId}/`),
+};
+
+// 🚨 기존 compatibility를 위한 legacy 함수들 (기존 코드 호환성)
+export const legacyAPI = {
+  // 기존 코드에서 사용하던 방식들
+  fetchUsers: apiEndpoints.getUsers,
+  fetchCampaigns: apiEndpoints.getCampaigns,
+  fetchPosts: apiEndpoints.getPosts,
+  fetchPurchaseRequests: apiEndpoints.getPurchaseRequests,
+  fetchNotifications: apiEndpoints.getNotifications,
 };
 
 export default api;
