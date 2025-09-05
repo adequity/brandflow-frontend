@@ -74,11 +74,11 @@ const ensureUTF8Encoding = (data) => {
   }
 };
 
-// 🚨 Railway 307 리다이렉트 우회: trailing slash 자동 추가
+// 🚨 Railway 307 리다이렉트 우회: 선별적 trailing slash 추가
 const fixRailwayUrl = (url) => {
   if (!url || typeof url !== 'string') return url;
   
-  // Railway API 엔드포인트에 대해 trailing slash 자동 추가
+  // Railway API 엔드포인트에 대해 선별적 trailing slash 처리
   if (url.includes('/api/') && url.includes('brandflow-backend')) {
     // 쿼리 파라미터가 있는 경우와 없는 경우 모두 처리
     const hasQuery = url.includes('?');
@@ -89,10 +89,23 @@ const fixRailwayUrl = (url) => {
       return url;
     }
     
-    // trailing slash 추가
-    const fixedUrl = baseUrl + '/' + (hasQuery ? '?' + queryString : '');
-    console.log('🚨 Railway 307 우회: trailing slash 추가:', url, '→', fixedUrl);
-    return fixedUrl;
+    // 🚨 특정 API는 trailing slash 없이 사용 (307 방지)
+    const noTrailingSlashAPIs = [
+      '/unread-count',
+      '/login',
+      '/approve'
+    ];
+    
+    const needsTrailingSlash = !noTrailingSlashAPIs.some(api => baseUrl.includes(api));
+    
+    if (needsTrailingSlash) {
+      const fixedUrl = baseUrl + '/' + (hasQuery ? '?' + queryString : '');
+      console.log('🚨 Railway 307 우회: trailing slash 추가:', url, '→', fixedUrl);
+      return fixedUrl;
+    } else {
+      console.log('✅ trailing slash 생략 (307 방지):', url);
+      return url;
+    }
   }
   
   return url;
