@@ -64,7 +64,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                         // 실제 API 호출
                         const [productsResponse, workTypesResponse] = await Promise.all([
                             api.get('/api/products'),
-                            api.get('/api/work-types')
+                            api.get('/api/work-types/')
                         ]);
                         
                         // API 응답에서 products 배열 추출 (백엔드가 {products: [], total: n} 형태로 응답)
@@ -174,7 +174,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
             if (token) {
                 const [productsResponse, workTypesResponse] = await Promise.all([
                     api.get('/api/products'),
-                    api.get('/api/work-types')
+                    api.get('/api/work-types/')
                 ]);
                 
                 const productsData = productsResponse.data?.products || [];

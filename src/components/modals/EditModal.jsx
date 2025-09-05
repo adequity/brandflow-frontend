@@ -93,7 +93,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                         console.warn('상품 API 실패, 더미 데이터 사용:', err.message);
                         return { data: { results: [] } };
                     }),
-                    api.get('/api/work-types').catch(err => {
+                    api.get('/api/work-types/').catch(err => {
                         console.warn('업무타입 API 실패, 더미 데이터 사용:', err.message);
                         return { data: { results: [] } };
                     })

@@ -336,7 +336,7 @@ const ProductManagement = ({ loggedInUser }) => {
       if (token) {
         try {
           // 실제 API에서 업무타입 목록을 가져와서 카테고리로 사용 (1:1 매핑)
-          const response = await api.get('/api/work-types');
+          const response = await api.get('/api/work-types/');
           const workTypes = response.data;
           const categories = workTypes.map(wt => wt.name);
           
