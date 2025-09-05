@@ -258,7 +258,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
             images: topicData.images || []
           };
         
-      const { data: created } = await api.post(`/api/campaigns/${campaign.id}/posts`, payload);
+      const { data: created } = await api.post(`/api/campaigns/${campaign.id}/posts/`, payload);
       const next = [...(posts || []), created];
       setPosts(next);
       updateParentCampaign(next);

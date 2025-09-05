@@ -67,8 +67,8 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                             api.get('/api/work-types/')
                         ]);
                         
-                        // API 응답에서 products 배열 추출 (백엔드가 {products: [], total: n} 형태로 응답)
-                        const productsData = productsResponse.data?.products || [];
+                        // API 응답에서 products 배열 추출 (백엔드가 직접 배열을 응답하거나 {products: [], total: n} 형태로 응답)
+                        const productsData = productsResponse.data?.products || productsResponse.data || [];
                         const workTypesData = workTypesResponse.data || [];
                         
                         setProducts(Array.isArray(productsData) ? productsData : []);
@@ -177,7 +177,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                     api.get('/api/work-types/')
                 ]);
                 
-                const productsData = productsResponse.data?.products || [];
+                const productsData = productsResponse.data?.products || productsResponse.data || [];
                 const workTypesData = workTypesResponse.data || [];
                 
                 setProducts(Array.isArray(productsData) ? productsData : []);
