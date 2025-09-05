@@ -1,7 +1,7 @@
 // src/api/client.js
 // 🚨 axios 완전 제거
 
-import { getBackendUrlByDomain } from '../config/domains.js';
+// import { getBackendUrlByDomain } from '../config/domains.js'; // 🚨 완전 제거 - HTTP 차단
 
 // 🚨 HTTP 완전 차단: 모든 HTTP URL을 HTTPS로 강제 변환하는 함수
 const forceHTTPS = (url) => {
@@ -86,8 +86,8 @@ const fixRailwayUrl = (url) => {
 
 // 🚨 환경변수 무시 - 무조건 HTTPS Railway URL만 사용
 const getBackendUrl = () => {
-  // 🚨 환경변수 완전 무시하고 Railway HTTPS URL만 반환
-  console.log('🔒 환경변수 무시 - Railway HTTPS URL 강제 사용:', RAILWAY_HTTPS_URL);
+  // 🚨 domains.js 완전 무시하고 Railway HTTPS URL만 반환
+  console.log('🔒 domains.js 무시 - Railway HTTPS URL 강제 사용:', RAILWAY_HTTPS_URL);
   return RAILWAY_HTTPS_URL;
 };
 
@@ -104,9 +104,9 @@ const API_BASE = RAILWAY_HTTPS_URL;
 // 확인용 로그(옵션)
 console.log('[FORCE_HTTPS_API_BASE]', FORCE_HTTPS_API_BASE);
 
-// 백엔드 URL 확인 및 무조건 HTTPS 강제 변환
-let backendUrl = getBackendUrl();
-console.log('🔍 getBackendUrl() 결과:', backendUrl);
+// 백엔드 URL 확인 및 무조건 HTTPS 강제 변환 (domains.js 무시)
+let backendUrl = RAILWAY_HTTPS_URL; // 🚨 domains.js 완전 무시
+console.log('🔍 하드코딩된 Railway URL 사용:', backendUrl);
 // 🚨 추가 안전장치: HTTPS 강제 변환
 if (backendUrl) {
   backendUrl = forceHTTPS(backendUrl);
