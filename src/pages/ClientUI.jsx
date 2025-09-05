@@ -657,7 +657,7 @@ export default function ClientUI({ user, onLogout }) {
       try {
         const role = user.role || '클라이언트';
         const { data } = await api.get(
-          `/api/campaigns?viewerId=${user.id}&viewerRole=${encodeURIComponent(role)}`
+          `/api/campaigns/?viewerId=${user.id}&viewerRole=${encodeURIComponent(role)}`
         );
         setCampaigns(data || []);
       } catch (err) {

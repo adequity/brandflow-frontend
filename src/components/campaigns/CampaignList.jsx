@@ -53,7 +53,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       console.log('Payload to send:', payload);
 
       // 대행사/슈퍼 권한 체크용 viewer 파라미터 포함
-      const { data, status } = await api.post('/api/campaigns', payload, {
+      const { data, status } = await api.post('/api/campaigns/', payload, {
         params: currentUser?.id ? { viewerId: currentUser.id, viewerRole: currentUser.role } : {},
       });
 
@@ -123,7 +123,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const handleSaveEditedCampaign = async () => {
     try {
       // 캠페인 목록 새로고침
-      const { data } = await api.get('/api/campaigns', {
+      const { data } = await api.get('/api/campaigns/', {
         params: currentUser?.id ? { viewerId: currentUser.id, viewerRole: currentUser.role } : {},
       });
       setCampaigns(data || []);
@@ -146,7 +146,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
     setDeletingCampaignId(campaignId);
     try {
-      await api.delete(`/api/campaigns/${campaignId}`);
+      await api.delete(`/api/campaigns/${campaignId}/`);
       
       // 캠페인 목록에서 제거
       setCampaigns((prev) => prev.filter(c => c.id !== campaignId));

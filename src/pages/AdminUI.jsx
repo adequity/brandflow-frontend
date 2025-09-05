@@ -29,7 +29,7 @@ export default function AdminUI({ user, onLogout }) {
         try {
           // 실제 API 호출
           const [campaignsResponse, usersResponse] = await Promise.all([
-            api.get('/api/campaigns'),
+            api.get('/api/campaigns/'),
             api.get('/api/users')
           ]);
           

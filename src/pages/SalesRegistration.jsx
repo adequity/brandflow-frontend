@@ -46,7 +46,7 @@ const SalesRegistration = ({ loggedInUser }) => {
     setIsLoading(true);
     try {
       // 실제 캠페인 데이터에서 매출 정보 가져오기
-      const campaignsResponse = await api.get('/api/campaigns');
+      const campaignsResponse = await api.get('/api/campaigns/');
       const campaignsData = campaignsResponse.data?.results || [];
       
       // 각 캠페인의 요약 정보를 가져와서 매출 데이터로 변환

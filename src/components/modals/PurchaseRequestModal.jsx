@@ -76,7 +76,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
 
   const fetchCampaigns = async () => {
     try {
-      const { data } = await api.get('/api/campaigns', {
+      const { data } = await api.get('/api/campaigns/', {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role

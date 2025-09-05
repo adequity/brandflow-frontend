@@ -64,7 +64,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
       const incentivePromises = eligibleUsers.map(async (user) => {
         try {
           // 해당 사용자의 캠페인 데이터 조회
-          const campaignsResponse = await api.get('/api/campaigns', {
+          const campaignsResponse = await api.get('/api/campaigns/', {
             params: {
               viewerId: user.id,
               viewerRole: user.role,

@@ -58,7 +58,7 @@ const CampaignDetailPage = () => {
             if (token) {
                 try {
                     // 실제 API 호출
-                    const response = await api.get(`/api/campaigns/${campaignId}`);
+                    const response = await api.get(`/api/campaigns/${campaignId}/`);
                     const campaignData = response.data;
                     
                     setCampaign(campaignData);
@@ -515,7 +515,7 @@ const CampaignDetailPage = () => {
 
     const handleCampaignSave = async () => {
         try {
-            const response = await api.put(`/api/campaigns/${campaignId}`, campaignEditData);
+            const response = await api.put(`/api/campaigns/${campaignId}/`, campaignEditData);
             setCampaign(prev => ({ ...prev, ...response.data }));
             setIsCampaignEditing(false);
             showSuccess('캠페인 정보가 성공적으로 수정되었습니다!');
