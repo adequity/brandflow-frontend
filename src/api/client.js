@@ -31,8 +31,17 @@ const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.
 // 🚨 환경변수 기반 백엔드 URL 설정
 const getBackendURL = () => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
+  console.log('🔍 환경변수 VITE_API_BASE_URL:', envUrl);
+  console.log('🔍 모든 환경변수:', import.meta.env);
+  
   if (envUrl) {
     console.log('✅ 환경변수에서 백엔드 URL 로드:', envUrl);
+    // 🚨 환경변수에서도 HTTP 체크
+    if (envUrl.startsWith('http://')) {
+      const httpsUrl = envUrl.replace('http://', 'https://');
+      console.error('🚨 환경변수에서 HTTP 발견, HTTPS로 변환:', envUrl, '→', httpsUrl);
+      return httpsUrl;
+    }
     return envUrl;
   }
   
@@ -230,6 +239,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     // 상대 경로는 무조건 강제 HTTPS 베이스 사용 + trailing slash 자동 추가
     finalUrl = fixRailwayUrl(API_BASE_URL + url); // 🚨 환경변수 기반 URL 사용
     console.error('🚨 상대 경로 → Railway HTTPS 직접 변환:', url, '→', finalUrl);
+    console.error('🔍 API_BASE_URL 값:', API_BASE_URL);
   } else {
     // 모든 절대 경로 URL에 대해 강제 Railway HTTPS 변환
     if (url?.includes('brandflow-backend') || url?.includes('localhost') || url?.includes('127.0.0.1')) {
@@ -256,11 +266,13 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     finalUrl = forceHTTPS(finalUrl);
   }
   
-  // 헤더 설정 - UTF-8 인코딩 명시
+  // 헤더 설정 - UTF-8 인코딩 명시 (백엔드 JSON 파싱 오류 해결)
   const headers = {
     'Content-Type': 'application/json; charset=utf-8',
-    'Accept': 'application/json',
+    'Accept': 'application/json; charset=utf-8',
     'Accept-Charset': 'utf-8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'ko-KR,ko;q=0.9,en;q=0.8',
     'User-Agent': 'BrandFlow-Frontend/1.0',
     ...config.headers
   };
@@ -319,15 +331,31 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     console.error('🚨 fetch 호출 직전 HTTP 발견 및 HTTPS 강제 교체:', finalUrl);
   }
   
-  // 🚨 한글 UTF-8 인코딩 처리
+  // 🚨 한글 UTF-8 인코딩 처리 + 백엔드 JSON 파싱 오류 해결
+  let requestBody = null;
   if (data) {
     data = ensureUTF8Encoding(data);
+    
+    // JSON 직렬화 시 UTF-8 인코딩 확실히 처리
+    try {
+      requestBody = JSON.stringify(data, null, 0); // 압축된 JSON
+      console.log('🚨 JSON 직렬화 성공, 길이:', requestBody.length);
+      
+      // UTF-8 바이트 검증
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(requestBody);
+      console.log('🚨 UTF-8 바이트 길이:', bytes.length);
+      
+    } catch (jsonError) {
+      console.error('🚨 JSON 직렬화 실패:', jsonError);
+      throw new Error(`JSON 직렬화 오류: ${jsonError.message}`);
+    }
   }
   
   const response = await forcedHttpsFetch(finalUrl, {
     method: method.toUpperCase(),
     headers,
-    body: data ? JSON.stringify(data) : null,
+    body: requestBody,
     redirect: 'manual'  // 🚨 Railway 리디렉트 차단
   }).catch(async (fetchError) => {
     // CORS 또는 네트워크 오류 감지 및 처리
