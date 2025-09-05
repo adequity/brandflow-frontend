@@ -102,10 +102,15 @@ const fixRailwayUrl = (url) => {
     const noTrailingSlashAPIs = [
       '/unread-count',
       '/login',
-      '/approve'
+      '/approve',
+      '/users/'  // 🚨 PUT /api/users/1/ → /api/users/1 (trailing slash 제거)
     ];
     
-    const needsTrailingSlash = !noTrailingSlashAPIs.some(api => baseUrl.includes(api));
+    // 🚨 숫자 ID가 포함된 users API도 trailing slash 제거 (PUT /api/users/1/ 방지)
+    const hasUserIdPattern = /\/users\/\d+\/?$/.test(baseUrl);
+    const shouldRemoveSlash = noTrailingSlashAPIs.some(api => baseUrl.includes(api)) || hasUserIdPattern;
+    
+    const needsTrailingSlash = !shouldRemoveSlash;
     
     if (needsTrailingSlash) {
       const fixedUrl = baseUrl + '/' + (hasQuery ? '?' + queryString : '');
