@@ -21,12 +21,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
     try {
       console.log('🔍 WorkTypeManagement v2: API 호출 시작 - /api/work-types');
       console.log('🆕 캐시 무효화 테스트:', new Date().getTime());
-      const response = await api.get('/api/work-types/', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
+      const response = await api.get('/api/work-types/');
       console.log('✅ WorkTypeManagement: API 호출 성공', response.data);
       setWorkTypes(response.data || []);
     } catch (error) {
