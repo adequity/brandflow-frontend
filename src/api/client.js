@@ -28,6 +28,38 @@ const forceHTTPS = (url) => {
 // 🚨 완전한 HTTP 차단: 모든 HTTP URL을 HTTPS로 강제 변환
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
 
+// 🚨 한글 UTF-8 인코딩 안전 처리
+const ensureUTF8Encoding = (data) => {
+  if (!data || typeof data !== 'object') return data;
+  
+  try {
+    // JSON 문자열로 변환 후 UTF-8 인코딩 확인
+    const jsonString = JSON.stringify(data);
+    
+    // 한글이 포함된 경우 명시적 UTF-8 처리
+    if (/[\u3131-\uD79D]/.test(jsonString)) {
+      console.log('🚨 한글 문자 감지 - UTF-8 인코딩 처리:', jsonString.substring(0, 100) + '...');
+      
+      // 한글 문자가 올바르게 인코딩되었는지 확인
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder('utf-8');
+      const encoded = encoder.encode(jsonString);
+      const decoded = decoder.decode(encoded);
+      
+      if (decoded !== jsonString) {
+        console.error('🚨 UTF-8 인코딩 불일치 감지');
+      } else {
+        console.log('✅ UTF-8 인코딩 검증 완료');
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('🚨 UTF-8 인코딩 처리 중 오류:', error);
+    return data;
+  }
+};
+
 // 🚨 Railway 307 리다이렉트 우회: trailing slash 자동 추가
 const fixRailwayUrl = (url) => {
   if (!url || typeof url !== 'string') return url;
@@ -111,9 +143,11 @@ const forcedHttpsFetch = async (url, config = {}) => {
     }
   }
   
-  // 헤더 설정
+  // 헤더 설정 - UTF-8 인코딩 명시
   const headers = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+    'Accept-Charset': 'utf-8',
     ...config.headers
   };
   
@@ -123,9 +157,13 @@ const forcedHttpsFetch = async (url, config = {}) => {
     headers.Authorization = `Bearer ${token}`;
   }
   
+  // 🚨 JSON 데이터 UTF-8 인코딩 처리
+  const requestBody = config.body ? config.body : null;
+  
   return fetch(finalUrl, {
     ...config,
     headers,
+    body: requestBody,
     redirect: 'manual'  // 🚨 Railway 리디렉트 차단 - HTTP 리디렉트를 따라가지 않음
   }).then(async (response) => {
     // 🚨 307 리디렉트 감지 및 HTTPS 강제 재요청
@@ -192,9 +230,11 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     finalUrl = forceHTTPS(finalUrl);
   }
   
-  // 헤더 설정
+  // 헤더 설정 - UTF-8 인코딩 명시
   const headers = {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json',
+    'Accept-Charset': 'utf-8',
     'User-Agent': 'BrandFlow-Frontend/1.0',
     ...config.headers
   };
@@ -241,6 +281,11 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   if (finalUrl.includes('http://')) {
     finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
     console.error('🚨 fetch 호출 직전 HTTP 발견 및 HTTPS 강제 교체:', finalUrl);
+  }
+  
+  // 🚨 한글 UTF-8 인코딩 처리
+  if (data) {
+    data = ensureUTF8Encoding(data);
   }
   
   const response = await forcedHttpsFetch(finalUrl, {
