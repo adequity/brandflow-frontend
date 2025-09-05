@@ -327,7 +327,6 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       // 🚨 특정 API는 권한 파라미터 추가 시 404 발생으로 임시 제외
       const skipAuthParamsAPIs = [
         '/api/users',
-        '/api/campaigns', 
         '/api/purchase-requests'
       ];
       
