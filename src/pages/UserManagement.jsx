@@ -39,7 +39,7 @@ const UserManagement = ({ loggedInUser }) => {
     setIsLoading(true);
     try {
       // 새로운 API 엔드포인트로 사용자 데이터 가져오기 (Node.js API 호환 모드 파라미터 포함)
-      const response = await apiEndpoints.getUsers({
+      const response = await apiEndpoints.users.list({
         params: {
           viewerId: loggedInUser?.id || 1,
           viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
