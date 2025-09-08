@@ -85,12 +85,28 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
       } : {});
       
-      const { data, status } = await api.post('/api/campaigns/', payload, {
-        params: actualCreatorId ? { 
-          viewerId: actualCreatorId, 
-          viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
-        } : {},
-      });
+      // 🚨 CORS 우회 시도: 다른 방식으로 요청
+      console.log('🚨 CORS 이슈로 인해 대체 방식 시도');
+      
+      let data, status;
+      try {
+        // 우선 params 없이 시도
+        const response = await api.post('/api/campaigns/', payload);
+        data = response.data;
+        status = response.status;
+        console.log('✅ 파라미터 없는 요청 성공:', { data, status });
+      } catch (firstError) {
+        console.log('❌ 첫 번째 시도 실패, 파라미터 포함 재시도');
+        // 실패하면 원래 방식으로 재시도
+        const response = await api.post('/api/campaigns/', payload, {
+          params: actualCreatorId ? { 
+            viewerId: actualCreatorId, 
+            viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
+          } : {},
+        });
+        data = response.data;
+        status = response.status;
+      }
       
       console.log('✅ 캠페인 생성 API 성공:', { data, status });
 
@@ -138,7 +154,14 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       // Network/Fetch 관련 에러 체크
       if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
         console.error('🚨 네트워크 연결 실패 - HTTP/HTTPS 또는 CORS 문제');
-        showError('네트워크 연결에 실패했습니다. HTTP/HTTPS 혼용 또는 서버 연결 문제일 수 있습니다.');
+        showError('백엔드 서버 연결 실패: CORS 정책 또는 서버 500 에러 발생. 백엔드 개발자에게 문의하세요.');
+        return;
+      }
+      
+      // CORS 에러 특별 처리
+      if (err.message?.includes('CORS') || err.message?.includes('Access-Control-Allow-Origin')) {
+        console.error('🚨 CORS 정책 에러 - 백엔드 서버 설정 필요');
+        showError('CORS 정책 에러: 백엔드 서버에서 프론트엔드 도메인을 허용해야 합니다.');
         return;
       }
       
