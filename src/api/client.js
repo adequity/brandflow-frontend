@@ -147,6 +147,16 @@ const API_BASE_URL = (() => {
   return baseUrl;
 })();
 
+// 🚨 완전한 HTTPS 강제: Railway URL 하드코딩
+const FORCE_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+
+// 🚨 API_BASE_URL 강제 HTTPS 검증 및 교체
+let FINAL_API_BASE_URL = API_BASE_URL;
+if (!API_BASE_URL?.startsWith('https://')) {
+  console.error('🚨 API_BASE_URL HTTP 발견, 강제 HTTPS 교체:', API_BASE_URL, '→', FORCE_HTTPS_URL);
+  FINAL_API_BASE_URL = FORCE_HTTPS_URL;
+}
+
 // Mixed Content 완전 방지: HTTPS 강제 검증
 if (!API_BASE_URL.startsWith('https://')) {
   console.error('🚨 HTTP URL 감지, HTTPS 강제 변환:', API_BASE_URL);
@@ -174,14 +184,14 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
   // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화 + Railway 307 우회 + 브라우저 캐시 우회
   if (url?.startsWith('/')) {
     // 상대 경로는 무조건 강제 HTTPS 베이스 사용 + trailing slash 자동 추가
-    finalUrl = fixRailwayUrl(API_BASE_URL + url); // 🚨 환경변수 기반 URL 사용
+    finalUrl = fixRailwayUrl(FINAL_API_BASE_URL + url); // 🚨 강제 HTTPS URL 사용
     console.error('🚨 상대 경로 → Railway HTTPS 직접 변환:', url, '→', finalUrl);
     console.error('🔍 API_BASE_URL 값:', API_BASE_URL);
     console.error('🔍 최종 URL 확인:', finalUrl);
   } else {
     // 모든 절대 경로 URL에 대해 강제 Railway HTTPS 변환
     if (url?.includes('brandflow-backend') || url?.includes('localhost') || url?.includes('127.0.0.1')) {
-      finalUrl = API_BASE_URL + (url.includes('/api/') ? url.substring(url.indexOf('/api/')) : '/api/users');
+      finalUrl = FINAL_API_BASE_URL + (url.includes('/api/') ? url.substring(url.indexOf('/api/')) : '/api/users');
       finalUrl = fixRailwayUrl(finalUrl);
       console.error('🚨 brandflow-backend/localhost → Railway HTTPS 강제 변환:', url, '→', finalUrl);
     } else {
@@ -252,7 +262,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
         if (finalUrl.includes('http://') || !finalUrl.includes('https://')) {
           // HTTP 발견 시 즉시 Railway HTTPS로 교체
           const apiPath = finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/notifications/unread-count';
-          finalUrl = API_BASE_URL + apiPath;
+          finalUrl = FINAL_API_BASE_URL + apiPath;
           console.error('🚨 파라미터 추가 후 HTTP/비정상 URL 발견, Railway HTTPS로 강제 교체:', finalUrl);
         }
       }
