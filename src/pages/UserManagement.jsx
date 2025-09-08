@@ -95,7 +95,7 @@ const UserManagement = ({ loggedInUser }) => {
       } else {
         // 사용자 생성
         console.log('Sending API data:', JSON.stringify(apiData, null, 2));
-        const response = await apiEndpoints.createUser(apiData);
+        const response = await apiEndpoints.users.create(apiData);
         console.log('API response:', response.data);
         showSuccess('사용자가 생성되었습니다!');
       }
