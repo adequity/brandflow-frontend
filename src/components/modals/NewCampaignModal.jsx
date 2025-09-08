@@ -147,8 +147,14 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 });
                 
                 console.log('📡 API Response:', response);
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', response.headers);
                 const data = response.data;
                 console.log('📋 Client data received:', data);
+                console.log('📋 Data type:', typeof data, 'isArray:', Array.isArray(data));
+                if (data?.results) {
+                    console.log('📋 Results data:', data.results, 'length:', data.results.length);
+                }
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정
                 // 백엔드에서 이미 클라이언트만 반환하므로 role 필터링 불필요
@@ -211,12 +217,18 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                     });
                     
                     // 🚨 긴급 테스트: 하드코딩된 테스트 데이터 추가
-                    console.log('🚨 긴급 테스트: 하드코딩 데이터 사용');
+                    console.log('🚨 API 실패 - 하드코딩 데이터 사용');
                     const testClients = [
                         { id: 999, name: 'TEST 클라이언트 1', company: 'TEST 회사', role: '클라이언트' },
-                        { id: 998, name: 'TEST 클라이언트 2', company: 'TEST 회사 2', role: '클라이언트' }
+                        { id: 998, name: 'TEST 클라이언트 2', company: 'TEST 회사 2', role: '클라이언트' },
+                        { id: 997, name: '실제 API 호출 실패', company: '백엔드 연결 문제', role: '클라이언트' },
+                        { id: 996, name: 'HTTP/HTTPS 이슈', company: 'Mixed Content 에러', role: '클라이언트' }
                     ];
+                    console.log('🚨 테스트 클라이언트 데이터 설정:', testClients);
                     setClientUsers(testClients);
+                    
+                    // 별도 토스트 메시지로 에러 알림
+                    showError('클라이언트 API 호출 실패 - 테스트 데이터 표시 중');
                 } else {
                     console.log('🚫 API 요청이 중단되었습니다 (정상)');
                 }
