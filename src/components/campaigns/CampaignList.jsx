@@ -52,9 +52,24 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       
       console.log('Payload to send:', payload);
 
-      // 대행사/슈퍼 권한 체크용 viewer 파라미터 포함
+      // 대행사/슈퍼 권한 체크용 viewer 파라미터 포함 (영어 역할명으로 변환)
+      const convertRoleToEnglish = (koreanRole) => {
+        const roleMap = {
+          '슈퍼 어드민': 'super_admin',
+          '슈퍼어드민': 'super_admin', 
+          '대행사 어드민': 'agency_admin',
+          '대행사어드민': 'agency_admin',
+          '직원': 'staff',
+          '클라이언트': 'client'
+        };
+        return roleMap[koreanRole] || 'client';
+      };
+      
       const { data, status } = await api.post('/api/campaigns/', payload, {
-        params: currentUser?.id ? { viewerId: currentUser.id, viewerRole: currentUser.role } : {},
+        params: currentUser?.id ? { 
+          viewerId: currentUser.id, 
+          viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
+        } : {},
       });
 
       // 서버가 {campaign:{...}} 또는 {...} 로 와도 안전하게 처리
