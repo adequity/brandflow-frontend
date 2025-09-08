@@ -206,17 +206,34 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                         message: error.message,
                         status: error.response?.status,
                         statusText: error.response?.statusText,
-                        data: error.response?.data
+                        data: error.response?.data,
+                        stack: error.stack
                     });
-                    setClientUsers([]);
+                    
+                    // 🚨 긴급 테스트: 하드코딩된 테스트 데이터 추가
+                    console.log('🚨 긴급 테스트: 하드코딩 데이터 사용');
+                    const testClients = [
+                        { id: 999, name: 'TEST 클라이언트 1', company: 'TEST 회사', role: '클라이언트' },
+                        { id: 998, name: 'TEST 클라이언트 2', company: 'TEST 회사 2', role: '클라이언트' }
+                    ];
+                    setClientUsers(testClients);
                 } else {
                     console.log('🚫 API 요청이 중단되었습니다 (정상)');
                 }
             }
         };
 
+        console.log('🔍 useEffect 실행 조건 확인:', {
+            currentUser: currentUser,
+            hasId: !!currentUser?.id,
+            id: currentUser?.id
+        });
+        
         if (currentUser?.id) {
+            console.log('✅ fetchClients 실행 조건 만족');
             fetchClients();
+        } else {
+            console.log('❌ fetchClients 실행 조건 불만족 - currentUser.id 없음');
         }
 
         return () => {
