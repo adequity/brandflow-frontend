@@ -104,7 +104,13 @@ const UserManagement = ({ loggedInUser }) => {
       } else {
         // 사용자 생성
         console.log('Sending API data:', JSON.stringify(apiData, null, 2));
-        const response = await apiEndpoints.users.create(apiData);
+        // 쿼리 파라미터와 함께 사용자 생성
+        const response = await apiEndpoints.users.create(apiData, {
+          params: {
+            viewerId: loggedInUser?.id || 1,
+            viewerRole: loggedInUser?.role || 'super_admin'
+          }
+        });
         console.log('API response:', response.data);
         showSuccess('사용자가 생성되었습니다!');
       }
