@@ -33,6 +33,9 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       
       console.log('Auth token exists, proceeding with campaign creation');
       
+      // 담당자가 선택된 경우 그 사람으로, 아니면 현재 사용자로 캠페인 생성
+      const actualCreatorId = campaignData.UserId || currentUser.id;
+      
       // 백엔드 CampaignCreate 스키마에 맞춘 페이로드
       const payload = {
         name: campaignData.name?.trim() || '테스트 캠페인',
@@ -40,8 +43,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         client_company: campaignData.clientName || 'Unknown Client',
         budget: Math.max(campaignData.budget || 1000000, 1), // 백엔드 요구사항: budget > 0
         start_date: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString(),
-        end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
-        manager_id: campaignData.UserId || null // 담당자 ID 추가
+        end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString()
       };
       
       console.log('Payload to send:', payload);
@@ -60,8 +62,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       };
       
       const { data, status } = await api.post('/api/campaigns/', payload, {
-        params: currentUser?.id ? { 
-          viewerId: currentUser.id, 
+        params: actualCreatorId ? { 
+          viewerId: actualCreatorId, 
           viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
         } : {},
       });
