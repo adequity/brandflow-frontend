@@ -321,7 +321,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
       // HTTP → HTTPS 강제 변환
       if (redirectUrl.startsWith('http://')) {
         httpsUrl = redirectUrl.replace('http://', 'https://');
-        console.error('🚨 Railway HTTP 리디렉트 → HTTPS 강제 변환:', redirectUrl, '→', httpsUrl);
+        console.log('Railway HTTP 리다이렉트를 HTTPS로 변환:', httpsUrl);
       }
       
       // Railway URL로 강제 변환 (추가 안전장치)
