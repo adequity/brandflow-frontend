@@ -109,6 +109,14 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     // 상대 경로 - API_BASE_URL과 결합
     finalUrl = API_BASE_URL + url;
     console.log('🔍 상대 경로 URL 구성:', url, '→', finalUrl);
+    console.log('🔍 API_BASE_URL 값 확인:', API_BASE_URL);
+    
+    // HTTP 검증
+    if (finalUrl.includes('http://')) {
+      console.error('🚨 HTTP URL 감지됨! finalUrl:', finalUrl);
+      console.error('🚨 API_BASE_URL:', API_BASE_URL);
+      console.error('🚨 원본 url:', url);
+    }
   } else {
     // 절대 경로는 그대로 사용 (이미 HTTPS여야 함)
     finalUrl = url;
