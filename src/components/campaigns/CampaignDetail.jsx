@@ -18,8 +18,9 @@ import { WORK_TYPES, POST_STATUSES, DEFAULT_VALUES } from '../../constants/campa
 
 const formatUrl = (url) => {
   if (!url) return '#';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `//${url}`;
+  if (url.startsWith('https://')) return url;
+  if (url.startsWith('//')) return `https:${url}`;
+  return `https://${url}`;
 };
 
 const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {

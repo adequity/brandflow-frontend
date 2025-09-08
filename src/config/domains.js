@@ -51,11 +51,10 @@ export const getBackendUrlByDomain = (hostname) => {
     backendUrl = DEFAULT_BACKEND_URL;
   }
   
-  // Mixed Content 방지: 모든 URL을 강제로 HTTPS로 변환
-  if (backendUrl && backendUrl.startsWith('http://')) {
-    const httpsUrl = backendUrl.replace('http://', 'https://');
-    console.log(`🔒 HTTP → HTTPS 강제 변환: ${backendUrl} → ${httpsUrl}`);
-    return httpsUrl;
+  // HTTPS만 허용 - HTTP 완전 차단
+  if (backendUrl && !backendUrl.startsWith('https://')) {
+    console.log(`🔒 비HTTPS URL 차단, 기본값 사용: ${backendUrl} → ${DEFAULT_BACKEND_URL}`);
+    return DEFAULT_BACKEND_URL;
   }
   
   return backendUrl;

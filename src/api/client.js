@@ -110,10 +110,10 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
     console.log('🔒 강제 HTTPS URL 구성:', url, '→', finalUrl);
     
-    // 추가 안전장치 - HTTP가 있으면 강제 HTTPS 변환
-    if (finalUrl.includes('http://')) {
-      finalUrl = finalUrl.replace('http://', 'https://');
-      console.error('🚨 HTTP 발견하여 HTTPS로 강제 변환:', finalUrl);
+    // URL 검증 - HTTPS만 허용
+    if (!finalUrl.startsWith('https://')) {
+      console.error('🚨 비정상 URL 발견, HTTPS 강제 적용:', finalUrl);
+      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url || '/api/users');
     }
   } else {
     // 절대 경로도 강제 HTTPS 확인

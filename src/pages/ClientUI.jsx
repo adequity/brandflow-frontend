@@ -24,8 +24,9 @@ const StatusBadge = ({ status }) => {
 
 const formatUrl = (url) => {
   if (!url) return '#';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  return `//${url}`;
+  if (url.startsWith('https://')) return url;
+  if (url.startsWith('//')) return `https:${url}`;
+  return `https://${url}`;
 };
 
 /* ============ Layout ============ */
