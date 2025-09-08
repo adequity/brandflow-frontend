@@ -25,8 +25,13 @@ const UserManagement = ({ loggedInUser }) => {
     }
     setIsLoading(true);
     try {
-      // 새로운 API 엔드포인트로 사용자 데이터 가져오기
-      const response = await apiEndpoints.getUsers();
+      // 새로운 API 엔드포인트로 사용자 데이터 가져오기 (Node.js API 호환 모드 파라미터 포함)
+      const response = await apiEndpoints.getUsers({
+        params: {
+          viewerId: loggedInUser?.id || 1,
+          viewerRole: loggedInUser?.role || 'super_admin'
+        }
+      });
       const usersData = response.data || [];
       
       // Express API 응답을 프론트엔드 형식에 맞게 변환

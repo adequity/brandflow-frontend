@@ -378,7 +378,7 @@ const api = {
 export const apiEndpoints = {
   // 사용자 관리
   users: {
-    list: () => api.get('/api/users/'),
+    list: (config = {}) => api.get('/api/users/', config),
     create: (userData, config = {}) => api.post('/api/users/', userData, config),
     get: (id) => api.get(`/api/users/${id}/`),
     update: (id, userData) => api.put(`/api/users/${id}`, userData), // trailing slash 제거
