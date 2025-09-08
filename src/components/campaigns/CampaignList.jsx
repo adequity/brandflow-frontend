@@ -19,6 +19,17 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, campaign: null });
   const [chatContentModal, setChatContentModal] = useState(null);
 
+  // 클라이언트 정보에서 ID 추출하는 유틸리티 함수
+  const extractClientId = (clientCompany) => {
+    const match = clientCompany?.match(/ \(ID: (\d+)\)$/);
+    return match ? parseInt(match[1]) : null;
+  };
+
+  // 클라이언트 이름만 추출하는 유틸리티 함수  
+  const getClientDisplayName = (clientCompany) => {
+    return clientCompany?.replace(/ \(ID: \d+\)$/, '') || 'N/A';
+  };
+
   const handleSaveCampaign = async (campaignData) => {
     try {
       console.log('Campaign data received:', campaignData);
@@ -37,10 +48,16 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       const actualCreatorId = campaignData.UserId || currentUser.id;
       
       // 백엔드 CampaignCreate 스키마에 맞춘 페이로드
+      // 클라이언트 ID 정보를 포함해서 저장 (기존 필드 활용)
+      const clientDisplayName = campaignData.clientName || 'Unknown Client';
+      const clientCompanyWithId = campaignData.clientId ? 
+        `${clientDisplayName} (ID: ${campaignData.clientId})` : 
+        clientDisplayName;
+        
       const payload = {
         name: campaignData.name?.trim() || '테스트 캠페인',
         description: campaignData.description || '',
-        client_company: campaignData.clientName || 'Unknown Client',
+        client_company: clientCompanyWithId,
         budget: Math.max(campaignData.budget || 1000000, 1), // 백엔드 요구사항: budget > 0
         start_date: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString(),
         end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString()
@@ -261,7 +278,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     className="px-6 py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    {campaign.client_company || campaign.client || 'N/A'}
+                    {/* 클라이언트 이름만 표시 (ID 정보 제거) */}
+                    {getClientDisplayName(campaign.client_company || campaign.client)}
                   </td>
                   <td 
                     className="px-6 py-4 cursor-pointer"
