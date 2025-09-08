@@ -92,7 +92,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     if (!campaignId) return 0;
     
     try {
-      const { data } = await api.get(`/api/campaigns/${campaignId}/financial-summary`, {
+      const { data } = await api.get(`/api/campaigns/${campaignId}/financial_summary/`, {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role

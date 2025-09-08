@@ -52,7 +52,7 @@ const SalesRegistration = ({ loggedInUser }) => {
       // 각 캠페인의 요약 정보를 가져와서 매출 데이터로 변환
       const salesPromises = campaignsData.map(async (campaign) => {
         try {
-          const summaryResponse = await api.get(`/api/campaigns/${campaign.id}/financial_summary`);
+          const summaryResponse = await api.get(`/api/campaigns/${campaign.id}/financial_summary/`);
           const summary = summaryResponse.data;
           
           return {
