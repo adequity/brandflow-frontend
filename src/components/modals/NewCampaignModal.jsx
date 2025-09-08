@@ -207,8 +207,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 })
             );
         } else {
-            setClientListOpen(false);
-            setSearchResults([]);
+            // 검색어가 없으면 전체 클라이언트 목록 표시
+            setClientListOpen(true);
+            setSearchResults(clientUsers || []);
         }
     };
 
@@ -334,7 +335,13 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                             id="client" 
                             value={clientSearchTerm} 
                             onChange={handleClientSearchChange}
-                            onFocus={() => setClientListOpen(true)}
+                            onFocus={() => {
+                                setClientListOpen(true);
+                                // 검색어가 없으면 전체 클라이언트 목록 표시
+                                if (!clientSearchTerm && clientUsers.length > 0) {
+                                    setSearchResults(clientUsers);
+                                }
+                            }}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
                             placeholder="클라이언트 이름 또는 회사명 검색"
                             required 
