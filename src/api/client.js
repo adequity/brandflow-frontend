@@ -382,7 +382,8 @@ export const apiEndpoints = {
     create: (userData, config = {}) => api.post('/api/users/', userData, config),
     get: (id) => api.get(`/api/users/${id}/`),
     update: (id, userData, config = {}) => api.put(`/api/users/${id}`, userData, config), // trailing slash 제거
-    delete: (id) => api.delete(`/api/users/${id}/`)
+    delete: (id) => api.delete(`/api/users/${id}/`),
+    clients: (config = {}) => api.get('/api/users/clients/', config)
   },
   
   // 캠페인 관리

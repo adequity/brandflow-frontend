@@ -133,7 +133,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         const fetchClients = async () => {
             try {
                 console.log('Fetching clients...');
-                const { data } = await apiEndpoints.users.list({
+                const { data } = await apiEndpoints.users.clients({
                     params: {
                         viewerId: currentUser?.id || 1,
                         viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
@@ -141,7 +141,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                                    currentUser?.role === '직원' ? 'staff' : 'client'
                     }
                 });
-                console.log('All users data received:', data);
+                console.log('Client data received:', data);
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정
                 const availableClients = (Array.isArray(data) ? data : (data?.results || []))
