@@ -3,52 +3,24 @@
 
 // 🚨 domains.js 의존성 완전 제거 - Railway HTTPS 하드코딩만 사용
 
-// 🚨 HTTP 완전 차단: 모든 HTTP URL을 HTTPS로 강제 변환하는 함수
-const forceHTTPS = (url) => {
-  if (typeof url !== 'string') return url;
-  
-  // HTTP 프로토콜을 HTTPS로 강제 변환
-  if (url.startsWith('http://')) {
-    const httpsUrl = url.replace('http://', 'https://');
-    console.error('🚨 HTTP URL 발견 → HTTPS 강제 변환:', url, '→', httpsUrl);
-    return httpsUrl;
-  }
-  
-  // brandflow-backend가 포함된 모든 URL을 Railway HTTPS로 통일
-  if (url.includes('brandflow-backend') && !url.includes('https://brandflow-backend-production-99ae.up.railway.app')) {
-    const railwayUrl = url.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
-    console.error('🚨 brandflow-backend URL 발견 → Railway HTTPS로 강제 변환:', url, '→', railwayUrl);
-    return railwayUrl;
-  }
-  
-  // 🚨 Railway 307 리다이렉트 우회 적용
-  return fixRailwayUrl(url);
-};
-
-// 🚨 완전한 HTTP 차단: 모든 HTTP URL을 HTTPS로 강제 변환
+// Railway HTTPS URL 상수
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
 
-// 🚨 환경변수 기반 백엔드 URL 설정
+// 🔒 단순한 HTTPS 백엔드 URL 설정
 const getBackendURL = () => {
+  // 환경변수에서 URL 가져오기
   const envUrl = import.meta.env.VITE_API_BASE_URL;
-  console.log('환경변수 VITE_API_BASE_URL:', envUrl);
-  console.log('현재 모드:', import.meta.env.MODE);
-  console.log('NODE_ENV:', import.meta.env.NODE_ENV);
+  console.log('🔍 환경변수 VITE_API_BASE_URL:', envUrl);
   
-  if (envUrl) {
-    console.log('✅ 환경변수에서 백엔드 URL 로드:', envUrl);
-    // 🚨 환경변수에서도 HTTP 체크
-    if (envUrl.startsWith('http://')) {
-      const httpsUrl = envUrl.replace('http://', 'https://');
-      console.error('🚨 환경변수에서 HTTP 발견, HTTPS로 변환:', envUrl, '→', httpsUrl);
-      return httpsUrl;
-    }
+  // 환경변수가 있고 HTTPS인 경우 그대로 사용
+  if (envUrl && envUrl.startsWith('https://')) {
+    console.log('✅ HTTPS 환경변수 사용:', envUrl);
     return envUrl;
   }
   
-  // 환경변수가 없으면 기본값 (Railway)
+  // 기본값은 항상 Railway HTTPS
   const defaultUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
-  console.log('⚠️ 환경변수 없음, 기본값 사용:', defaultUrl);
+  console.log('🔒 기본 HTTPS URL 사용:', defaultUrl);
   return defaultUrl;
 };
 
@@ -135,73 +107,25 @@ const getBackendUrl = () => {
   return getBackendURL(); // 위에서 정의한 환경변수 기반 함수 사용
 };
 
-// 🚨 환경변수 기반 API 베이스 URL 설정
-const API_BASE_URL = (() => {
-  const baseUrl = getBackendURL();
-  // 🚨 API_BASE_URL에서 강제 HTTPS 변환
-  if (baseUrl && baseUrl.startsWith('http://')) {
-    const httpsUrl = baseUrl.replace('http://', 'https://');
-    console.error('🚨 API_BASE_URL HTTP → HTTPS 강제 변환:', baseUrl, '→', httpsUrl);
-    return httpsUrl;
-  }
-  console.log('✅ API_BASE_URL 설정:', baseUrl);
-  return baseUrl;
-})();
+// 🔒 API 베이스 URL 설정 - getBackendURL()은 이미 HTTPS만 반환
+const API_BASE_URL = getBackendURL();
+console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL);
 
-// 🚨 완전한 HTTPS 강제: Railway URL 하드코딩
-const FORCE_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
-
-// 🚨 API_BASE_URL 강제 HTTPS 검증 및 교체
-let FINAL_API_BASE_URL = API_BASE_URL;
-if (!API_BASE_URL?.startsWith('https://')) {
-  console.error('🚨 API_BASE_URL HTTP 발견, 강제 HTTPS 교체:', API_BASE_URL, '→', FORCE_HTTPS_URL);
-  FINAL_API_BASE_URL = FORCE_HTTPS_URL;
-}
-
-// Mixed Content 완전 방지: HTTPS 강제 검증
-if (!API_BASE_URL.startsWith('https://')) {
-  console.error('🚨 HTTP URL 감지, HTTPS 강제 변환:', API_BASE_URL);
-}
-
-const API_BASE = API_BASE_URL;
-
-// 확인용 로그
-console.log('[API_BASE_URL]', API_BASE_URL);
-
-// 백엔드 URL 확인 및 무조건 HTTPS 강제 변환
-let backendUrl = API_BASE_URL; // 🚨 환경변수 기반 URL 사용
-console.log('🔍 환경변수 기반 백엔드 URL 사용:', backendUrl);
-// 🚨 추가 안전장치: HTTPS 강제 변환
-if (backendUrl) {
-  backendUrl = forceHTTPS(backendUrl);
-  console.log('🔒 최종 HTTPS 강제 변환 적용:', backendUrl);
-}
-
-// 🚨 Fetch API로 모든 요청 처리 (목데이터 완전 제거)
+// 🔒 단순한 Fetch API 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
-  // 무조건 HTTPS URL로 강제 변환 - 모든 경우 처리
-  let finalUrl = url;
-  
-  // 🚨 완전한 HTTPS 강제 변환 로직 - 최고 강화 + Railway 307 우회 + 브라우저 캐시 우회
+  // URL 구성: 상대 경로만 API_BASE_URL과 결합
+  let finalUrl;
   if (url?.startsWith('/')) {
-    // 상대 경로는 무조건 강제 HTTPS 베이스 사용 + trailing slash 자동 추가
-    finalUrl = fixRailwayUrl(FINAL_API_BASE_URL + url); // 🚨 강제 HTTPS URL 사용
-    console.error('🚨 상대 경로 → Railway HTTPS 직접 변환:', url, '→', finalUrl);
-    console.error('🔍 API_BASE_URL 값:', API_BASE_URL);
-    console.error('🔍 최종 URL 확인:', finalUrl);
+    // 상대 경로 - API_BASE_URL과 결합
+    finalUrl = API_BASE_URL + url;
+    console.log('🔍 상대 경로 URL 구성:', url, '→', finalUrl);
   } else {
-    // 모든 절대 경로 URL에 대해 강제 Railway HTTPS 변환
-    if (url?.includes('brandflow-backend') || url?.includes('localhost') || url?.includes('127.0.0.1')) {
-      finalUrl = FINAL_API_BASE_URL + (url.includes('/api/') ? url.substring(url.indexOf('/api/')) : '/api/users');
-      finalUrl = fixRailwayUrl(finalUrl);
-      console.error('🚨 brandflow-backend/localhost → Railway HTTPS 강제 변환:', url, '→', finalUrl);
-    } else {
-      // 그 외의 경우 forceHTTPS 적용
-      finalUrl = forceHTTPS(url);
-    }
+    // 절대 경로는 그대로 사용 (이미 HTTPS여야 함)
+    finalUrl = url;
+    console.log('🔍 절대 경로 URL 사용:', finalUrl);
   }
   
-  // 🚨 쿼리 파라미터 처리 - HTTP 차단 강화 + Railway 307 우회
+  // 쿼리 파라미터 추가
   if (config.params) {
     const searchParams = new URLSearchParams();
     Object.entries(config.params).forEach(([key, value]) => {
@@ -209,10 +133,7 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     });
     const paramsString = searchParams.toString();
     finalUrl += (finalUrl.includes('?') ? '&' : '?') + paramsString;
-    console.log('🔒 쿼리 파라미터 추가:', config.params, '→', paramsString);
-    
-    // 파라미터 추가 후 HTTP 차단 + Railway 307 우회
-    finalUrl = forceHTTPS(finalUrl);
+    console.log('🔍 쿼리 파라미터 추가:', paramsString);
   }
   
   // 헤더 설정 - UTF-8 인코딩 명시 (백엔드 JSON 파싱 오류 해결)
@@ -259,138 +180,52 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
         console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, originalRole: user.role, mappedRole: englishRole, encoded: safeRole, params: newParams});
         console.log('🔒 파라미터 추가 후 URL:', finalUrl);
         
-        // 파라미터 추가 후 즉시 HTTPS 검증 및 Railway URL 강제 적용
-        if (finalUrl.includes('http://') || !finalUrl.includes('https://')) {
-          // HTTP 발견 시 즉시 Railway HTTPS로 교체
-          const apiPath = finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/notifications/unread-count';
-          finalUrl = FINAL_API_BASE_URL + apiPath;
-          console.error('🚨 파라미터 추가 후 HTTP/비정상 URL 발견, Railway HTTPS로 강제 교체:', finalUrl);
+        // URL 최종 검증 - HTTPS로 시작하는지 확인
+        if (!finalUrl.startsWith('https://')) {
+          console.error('🚨 비정상 URL 발견, 재구성 필요:', finalUrl);
         }
       }
     }
   }
   
-  // 🚨 파라미터 추가 후 HTTPS 강제 변환 + Railway 307 우회 - 모든 경우 처리
-  finalUrl = forceHTTPS(finalUrl);
-  console.log('🔒 파라미터 추가 후 HTTPS + Railway 307 우회 변환:', finalUrl);
+  // 최종 URL 검증 및 로그
+  console.log('🔒 최종 요청 URL:', finalUrl);
   
-  // 🚨 추가 안전장치: URL에서 모든 HTTP를 HTTPS로 강제 교체
-  if (finalUrl.includes('http://')) {
-    finalUrl = finalUrl.replace(/http:\/\//g, 'https://');
-    console.error('🚨 HTTP 발견 및 HTTPS 강제 교체:', finalUrl);
-  }
-  
-  // 🚨 최종 보안 검증 - HTTP 완전 차단
-  if (finalUrl.includes('http://')) {
-    const error = `🚨 보안 위반: HTTP URL 사용 금지 - ${method} ${finalUrl}`;
-    console.error(error);
-    throw new Error(error);
-  }
-  
-  console.log(`🚨 FETCH ${method} 강제 HTTPS 검증 완료:`, finalUrl);
-  
-  // 🚨 한글 UTF-8 인코딩 처리 + 백엔드 JSON 파싱 오류 해결
+  // 요청 본문 JSON 직렬화
   let requestBody = null;
   if (data) {
-    try {
-      requestBody = JSON.stringify(data, null, 0); // 압축된 JSON
-      console.log('🚨 JSON 직렬화 성공, 길이:', requestBody.length);
-      
-      // UTF-8 바이트 검증
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(requestBody);
-      console.log('🚨 UTF-8 바이트 길이:', bytes.length);
-      
-    } catch (jsonError) {
-      console.error('🚨 JSON 직렬화 실패:', jsonError);
-      throw new Error(`JSON 직렬화 오류: ${jsonError.message}`);
-    }
+    requestBody = JSON.stringify(data);
+    console.log('📦 요청 본문 준비 완료, 길이:', requestBody.length);
   }
   
-  const response = await fetch(finalUrl, {
-    method: method.toUpperCase(),
-    headers,
-    body: requestBody,
-    redirect: 'manual'  // 🚨 Railway 리디렉트 차단
-  }).then(async (response) => {
-    // 🚨 307 리디렉트 감지 및 HTTPS 강제 재요청
-    if (response.status === 307 && response.headers.get('location')) {
-      const redirectUrl = response.headers.get('location');
-      console.error('🚨 307 리디렉트 감지:', redirectUrl);
-      
-      let httpsUrl = redirectUrl;
-      // HTTP → HTTPS 강제 변환
-      if (redirectUrl.startsWith('http://')) {
-        httpsUrl = redirectUrl.replace('http://', 'https://');
-        console.log('Railway HTTP 리다이렉트를 HTTPS로 변환:', httpsUrl);
-      }
-      
-      // Railway URL로 강제 변환 (추가 안전장치)
-      if (httpsUrl.includes('brandflow-backend') && !httpsUrl.includes('https://brandflow-backend-production-99ae.up.railway.app')) {
-        httpsUrl = httpsUrl.replace(/https?:\/\/[^\/]*brandflow-backend[^\/]*/, 'https://brandflow-backend-production-99ae.up.railway.app');
-        console.error('🚨 Railway URL 강제 변환:', httpsUrl);
-      }
-      
-      console.log('🔒 HTTPS 재요청 실행:', httpsUrl);
-      return fetch(httpsUrl, { 
-        method: method.toUpperCase(),
-        headers,
-        body: requestBody,
-        redirect: 'manual'  // 재요청에서도 수동 리다이렉트 처리
-      });
-    }
-    return response;
-  }).catch(async (fetchError) => {
-    // CORS 또는 네트워크 오류 감지 및 처리
-    console.error('🚨 Fetch 오류 발생:', fetchError.message);
-    console.error('🚨 Fetch 오류 타입:', fetchError.name);
-    
-    // CORS 오류 특별 처리
-    if (fetchError.message?.includes('CORS') || 
-        fetchError.message?.includes('Access-Control') ||
-        fetchError.name === 'TypeError' && fetchError.message?.includes('Failed to fetch')) {
-      const corsError = new Error('CORS 오류가 발생했습니다. 백엔드 서버 CORS 설정을 확인해주세요.');
-      corsError.name = 'CORSError';
-      corsError.isCORSError = true;
-      throw corsError;
-    }
-    
-    // 307 리다이렉트 또는 일반 네트워크 오류 시 HTTPS 재시도
-    if (finalUrl.includes('brandflow-backend')) {
-      const railwayUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + 
-                          (finalUrl.includes('/api/') ? finalUrl.substring(finalUrl.indexOf('/api/')) : '/api/users');
-      console.error('🚨 Railway HTTPS URL로 재시도:', railwayUrl);
-      
-      try {
-        return await fetch(railwayUrl, {
-          method: method.toUpperCase(),
-          headers,
-          body: requestBody,
-          redirect: 'manual'
-        });
-      } catch (retryError) {
-        console.error('🚨 재시도도 실패:', retryError.message);
-        // 재시도도 실패하면 원본 오류를 던짐
-        throw fetchError;
-      }
-    }
-    throw fetchError;
-  });
+  try {
+    const response = await fetch(finalUrl, {
+      method: method.toUpperCase(),
+      headers,
+      body: requestBody
+    });
+
+    console.log('📡 응답 상태:', response.status, response.statusText);
   
-  if (!response.ok) {
-    let errorData;
-    try {
-      errorData = await response.json();
-    } catch {
-      errorData = { message: response.statusText };
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: response.statusText };
+      }
+      const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+      error.response = { data: errorData, status: response.status };
+      throw error;
     }
-    const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
-    error.response = { data: errorData, status: response.status };
+    
+    const responseData = await response.json();
+    return { data: responseData, status: response.status, headers: response.headers };
+    
+  } catch (error) {
+    console.error('🚨 API 요청 실패:', error.message);
     throw error;
   }
-  
-  const responseData = await response.json();
-  return { data: responseData, status: response.status, headers: response.headers };
 };
 
 // 🚨 실제 백엔드 API 메소드들 (목데이터 완전 제거)
