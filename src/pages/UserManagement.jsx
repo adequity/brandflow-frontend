@@ -84,7 +84,16 @@ const UserManagement = ({ loggedInUser }) => {
         incentive_rate: userData.incentiveRate || 0
       };
       
-      if (userData.password) {
+      // password는 사용자 생성 시 필수
+      if (!currentUser) {
+        // 새 사용자 생성 시 password 필수
+        if (!userData.password) {
+          showError('새 사용자 생성 시 비밀번호는 필수입니다.');
+          return;
+        }
+        apiData.password = userData.password;
+      } else if (userData.password) {
+        // 기존 사용자 수정 시 password 선택사항
         apiData.password = userData.password;
       }
       
