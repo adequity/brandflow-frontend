@@ -8,10 +8,15 @@ const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.
 
 // 🔒 강제 HTTPS 백엔드 URL - 임시 하드코딩으로 HTTP 완전 차단
 const getBackendURL = () => {
-  // 임시로 하드코딩하여 HTTP 완전 차단
-  const httpsUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
-  console.log('🔒 강제 HTTPS URL 사용:', httpsUrl);
-  return httpsUrl;
+  // 개발환경에서는 Vite 프록시 사용, 프로덕션에서는 직접 HTTPS
+  if (import.meta.env.DEV) {
+    console.log('🔧 개발환경: Vite 프록시 사용');
+    return ''; // 프록시 사용시 빈 문자열
+  } else {
+    const httpsUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
+    console.log('🔒 프로덕션: HTTPS URL 사용:', httpsUrl);
+    return httpsUrl;
+  }
 };
 
 // 🚨 한글 역할명을 영어로 매핑 (백엔드 호환성)
@@ -103,22 +108,23 @@ console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL);
 
 // 🔒 단순한 Fetch API 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
-  // 🔒 완전 강제 HTTPS URL 구성 - HTTP 완전 차단
+  // 🔒 개발환경과 프로덕션 환경 구분 처리
   let finalUrl;
   if (url?.startsWith('/')) {
-    // 상대 경로 - 강제 HTTPS URL만 사용
-    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
-    console.log('🔒 강제 HTTPS URL 구성:', url, '→', finalUrl);
-    
-    // URL 검증 - HTTPS만 허용
-    if (!finalUrl.startsWith('https://')) {
-      console.error('🚨 비정상 URL 발견, HTTPS 강제 적용:', finalUrl);
-      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url || '/api/users');
+    // 상대 경로 처리
+    if (import.meta.env.DEV) {
+      // 개발환경: Vite 프록시 사용 (HTTP → HTTPS 프록시)
+      finalUrl = url;
+      console.log('🔧 개발환경 프록시 URL:', finalUrl);
+    } else {
+      // 프로덕션: 직접 HTTPS 연결
+      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+      console.log('🔒 프로덕션 HTTPS URL:', finalUrl);
     }
   } else {
-    // 절대 경로도 강제 HTTPS 확인
-    finalUrl = url.startsWith('https://') ? url : 'https://brandflow-backend-production-99ae.up.railway.app' + '/api/users';
-    console.log('🔒 절대 경로 HTTPS 강제 적용:', finalUrl);
+    // 절대 경로는 그대로 사용
+    finalUrl = url;
+    console.log('🔗 절대 경로 URL:', finalUrl);
   }
   
   // 쿼리 파라미터 추가

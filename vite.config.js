@@ -67,7 +67,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: '0.0.0.0'
-    // 프록시 제거 - 운영환경에서 HTTP 요청 방지
+    host: '0.0.0.0',
+    proxy: {
+      '/api': {
+        target: 'https://brandflow-backend-production-99ae.up.railway.app',
+        changeOrigin: true,
+        secure: true,
+        ws: false,
+        rewrite: (path) => path
+      }
+    }
   }
 })
