@@ -31,8 +31,9 @@ const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.
 // 🚨 환경변수 기반 백엔드 URL 설정
 const getBackendURL = () => {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
-  console.log('🔍 환경변수 VITE_API_BASE_URL:', envUrl);
-  console.log('🔍 모든 환경변수:', import.meta.env);
+  console.log('환경변수 VITE_API_BASE_URL:', envUrl);
+  console.log('현재 모드:', import.meta.env.MODE);
+  console.log('NODE_ENV:', import.meta.env.NODE_ENV);
   
   if (envUrl) {
     console.log('✅ 환경변수에서 백엔드 URL 로드:', envUrl);
