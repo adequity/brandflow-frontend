@@ -185,7 +185,14 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         let totalIncentives = 0;
         try {
           // 모든 직원 데이터 가져오기
-          const usersResponse = await apiEndpoints.getUsers();
+          const usersResponse = await apiEndpoints.users.list({
+            params: {
+              viewerId: user?.id || 1,
+              viewerRole: user?.role === '슈퍼 어드민' ? 'super_admin' :
+                         user?.role === '대행사 어드민' ? 'agency_admin' :
+                         user?.role === '직원' ? 'staff' : 'client'
+            }
+          });
           const allUsers = usersResponse.data || [];
           
           // 직원들의 캠페인 매출과 인센티브율 기반으로 계산

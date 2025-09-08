@@ -45,7 +45,14 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const { data } = await apiEndpoints.getUsers();
+                const { data } = await apiEndpoints.users.list({
+                    params: {
+                        viewerId: currentUser?.id || 1,
+                        viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
+                                   currentUser?.role === '대행사 어드민' ? 'agency_admin' :
+                                   currentUser?.role === '직원' ? 'staff' : 'client'
+                    }
+                });
                 setAllUsers(Array.isArray(data) ? data : (data?.results || []));
                 console.log('Latest users loaded:', data);
                 
@@ -126,7 +133,14 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         const fetchClients = async () => {
             try {
                 console.log('Fetching clients...');
-                const { data } = await apiEndpoints.getUsers();
+                const { data } = await apiEndpoints.users.list({
+                    params: {
+                        viewerId: currentUser?.id || 1,
+                        viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
+                                   currentUser?.role === '대행사 어드민' ? 'agency_admin' :
+                                   currentUser?.role === '직원' ? 'staff' : 'client'
+                    }
+                });
                 console.log('All users data received:', data);
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정
