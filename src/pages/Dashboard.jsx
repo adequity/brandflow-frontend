@@ -74,7 +74,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         // 캠페인 데이터가 없거나 매출 정보가 없으면 다시 로드
         if (!campaigns || campaigns.length === 0 || !campaigns[0].hasOwnProperty('posts')) {
           try {
-            const campaignsResponse = await apiEndpoints.getCampaigns({
+            const campaignsResponse = await apiEndpoints.campaigns.list({
               viewerId: user.id, 
               viewerRole: user.role
             });
@@ -84,7 +84,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             latestCampaigns = await Promise.all(
               campaignsData.map(async (campaign) => {
                 try {
-                  const postsResponse = await apiEndpoints.getCampaignPosts(campaign.id);
+                  const postsResponse = await apiEndpoints.campaigns.posts(campaign.id);
                   return {
                     ...campaign,
                     posts: postsResponse.data || [],
@@ -114,7 +114,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const campaignFinancials = await Promise.all(
             latestCampaigns.map(async (campaign) => {
               try {
-                const response = await apiEndpoints.getCampaignFinancialSummary(campaign.id);
+                const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
                 const summary = response.data;
                 
                 campaignTotalRevenue += summary.total_revenue || 0;
@@ -148,7 +148,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         
         try {
           // 구매요청 데이터 가져오기 (구매요청과 발주요청은 동일한 데이터)
-          const purchaseResponse = await apiEndpoints.getPurchaseRequests();
+          const purchaseResponse = await apiEndpoints.purchaseRequests.list();
           const purchaseRequests = purchaseResponse.data.requests || purchaseResponse.data || [];
           
           // 통계 계산
@@ -202,7 +202,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             
             for (const campaign of userCampaigns) {
               try {
-                const response = await apiEndpoints.getCampaignFinancialSummary(campaign.id);
+                const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
                 userRevenue += response.data.total_revenue || 0;
               } catch (error) {
                 console.error(`사용자 ${userItem.id} 캠페인 ${campaign.id} 매출 데이터 로딩 실패:`, error);
@@ -255,7 +255,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           
           for (const campaign of employeeCampaigns) {
             try {
-              const response = await apiEndpoints.getCampaignFinancialSummary(campaign.id);
+              const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
               employeeRevenue += response.data.total_revenue || 0;
             } catch (error) {
               console.error(`직원 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);

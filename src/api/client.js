@@ -391,7 +391,9 @@ export const apiEndpoints = {
     create: (campaignData) => api.post('/api/campaigns/', campaignData),
     get: (id) => api.get(`/api/campaigns/${id}/`),
     update: (id, campaignData) => api.put(`/api/campaigns/${id}/`, campaignData),
-    delete: (id) => api.delete(`/api/campaigns/${id}/`)
+    delete: (id) => api.delete(`/api/campaigns/${id}/`),
+    posts: (id) => api.get(`/api/campaigns/${id}/posts/`),
+    financialSummary: (id) => api.get(`/api/campaigns/${id}/financial_summary/`)
   },
   
   // 인증
