@@ -130,18 +130,29 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
 
     // 클라이언트 목록 로드 - 권한에 따라 필터링
     useEffect(() => {
+        const abortController = new AbortController();
+        
         const fetchClients = async () => {
             try {
-                console.log('Fetching clients...');
-                const { data } = await apiEndpoints.users.clients({
+                console.log('🚀 Fetching clients for user:', {
+                    id: currentUser?.id,
+                    role: currentUser?.role,
+                    company: currentUser?.company
+                });
+                
+                const response = await apiEndpoints.users.clients({
                     params: {
                         viewerId: currentUser?.id || 1,
                         viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
                                    currentUser?.role === '대행사 어드민' ? 'agency_admin' :
                                    currentUser?.role === '직원' ? 'staff' : 'client'
-                    }
+                    },
+                    signal: abortController.signal
                 });
-                console.log('Client data received:', data);
+                
+                console.log('📡 API Response:', response);
+                const data = response.data;
+                console.log('📋 Client data received:', data);
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정
                 // 백엔드에서 이미 클라이언트만 반환하므로 role 필터링 불필요
@@ -185,14 +196,28 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 console.log('Setting clientUsers to:', availableClients);
                 setClientUsers(availableClients);
             } catch (error) {
-                console.error('클라이언트 목록 로드 실패:', error);
-                setClientUsers([]);
+                if (error.name !== 'AbortError') {
+                    console.error('❌ 클라이언트 목록 로드 실패:', {
+                        error: error,
+                        message: error.message,
+                        status: error.response?.status,
+                        statusText: error.response?.statusText,
+                        data: error.response?.data
+                    });
+                    setClientUsers([]);
+                } else {
+                    console.log('🚫 API 요청이 중단되었습니다 (정상)');
+                }
             }
         };
 
         if (currentUser?.id) {
             fetchClients();
         }
+
+        return () => {
+            abortController.abort();
+        };
     }, [currentUser?.id, currentUser?.role]);
 
     useEffect(() => {
