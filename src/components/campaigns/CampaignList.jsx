@@ -261,16 +261,16 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     className="px-6 py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    {campaign.client}
+                    {campaign.client_company || campaign.client || 'N/A'}
                   </td>
                   <td 
                     className="px-6 py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    {campaign.manager_name || 
+                    {campaign.creator_name || 
+                     campaign.manager_name || 
                      campaign.User?.name || 
-                     users?.find(u => u.id === campaign.managerId || u.id === campaign.manager)?.name ||
-                     users?.find(u => u.id === campaign.managerId || u.id === campaign.manager)?.username ||
+                     users?.find(u => u.id === campaign.creator_id)?.name ||
                      'N/A'}
                   </td>
                   <td 
