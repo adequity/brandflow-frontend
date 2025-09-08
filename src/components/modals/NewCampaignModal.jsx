@@ -144,31 +144,45 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 console.log('Client data received:', data);
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정
+                // 백엔드에서 이미 클라이언트만 반환하므로 role 필터링 불필요
                 const availableClients = (Array.isArray(data) ? data : (data?.results || []))
-                    .filter(user => {
-                        // Express에서 온 role을 한글로 매핑하여 비교 (이미 한글인 경우 그대로 사용)
-                        const mappedRole = ROLE_MAPPING[user.role] || user.role;
-                        return mappedRole === ROLES.CLIENT || user.role === '클라이언트';
-                    })
-                    .filter(client => {
-                        // 권한 체크를 위해 client 객체에 매핑된 role 추가
-                        const clientWithMappedRole = {
-                            ...client,
-                            role: ROLE_MAPPING[client.role] || client.role,
-                            // Express API 형식에서는 name 필드를 first_name과 last_name으로 대체
-                            first_name: client.name || client.first_name || '',
-                            last_name: client.last_name || ''
-                        };
-                        return canSelectClient(currentUser, clientWithMappedRole);
-                    })
-                    // Express API 형식에 맞게 데이터 변환
                     .map(client => ({
                         ...client,
+                        // Express API 형식에서는 name 필드를 first_name과 last_name으로 대체  
                         first_name: client.name || client.first_name || '',
-                        last_name: client.last_name || ''
-                    }));
+                        last_name: client.last_name || '',
+                        // 권한 체크를 위해 role 정규화
+                        role: ROLE_MAPPING[client.role] || client.role
+                    }))
+                    .filter(client => {
+                        const canSelect = canSelectClient(currentUser, client);
+                        console.log('Checking canSelectClient for:', {
+                            currentUser: {
+                                id: currentUser?.id,
+                                role: currentUser?.role,
+                                company: currentUser?.company
+                            },
+                            client: {
+                                id: client.id,
+                                role: client.role,
+                                company: client.company,
+                                name: client.name
+                            },
+                            canSelect: canSelect
+                        });
+                        
+                        // 임시: 슈퍼 어드민이나 대행사 어드민이면 모든 클라이언트 표시
+                        if (currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민') {
+                            console.log('Admin user - allowing all clients');
+                            return true;
+                        }
+                        
+                        return canSelect;
+                    });
                     
                 console.log('Available clients after permission check:', availableClients);
+                console.log('Available clients count:', availableClients.length);
+                console.log('Setting clientUsers to:', availableClients);
                 setClientUsers(availableClients);
             } catch (error) {
                 console.error('클라이언트 목록 로드 실패:', error);
