@@ -215,45 +215,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         };
     }, [currentUser?.id, currentUser?.role]);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (searchRef.current && !searchRef.current.contains(event.target)) {
-                setClientListOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [searchRef]);
 
-    const handleClientSearchChange = (e) => {
-        const term = e.target.value;
-        setClientSearchTerm(term);
-        setSelectedClient(null);
-
-        if (term) {
-            setClientListOpen(true);
-            setSearchResults(
-                (clientUsers || []).filter(user => {
-                    // Express API에서 name 필드를 사용하므로 두 방식 모두 지원
-                    const fullName = user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim();
-                    return fullName.toLowerCase().includes(term.toLowerCase()) ||
-                           (user.company && user.company.toLowerCase().includes(term.toLowerCase()));
-                })
-            );
-        } else {
-            // 검색어가 없으면 전체 클라이언트 목록 표시
-            setClientListOpen(true);
-            setSearchResults(clientUsers || []);
-        }
-    };
-
-    const handleSelectClient = (client) => {
-        setSelectedClient(client);
-        // Express API에서 name 필드를 사용하므로 두 방식 모두 지원
-        const fullName = client.name || `${client.first_name || ''} ${client.last_name || ''}`.trim();
-        setClientSearchTerm(`${fullName} (${client.company || '회사명 없음'})`);
-        setClientListOpen(false);
-    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
