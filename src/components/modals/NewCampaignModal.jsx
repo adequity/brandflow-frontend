@@ -132,7 +132,8 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 console.log('🚀 Fetching clients for user:', {
                     id: currentUser?.id,
                     role: currentUser?.role,
-                    company: currentUser?.company
+                    company: currentUser?.company,
+                    full_currentUser: currentUser
                 });
                 
                 const response = await apiEndpoints.users.clients({
@@ -162,19 +163,23 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                     }))
                     .filter(client => {
                         const canSelect = canSelectClient(currentUser, client);
-                        console.log('Checking canSelectClient for:', {
+                        console.log('🔍 Checking canSelectClient for:', {
                             currentUser: {
                                 id: currentUser?.id,
                                 role: currentUser?.role,
-                                company: currentUser?.company
+                                company: currentUser?.company,
+                                full: currentUser
                             },
                             client: {
                                 id: client.id,
                                 role: client.role,
                                 company: client.company,
-                                name: client.name
+                                name: client.name,
+                                full: client
                             },
-                            canSelect: canSelect
+                            canSelect: canSelect,
+                            isSameCompany: currentUser?.company && client.company && currentUser.company === client.company,
+                            roleMatch: client.role === 'client' || client.role === '클라이언트'
                         });
                         
                         // 임시: 슈퍼 어드민이나 대행사 어드민이면 모든 클라이언트 표시
