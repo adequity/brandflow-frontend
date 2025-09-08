@@ -6,22 +6,12 @@
 // Railway HTTPS URL 상수
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
 
-// 🔒 단순한 HTTPS 백엔드 URL 설정
+// 🔒 강제 HTTPS 백엔드 URL - 임시 하드코딩으로 HTTP 완전 차단
 const getBackendURL = () => {
-  // 환경변수에서 URL 가져오기
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
-  console.log('🔍 환경변수 VITE_API_BASE_URL:', envUrl);
-  
-  // 환경변수가 있고 HTTPS인 경우 그대로 사용
-  if (envUrl && envUrl.startsWith('https://')) {
-    console.log('✅ HTTPS 환경변수 사용:', envUrl);
-    return envUrl;
-  }
-  
-  // 기본값은 항상 Railway HTTPS
-  const defaultUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
-  console.log('🔒 기본 HTTPS URL 사용:', defaultUrl);
-  return defaultUrl;
+  // 임시로 하드코딩하여 HTTP 완전 차단
+  const httpsUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
+  console.log('🔒 강제 HTTPS URL 사용:', httpsUrl);
+  return httpsUrl;
 };
 
 // 🚨 한글 역할명을 영어로 매핑 (백엔드 호환성)
