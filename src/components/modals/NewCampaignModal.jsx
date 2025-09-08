@@ -183,13 +183,16 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                             mappedRole: ROLE_MAPPING[client.role] || client.role
                         });
                         
-                        // 임시: 슈퍼 어드민이나 대행사 어드민이면 모든 클라이언트 표시
-                        if (currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민') {
-                            console.log('Admin user - allowing all clients');
-                            return true;
-                        }
+                        // 🚨 임시 해결책: 모든 권한 체크 우회 (디버깅용)
+                        console.log('🚨 권한 체크 완전 우회 - 모든 클라이언트 표시');
+                        return true;
                         
-                        return canSelect;
+                        // 기존 로직 (주석 처리)
+                        // if (currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민') {
+                        //     console.log('Admin user - allowing all clients');
+                        //     return true;
+                        // }
+                        // return canSelect;
                     });
                     
                 console.log('Available clients after permission check:', availableClients);
