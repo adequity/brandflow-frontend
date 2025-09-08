@@ -499,7 +499,7 @@ export const apiEndpoints = {
 // 기존 코드 호환성을 위한 레거시 API
 export const legacyAPI = {
   // 사용자
-  getUsers: () => apiEndpoints.users.list(),
+  getUsers: (config = {}) => apiEndpoints.users.list(config),
   createUser: (userData) => apiEndpoints.users.create(userData),
   updateUser: (id, userData) => apiEndpoints.users.update(id, userData),
   deleteUser: (id) => apiEndpoints.users.delete(id),
