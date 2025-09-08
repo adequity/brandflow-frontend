@@ -41,7 +41,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         name: campaignData.name?.trim() || '테스트 캠페인',
         description: campaignData.description || '',
         client_company: campaignData.clientName || 'Unknown Client',
-        client_id: campaignData.clientId || null, // 클라이언트 ID 추가
         budget: Math.max(campaignData.budget || 1000000, 1), // 백엔드 요구사항: budget > 0
         start_date: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString(),
         end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString()
