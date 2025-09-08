@@ -78,12 +78,21 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         return roleMap[koreanRole] || 'client';
       };
       
+      console.log('🚀 캠페인 생성 API 호출 시작:', '/api/campaigns/');
+      console.log('🚀 Payload:', payload);
+      console.log('🚀 Params:', actualCreatorId ? { 
+        viewerId: actualCreatorId, 
+        viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
+      } : {});
+      
       const { data, status } = await api.post('/api/campaigns/', payload, {
         params: actualCreatorId ? { 
           viewerId: actualCreatorId, 
           viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
         } : {},
       });
+      
+      console.log('✅ 캠페인 생성 API 성공:', { data, status });
 
       // 서버가 {campaign:{...}} 또는 {...} 로 와도 안전하게 처리
       const created = data?.campaign ?? data;
@@ -114,7 +123,24 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       setModalOpen(false);
       showSuccess('캠페인이 성공적으로 생성되었습니다.');
     } catch (err) {
-      console.error('캠페인 생성 실패:', err);
+      console.error('❌ 캠페인 생성 실패:', err);
+      console.error('❌ Error type:', typeof err);
+      console.error('❌ Error name:', err.name);
+      console.error('❌ Error message:', err.message);
+      console.error('❌ Error stack:', err.stack);
+      if (err.response) {
+        console.error('❌ Response status:', err.response.status);
+        console.error('❌ Response data:', err.response.data);
+        console.error('❌ Response headers:', err.response.headers);
+      }
+      console.error('❌ Full error object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+      
+      // Network/Fetch 관련 에러 체크
+      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+        console.error('🚨 네트워크 연결 실패 - HTTP/HTTPS 또는 CORS 문제');
+        showError('네트워크 연결에 실패했습니다. HTTP/HTTPS 혼용 또는 서버 연결 문제일 수 있습니다.');
+        return;
+      }
       
       // 인증 관련 에러인지 확인
       if (err.response?.status === 401) {
