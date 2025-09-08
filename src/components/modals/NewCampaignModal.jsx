@@ -119,14 +119,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         }
     }, [currentUser.role, staffUsers, UserId]);
     
-    // 클라이언트 검색 기능 관련 state
-    const [clientSearchTerm, setClientSearchTerm] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
+    // 클라이언트 선택 관련 state
     const [selectedClient, setSelectedClient] = useState(null);
-    const [isClientListOpen, setClientListOpen] = useState(false);
     const [clientUsers, setClientUsers] = useState([]);
-    
-    const searchRef = useRef(null);
 
     // 클라이언트 목록 로드 - 권한에 따라 필터링
     useEffect(() => {
@@ -366,38 +361,33 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                         />
                     </div>
                     
-                    <div className="relative" ref={searchRef}>
+                    <div>
                         <label htmlFor="client" className="block text-sm font-medium text-gray-700">클라이언트</label>
-                        <input 
-                            type="text" 
-                            name="client" 
-                            id="client" 
-                            value={clientSearchTerm} 
-                            onChange={handleClientSearchChange}
-                            onFocus={() => {
-                                setClientListOpen(true);
-                                // 검색어가 없으면 전체 클라이언트 목록 표시
-                                if (!clientSearchTerm && clientUsers.length > 0) {
-                                    setSearchResults(clientUsers);
-                                }
+                        <select
+                            name="client"
+                            id="client"
+                            value={selectedClient?.id || ''}
+                            onChange={(e) => {
+                                const clientId = e.target.value;
+                                const client = clientUsers.find(c => c.id === parseInt(clientId));
+                                setSelectedClient(client || null);
+                                console.log('Client selected:', client);
                             }}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
-                            placeholder="클라이언트 이름 또는 회사명 검색"
-                            required 
-                            autoComplete="off"
-                        />
-                        {isClientListOpen && (searchResults || []).length > 0 && (
-                            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg">
-                                {(searchResults || []).map(client => (
-                                    <li 
-                                        key={client.id} 
-                                        onClick={() => handleSelectClient(client)}
-                                        className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                                    >
-                                        {client.name || `${client.first_name} ${client.last_name}`} ({client.company || '회사명 없음'})
-                                    </li>
-                                ))}
-                            </ul>
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md"
+                            required
+                        >
+                            <option value="">클라이언트를 선택하세요</option>
+                            {clientUsers.map(client => (
+                                <option key={client.id} value={client.id}>
+                                    {client.name || `${client.first_name} ${client.last_name}`} 
+                                    {client.company ? ` (${client.company})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        {clientUsers.length === 0 && (
+                            <p className="mt-1 text-xs text-red-500">
+                                클라이언트 목록을 불러오는 중이거나 사용 가능한 클라이언트가 없습니다.
+                            </p>
                         )}
                     </div>
 
