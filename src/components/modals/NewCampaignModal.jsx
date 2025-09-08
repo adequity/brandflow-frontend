@@ -136,7 +136,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                     full_currentUser: currentUser
                 });
                 
-                const response = await apiEndpoints.users.clients({
+                // 🚨 임시: /api/users/clients/ 대신 /api/users/로 모든 사용자 가져오기
+                console.log('🔄 임시 해결책: 전체 사용자 목록에서 클라이언트 필터링');
+                const response = await apiEndpoints.users.list({
                     params: {
                         viewerId: currentUser?.id || 1,
                         viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
@@ -157,8 +159,24 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 }
                 
                 // Express API에서 오는 데이터 형식에 맞게 수정
-                // 백엔드에서 이미 클라이언트만 반환하므로 role 필터링 불필요
-                const availableClients = (Array.isArray(data) ? data : (data?.results || []))
+                // 🚨 임시: 전체 사용자에서 클라이언트만 필터링
+                const allUsers = Array.isArray(data) ? data : (data?.results || []);
+                console.log('👥 전체 사용자 데이터:', allUsers, '개수:', allUsers.length);
+                
+                const clientsOnly = allUsers.filter(user => {
+                    const isClient = user.role === 'client' || user.role === '클라이언트' || 
+                                    ROLE_MAPPING[user.role] === 'client';
+                    console.log('🔍 사용자 role 체크:', {
+                        name: user.name,
+                        role: user.role,
+                        mappedRole: ROLE_MAPPING[user.role],
+                        isClient: isClient
+                    });
+                    return isClient;
+                });
+                console.log('👤 클라이언트만 필터링 결과:', clientsOnly, '개수:', clientsOnly.length);
+                
+                const availableClients = clientsOnly
                     .map(client => ({
                         ...client,
                         // Express API 형식에서는 name 필드를 first_name과 last_name으로 대체  
