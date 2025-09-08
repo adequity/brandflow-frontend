@@ -9,6 +9,19 @@ import UserDeleteModal from '../components/modals/UserDeleteModal';
 
 const UserManagement = ({ loggedInUser }) => {
   const { showSuccess, showError, showWarning } = useToast();
+  
+  // 한글 역할명을 영어로 변환하는 함수
+  const convertRoleToEnglish = (koreanRole) => {
+    const roleMap = {
+      '슈퍼 어드민': 'super_admin',
+      '슈퍼어드민': 'super_admin', 
+      '대행사 어드민': 'agency_admin',
+      '대행사어드민': 'agency_admin',
+      '직원': 'staff',
+      '클라이언트': 'client'
+    };
+    return roleMap[koreanRole] || 'client';
+  };
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -29,7 +42,7 @@ const UserManagement = ({ loggedInUser }) => {
       const response = await apiEndpoints.getUsers({
         params: {
           viewerId: loggedInUser?.id || 1,
-          viewerRole: loggedInUser?.role || 'super_admin'
+          viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
         }
       });
       const usersData = response.data || [];
@@ -113,7 +126,7 @@ const UserManagement = ({ loggedInUser }) => {
         const response = await apiEndpoints.users.create(apiData, {
           params: {
             viewerId: loggedInUser?.id || 1,
-            viewerRole: loggedInUser?.role || 'super_admin'
+            viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
           }
         });
         console.log('API response:', response.data);
