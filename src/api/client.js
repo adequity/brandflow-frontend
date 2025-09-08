@@ -103,24 +103,22 @@ console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL);
 
 // 🔒 단순한 Fetch API 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
-  // URL 구성: 상대 경로만 API_BASE_URL과 결합
+  // 🔒 완전 강제 HTTPS URL 구성 - HTTP 완전 차단
   let finalUrl;
   if (url?.startsWith('/')) {
-    // 상대 경로 - API_BASE_URL과 결합
-    finalUrl = API_BASE_URL + url;
-    console.log('🔍 상대 경로 URL 구성:', url, '→', finalUrl);
-    console.log('🔍 API_BASE_URL 값 확인:', API_BASE_URL);
+    // 상대 경로 - 강제 HTTPS URL만 사용
+    finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
+    console.log('🔒 강제 HTTPS URL 구성:', url, '→', finalUrl);
     
-    // HTTP 검증
+    // 추가 안전장치 - HTTP가 있으면 강제 HTTPS 변환
     if (finalUrl.includes('http://')) {
-      console.error('🚨 HTTP URL 감지됨! finalUrl:', finalUrl);
-      console.error('🚨 API_BASE_URL:', API_BASE_URL);
-      console.error('🚨 원본 url:', url);
+      finalUrl = finalUrl.replace('http://', 'https://');
+      console.error('🚨 HTTP 발견하여 HTTPS로 강제 변환:', finalUrl);
     }
   } else {
-    // 절대 경로는 그대로 사용 (이미 HTTPS여야 함)
-    finalUrl = url;
-    console.log('🔍 절대 경로 URL 사용:', finalUrl);
+    // 절대 경로도 강제 HTTPS 확인
+    finalUrl = url.startsWith('https://') ? url : 'https://brandflow-backend-production-99ae.up.railway.app' + '/api/users';
+    console.log('🔒 절대 경로 HTTPS 강제 적용:', finalUrl);
   }
   
   // 쿼리 파라미터 추가
