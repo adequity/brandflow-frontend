@@ -88,15 +88,33 @@ const fixRailwayUrl = (url) => {
       '/unread-count',
       '/login',
       '/approve',
-      '/users/',  // 🚨 PUT /api/users/1/ → /api/users/1 (trailing slash 제거)
       '/work-types'  // 🚨 GET /api/work-types → trailing slash 없이 사용
+    ];
+    
+    // 🚨 특정 API는 trailing slash 필요 (클라이언트 목록 등)
+    const requiresTrailingSlashAPIs = [
+      '/users/clients/',
+      '/campaigns/',
+      '/users/'  // GET /api/users/ 목록
     ];
     
     // 🚨 숫자 ID가 포함된 users API도 trailing slash 제거 (PUT /api/users/1/ 방지)
     const hasUserIdPattern = /\/users\/\d+\/?$/.test(baseUrl);
     const shouldRemoveSlash = noTrailingSlashAPIs.some(api => baseUrl.includes(api)) || hasUserIdPattern;
     
-    const needsTrailingSlash = !shouldRemoveSlash;
+    // 🚨 특정 API는 강제로 trailing slash 필요
+    const forceTrailingSlash = requiresTrailingSlashAPIs.some(api => baseUrl.includes(api));
+    
+    const needsTrailingSlash = forceTrailingSlash || !shouldRemoveSlash;
+    
+    console.log('🔍 Railway URL 처리:', {
+      originalUrl: url,
+      baseUrl: baseUrl,
+      hasQuery: hasQuery,
+      shouldRemoveSlash: shouldRemoveSlash,
+      forceTrailingSlash: forceTrailingSlash,
+      needsTrailingSlash: needsTrailingSlash
+    });
     
     if (needsTrailingSlash) {
       const fixedUrl = baseUrl + '/' + (hasQuery ? '?' + queryString : '');
