@@ -178,8 +178,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                                 full: client
                             },
                             canSelect: canSelect,
-                            isSameCompany: currentUser?.company && client.company && currentUser.company === client.company,
-                            roleMatch: client.role === 'client' || client.role === '클라이언트'
+                            isSameCompanyDirect: currentUser?.company && client.company && currentUser.company === client.company,
+                            roleMatch: client.role === 'client' || client.role === '클라이언트',
+                            mappedRole: ROLE_MAPPING[client.role] || client.role
                         });
                         
                         // 임시: 슈퍼 어드민이나 대행사 어드민이면 모든 클라이언트 표시

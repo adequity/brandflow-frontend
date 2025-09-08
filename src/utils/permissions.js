@@ -147,10 +147,30 @@ export const canAccessResource = (user, resource, action = 'view') => {
 };
 
 /**
- * 같은 회사인지 확인
+ * 같은 회사인지 확인 (띄어쓰기, 대소문자, 특수문자 무시)
  */
 export const isSameCompany = (user1, user2) => {
-  return user1?.company && user2?.company && user1.company === user2.company;
+  if (!user1?.company || !user2?.company) return false;
+  
+  // 회사명 정규화: 띄어쓰기를 _로 대체, 소문자 변환, 특수문자 제거
+  const normalizeCompany = (company) => {
+    return company
+      .toLowerCase()                    // 소문자 변환
+      .replace(/\s+/g, '_')            // 띄어쓰기를 _로 대체
+      .replace(/[^\w가-힣_]/g, '')      // 영문, 숫자, 한글, _ 제외 모든 문자 제거
+      .trim();
+  };
+  
+  const company1 = normalizeCompany(user1.company);
+  const company2 = normalizeCompany(user2.company);
+  
+  console.log('🏢 회사명 매칭:', {
+    user1: { original: user1.company, normalized: company1 },
+    user2: { original: user2.company, normalized: company2 },
+    match: company1 === company2
+  });
+  
+  return company1 === company2;
 };
 
 /**
