@@ -116,8 +116,13 @@ const UserManagement = ({ loggedInUser }) => {
       }
       
       if (currentUser) {
-        // 사용자 수정
-        await apiEndpoints.updateUser(currentUser.id, apiData);
+        // 사용자 수정 (Node.js API 호환 모드 파라미터 포함)
+        await apiEndpoints.users.update(currentUser.id, apiData, {
+          params: {
+            viewerId: loggedInUser?.id || 1,
+            viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
+          }
+        });
         showSuccess('사용자가 수정되었습니다!');
       } else {
         // 사용자 생성
@@ -271,7 +276,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
   const handleDeleteUser = async () => {
     try {
       // 새로운 API 엔드포인트로 사용자 삭제
-      await apiEndpoints.deleteUser(currentUser.id);
+      await apiEndpoints.users.delete(currentUser.id);
       showSuccess('사용자가 삭제되었습니다!');
       await fetchUsers();
       setDeleteModalOpen(false);

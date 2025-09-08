@@ -381,7 +381,7 @@ export const apiEndpoints = {
     list: (config = {}) => api.get('/api/users/', config),
     create: (userData, config = {}) => api.post('/api/users/', userData, config),
     get: (id) => api.get(`/api/users/${id}/`),
-    update: (id, userData) => api.put(`/api/users/${id}`, userData), // trailing slash 제거
+    update: (id, userData, config = {}) => api.put(`/api/users/${id}`, userData, config), // trailing slash 제거
     delete: (id) => api.delete(`/api/users/${id}/`)
   },
   
