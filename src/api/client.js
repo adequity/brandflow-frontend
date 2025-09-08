@@ -102,9 +102,9 @@ const getBackendUrl = () => {
   return getBackendURL(); // 위에서 정의한 환경변수 기반 함수 사용
 };
 
-// 🔒 API 베이스 URL 설정 - getBackendURL()은 이미 HTTPS만 반환
-const API_BASE_URL = getBackendURL();
-console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL);
+// 🔒 API 베이스 URL 설정 - 프로덕션에서 강제 HTTPS 사용
+const API_BASE_URL = import.meta.env.DEV ? '' : 'https://brandflow-backend-production-99ae.up.railway.app';
+console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL, 'DEV 모드:', import.meta.env.DEV);
 
 // 🔒 단순한 Fetch API 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
@@ -183,11 +183,23 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
         console.log('🔒 파라미터 추가 후 URL:', finalUrl);
         
         // URL 최종 검증 - HTTPS로 시작하는지 확인
-        if (!finalUrl.startsWith('https://')) {
-          console.error('🚨 비정상 URL 발견, 재구성 필요:', finalUrl);
+        if (!finalUrl.startsWith('https://') && !import.meta.env.DEV) {
+          console.error('🚨 비정상 URL 발견, HTTPS 강제 재구성:', finalUrl);
+          // 프로덕션에서 HTTP 발견시 강제로 HTTPS 변환
+          if (finalUrl.startsWith('http://')) {
+            finalUrl = finalUrl.replace('http://', 'https://');
+            console.log('🔒 HTTP → HTTPS 강제 변환:', finalUrl);
+          }
         }
       }
     }
+  }
+  
+  // 🚨 프로덕션에서 HTTP URL 완전 차단
+  if (!import.meta.env.DEV && finalUrl.startsWith('http://')) {
+    console.error('🚨 프로덕션에서 HTTP URL 발견, 강제 HTTPS 변환:', finalUrl);
+    finalUrl = finalUrl.replace('http://', 'https://');
+    console.log('🔒 최종 HTTPS 변환 완료:', finalUrl);
   }
   
   // 최종 URL 검증 및 로그
