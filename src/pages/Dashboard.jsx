@@ -265,7 +265,15 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       };
     }
     
-    const posts = campaigns.flatMap(c => (c && c.posts) ? c.posts : []);
+    // 안전한 posts 추출: flatMap 대신 호환성이 좋은 방법 사용
+    const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
+    const posts = safeCampaigns.reduce((acc, c) => {
+      // c가 객체이고 posts가 배열인지 확인
+      if (c && Array.isArray(c.posts)) {
+        return acc.concat(c.posts);
+      }
+      return acc; // posts가 없거나 배열이 아니면 현재 누적값 반환
+    }, []);
 
     const isRejected = (p) =>
       (p.topicStatus && p.topicStatus.includes('반려')) ||
