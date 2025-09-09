@@ -12,7 +12,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     start_date: '',
     end_date: '',
     status: 'DRAFT',
-    creator_id: ''
+    UserId: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [staffMembers, setStaffMembers] = useState([]);
@@ -36,7 +36,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     
     setLoadingStaff(true);
     try {
-      const response = await api.get('/api/campaigns/staff-members', {
+      const response = await api.get('/api/campaigns/staff-list', {
         params: {
           viewerId: currentUser.id,
           viewerRole: currentUser.role
@@ -63,7 +63,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         start_date: campaign.start_date ? campaign.start_date.split('T')[0] : '',
         end_date: campaign.end_date ? campaign.end_date.split('T')[0] : '',
         status: campaign.status || 'DRAFT',
-        creator_id: campaign.creator_id || ''
+        UserId: campaign.creator_id || ''
       });
     }
   }, [campaign]);
@@ -109,7 +109,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         start_date: formatDateToISO(formData.start_date),
         end_date: formatDateToISO(formData.end_date),
         status: formData.status,
-        creator_id: formData.creator_id ? parseInt(formData.creator_id) : null
+        creator_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
       console.log('[CAMPAIGN-UPDATE] Sending data:', updateData);
@@ -220,7 +220,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
           {/* 담당 직원 선택 (대행사 어드민만) */}
           {currentUser.role === '대행사 어드민' && (
             <div>
-              <label htmlFor="creator_id" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="UserId" className="block text-sm font-medium text-gray-700">
                 👤 담당 직원
               </label>
               {loadingStaff ? (
@@ -230,9 +230,9 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
                 </div>
               ) : (
                 <select
-                  name="creator_id"
-                  id="creator_id"
-                  value={formData.creator_id}
+                  name="UserId"
+                  id="UserId"
+                  value={formData.UserId}
                   onChange={handleInputChange}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
