@@ -63,17 +63,26 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     setIsLoading(true);
 
     try {
+      // 날짜를 ISO datetime 형식으로 변환하는 함수
+      const formatDateToISO = (dateStr) => {
+        if (!dateStr) return null;
+        // date input에서 받은 'YYYY-MM-DD' 형식을 'YYYY-MM-DDTHH:mm:ss' 형식으로 변환
+        return dateStr + 'T00:00:00';
+      };
+
       const updateData = {
         name: formData.name,
         description: formData.description || null,
         client_company: formData.client_company || null,
         budget: formData.budget ? parseFloat(removeCommas(formData.budget)) : null,
-        start_date: formData.start_date || null,
-        end_date: formData.end_date || null,
+        start_date: formatDateToISO(formData.start_date),
+        end_date: formatDateToISO(formData.end_date),
         status: formData.status
       };
 
-      await api.put(`/api/campaigns/${campaign.id}/`, updateData, {
+      console.log('[CAMPAIGN-UPDATE] Sending data:', updateData);
+
+      await api.put(`/api/campaigns/${campaign.id}`, updateData, {
         params: {
           viewerId: currentUser.id,
           viewerRole: currentUser.role
