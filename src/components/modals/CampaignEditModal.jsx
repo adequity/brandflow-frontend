@@ -11,9 +11,12 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     budget: '',
     start_date: '',
     end_date: '',
-    status: 'DRAFT'
+    status: 'DRAFT',
+    creator_id: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [staffMembers, setStaffMembers] = useState([]);
+  const [loadingStaff, setLoadingStaff] = useState(false);
 
   // 숫자에 콤마 추가하는 함수
   const formatNumberWithCommas = (value) => {
@@ -27,6 +30,28 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     return value.toString().replace(/,/g, '');
   };
 
+  // 직원 목록 불러오기 (대행사 어드민만)
+  const fetchStaffMembers = async () => {
+    if (currentUser.role !== '대행사 어드민') return;
+    
+    setLoadingStaff(true);
+    try {
+      const response = await api.get('/api/campaigns/staff-members', {
+        params: {
+          viewerId: currentUser.id,
+          viewerRole: currentUser.role
+        }
+      });
+      setStaffMembers(response.data);
+      console.log('[STAFF-MEMBERS] Loaded staff members:', response.data);
+    } catch (error) {
+      console.error('직원 목록 불러오기 실패:', error);
+      setStaffMembers([]);
+    } finally {
+      setLoadingStaff(false);
+    }
+  };
+
   // 초기값 설정
   useEffect(() => {
     if (campaign) {
@@ -37,10 +62,16 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         budget: campaign.budget ? formatNumberWithCommas(campaign.budget.toString()) : '',
         start_date: campaign.start_date ? campaign.start_date.split('T')[0] : '',
         end_date: campaign.end_date ? campaign.end_date.split('T')[0] : '',
-        status: campaign.status || 'DRAFT'
+        status: campaign.status || 'DRAFT',
+        creator_id: campaign.creator_id || ''
       });
     }
   }, [campaign]);
+
+  // 직원 목록 불러오기 (대행사 어드민인 경우)
+  useEffect(() => {
+    fetchStaffMembers();
+  }, [currentUser]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -77,7 +108,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         budget: formData.budget ? parseFloat(removeCommas(formData.budget)) : null,
         start_date: formatDateToISO(formData.start_date),
         end_date: formatDateToISO(formData.end_date),
-        status: formData.status
+        status: formData.status,
+        creator_id: formData.creator_id ? parseInt(formData.creator_id) : null
       };
 
       console.log('[CAMPAIGN-UPDATE] Sending data:', updateData);
@@ -167,21 +199,58 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             />
           </div>
 
-          {/* 클라이언트 회사 */}
-          <div>
-            <label htmlFor="client_company" className="block text-sm font-medium text-gray-700">
-              🏢 클라이언트 회사
-            </label>
-            <input 
-              type="text" 
-              name="client_company" 
-              id="client_company" 
-              value={formData.client_company} 
-              onChange={handleInputChange} 
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
-              placeholder="클라이언트 회사명을 입력하세요"
-            />
-          </div>
+          {/* 클라이언트 회사 (대행사 어드민이 아닌 경우에만 표시) */}
+          {currentUser.role !== '대행사 어드민' && (
+            <div>
+              <label htmlFor="client_company" className="block text-sm font-medium text-gray-700">
+                🏢 클라이언트 회사
+              </label>
+              <input 
+                type="text" 
+                name="client_company" 
+                id="client_company" 
+                value={formData.client_company} 
+                onChange={handleInputChange} 
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                placeholder="클라이언트 회사명을 입력하세요"
+              />
+            </div>
+          )}
+
+          {/* 담당 직원 선택 (대행사 어드민만) */}
+          {currentUser.role === '대행사 어드민' && (
+            <div>
+              <label htmlFor="creator_id" className="block text-sm font-medium text-gray-700">
+                👤 담당 직원
+              </label>
+              {loadingStaff ? (
+                <div className="mt-1 flex items-center text-sm text-gray-500">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
+                  직원 목록 불러오는 중...
+                </div>
+              ) : (
+                <select
+                  name="creator_id"
+                  id="creator_id"
+                  value={formData.creator_id}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+                  <option value="">담당 직원을 선택하세요</option>
+                  {staffMembers.map((staff) => (
+                    <option key={staff.id} value={staff.id}>
+                      {staff.name} ({staff.email})
+                    </option>
+                  ))}
+                </select>
+              )}
+              {staffMembers.length === 0 && !loadingStaff && (
+                <p className="mt-1 text-xs text-gray-500">
+                  같은 회사의 직원이 없습니다.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* 예산 */}
           <div>
