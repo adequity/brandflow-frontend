@@ -245,11 +245,12 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
             {campaigns && campaigns.length > 0 ? (
               <div className="space-y-4">
                 {campaigns.slice(0, 4).map((c) => {
-                  const posts = c.posts || [];
-                  const total = posts.length;
-                  const completed = posts.filter((p) => p.publishedUrl).length;
-                  const pending = posts.filter(
-                    (p) => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')
+                  // posts가 배열인지 안전하게 확인
+                  const safePosts = Array.isArray(c.posts) ? c.posts : [];
+                  const total = safePosts.length;
+                  const completed = safePosts.filter((p) => p && p.publishedUrl).length;
+                  const pending = safePosts.filter(
+                    (p) => p && (p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기'))
                   ).length;
                   const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -372,9 +373,16 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
 
 const ClientCampaignList = ({ campaigns, setActivePage }) => {
   const [term, setTerm] = useState('');
-  const filtered = (campaigns || []).filter((c) =>
-    c.name.toLowerCase().includes(term.toLowerCase())
-  );
+  
+  // 안전한 배열 처리: campaigns가 배열인지 확인
+  const safeCampaigns = Array.isArray(campaigns) ? campaigns : [];
+  const filtered = safeCampaigns.filter((c) => {
+    // c가 객체이고 name 속성이 있는지 확인
+    if (!c || typeof c.name !== 'string') {
+      return false;
+    }
+    return c.name.toLowerCase().includes(term.toLowerCase());
+  });
 
   return (
     <div className="p-6">
@@ -401,11 +409,12 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
           </thead>
           <tbody>
             {filtered.map((c) => {
-              const posts = c.posts || [];
-              const total = posts.length;
-              const completed = posts.filter((p) => p.publishedUrl).length;
-              const pending = posts.filter(
-                (p) => p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기')
+              // posts가 배열인지 안전하게 확인
+              const safePosts = Array.isArray(c.posts) ? c.posts : [];
+              const total = safePosts.length;
+              const completed = safePosts.filter((p) => p && p.publishedUrl).length;
+              const pending = safePosts.filter(
+                (p) => p && (p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기'))
               ).length;
 
               return (
@@ -665,10 +674,14 @@ export default function ClientUI({ user, onLogout }) {
       setLoading(true);
       try {
         const role = user.role || '클라이언트';
-        const { data } = await api.get(
+        const response = await api.get(
           `/api/campaigns/?viewerId=${user.id}&viewerRole=${encodeURIComponent(role)}`
         );
-        setCampaigns(data || []);
+        
+        // 백엔드 응답 구조 처리: { data: [...], pagination: {...} }
+        const campaignData = response.data?.data || response.data || [];
+        console.log('ClientUI: 캠페인 데이터 로드:', campaignData);
+        setCampaigns(Array.isArray(campaignData) ? campaignData : []);
       } catch (err) {
         console.error('클라이언트 데이터 로딩 실패:', err);
         setCampaigns([]);
