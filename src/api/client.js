@@ -6,16 +6,16 @@
 // Railway HTTPS URL 상수
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
 
-// 🔒 강제 HTTPS 백엔드 URL - 임시 하드코딩으로 HTTP 완전 차단
+// 🔒 Netlify Redirects 프록시 사용 - CSP 정책 준수
 const getBackendURL = () => {
-  // 개발환경에서는 Vite 프록시 사용, 프로덕션에서는 직접 HTTPS
+  // 개발환경에서는 Vite 프록시 사용, 프로덕션에서는 Netlify Redirects 프록시
   if (import.meta.env.DEV) {
     console.log('🔧 개발환경: Vite 프록시 사용');
     return ''; // 프록시 사용시 빈 문자열
   } else {
-    const httpsUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
-    console.log('🔒 프로덕션: HTTPS URL 사용:', httpsUrl);
-    return httpsUrl;
+    // Netlify Redirects 프록시 사용 (CSP 'self' 정책 준수)
+    console.log('🔄 프로덕션: Netlify Redirects 프록시 사용');
+    return ''; // 프록시 사용시 빈 문자열 (같은 도메인으로 요청)
   }
 };
 
@@ -102,24 +102,21 @@ const getBackendUrl = () => {
   return getBackendURL(); // 위에서 정의한 환경변수 기반 함수 사용
 };
 
-// 🔒 API 베이스 URL 설정 - 프로덕션에서 강제 HTTPS 사용
-const API_BASE_URL = import.meta.env.DEV ? '' : 'https://brandflow-backend-production-99ae.up.railway.app';
-console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL, 'DEV 모드:', import.meta.env.DEV);
+// 🔒 API 베이스 URL 설정 - 항상 프록시 사용 (Netlify Redirects)
+const API_BASE_URL = ''; // 개발환경은 Vite 프록시, 프로덕션은 Netlify Redirects
+console.log('✅ API_BASE_URL 설정 완료: 프록시 사용', 'DEV 모드:', import.meta.env.DEV);
 
 // 🔒 단순한 Fetch API 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
-  // 🔒 개발환경과 프로덕션 환경 구분 처리
+  // 🔄 항상 프록시 사용 - CSP 정책 준수
   let finalUrl;
   if (url?.startsWith('/')) {
-    // 상대 경로 처리
+    // 상대 경로 처리 - 항상 프록시 사용
+    finalUrl = url;
     if (import.meta.env.DEV) {
-      // 개발환경: Vite 프록시 사용 (HTTP → HTTPS 프록시)
-      finalUrl = url;
-      console.log('🔧 개발환경 프록시 URL:', finalUrl);
+      console.log('🔧 개발환경 Vite 프록시 URL:', finalUrl);
     } else {
-      // 프로덕션: 직접 HTTPS 연결
-      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + url;
-      console.log('🔒 프로덕션 HTTPS URL:', finalUrl);
+      console.log('🔄 프로덕션 Netlify Redirects 프록시 URL:', finalUrl);
     }
   } else {
     // 절대 경로는 그대로 사용
@@ -182,25 +179,12 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
         console.log('🔒 사용자 파라미터 추가:', {viewerId: user.id, originalRole: user.role, mappedRole: englishRole, encoded: safeRole, params: newParams});
         console.log('🔒 파라미터 추가 후 URL:', finalUrl);
         
-        // URL 최종 검증 - HTTPS로 시작하는지 확인
-        if (!finalUrl.startsWith('https://') && !import.meta.env.DEV) {
-          console.error('🚨 비정상 URL 발견, HTTPS 강제 재구성:', finalUrl);
-          // 프로덕션에서 HTTP 발견시 강제로 HTTPS 변환
-          if (finalUrl.startsWith('http://')) {
-            finalUrl = finalUrl.replace('http://', 'https://');
-            console.log('🔒 HTTP → HTTPS 강제 변환:', finalUrl);
-          }
-        }
+        // Netlify Redirects가 모든 프록시를 처리하므로 별도 검증 불필요
       }
     }
   }
   
-  // 🚨 프로덕션에서 HTTP URL 완전 차단
-  if (!import.meta.env.DEV && finalUrl.startsWith('http://')) {
-    console.error('🚨 프로덕션에서 HTTP URL 발견, 강제 HTTPS 변환:', finalUrl);
-    finalUrl = finalUrl.replace('http://', 'https://');
-    console.log('🔒 최종 HTTPS 변환 완료:', finalUrl);
-  }
+  // Netlify Redirects 프록시 사용으로 별도 HTTP/HTTPS 처리 불필요
   
   // 최종 URL 검증 및 로그
   console.log('🔒 최종 요청 URL:', finalUrl);
