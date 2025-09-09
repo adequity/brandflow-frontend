@@ -124,6 +124,17 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     console.log('🔗 절대 경로 URL:', finalUrl);
   }
   
+  // 🚨 HTTPS 프로토콜 강제 (CSP 정책 준수)
+  if (!import.meta.env.DEV && finalUrl && !finalUrl.startsWith('https://')) {
+    if (finalUrl.startsWith('http://')) {
+      finalUrl = finalUrl.replace('http://', 'https://');
+      console.log('🔒 HTTP → HTTPS 강제 변환:', finalUrl);
+    } else if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
+      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (finalUrl.startsWith('/') ? finalUrl : '/' + finalUrl);
+      console.log('🔒 Railway URL HTTPS 강제 적용:', finalUrl);
+    }
+  }
+  
   // 쿼리 파라미터 추가
   if (config.params) {
     const searchParams = new URLSearchParams();
