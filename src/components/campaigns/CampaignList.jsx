@@ -224,17 +224,19 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
     setDeletingCampaignId(campaignId);
     try {
       // 백엔드 API와 호환되도록 쿼리 파라미터 추가
-      await api.delete(`/api/campaigns/${campaignId}`, {
+      const response = await api.delete(`/api/campaigns/${campaignId}`, {
         params: currentUser?.id ? { 
           viewerId: currentUser.id, 
           viewerRole: currentUser.role 
         } : {}
       });
       
-      // 캠페인 목록에서 제거
-      setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
-      
-      showSuccess('캠페인이 성공적으로 삭제되었습니다.');
+      // 204 No Content 응답도 성공으로 처리
+      if (response.status === 204 || response.status === 200) {
+        // 캠페인 목록에서 제거
+        setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
+        showSuccess('캠페인이 성공적으로 삭제되었습니다.');
+      }
     } catch (err) {
       console.error('캠페인 삭제 실패:', err);
       
