@@ -18,12 +18,27 @@ const handler = async (event, context) => {
     // Railway 백엔드 URL
     const backendUrl = 'https://brandflow-backend-production-99ae.up.railway.app';
     
-    // API 경로 추출 - /api로 시작하도록 보장
+    // API 경로 추출 및 정리
     let apiPath = path.replace('/.netlify/functions/api', '');
-    if (!apiPath.startsWith('/api')) {
-      apiPath = '/api' + apiPath;
+    
+    // 빈 경로나 단순 '/' 경로인 경우 처리
+    if (!apiPath || apiPath === '/') {
+      apiPath = '/api';
+    } else {
+      // '/api'로 시작하지 않는 경우 추가
+      if (!apiPath.startsWith('/api')) {
+        apiPath = '/api' + apiPath;
+      }
     }
+    
+    // trailing slash 정리 (쿼리 파라미터가 있는 경우 제외)
+    if (apiPath.endsWith('/') && apiPath !== '/api') {
+      apiPath = apiPath.slice(0, -1);
+    }
+    
     const targetUrl = `${backendUrl}${apiPath}`;
+    
+    console.log(`[Netlify Function] Path processing: original="${path}" -> extracted="${apiPath}" -> target="${targetUrl}"`);
     
     // 쿼리 파라미터 추가
     const queryString = new URLSearchParams(queryStringParameters || {}).toString();
