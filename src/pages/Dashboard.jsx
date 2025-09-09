@@ -71,32 +71,15 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         // 최신 캠페인 데이터 다시 로드 (매출 데이터 포함)
         let latestCampaigns = campaigns;
         
-        // 캠페인 데이터가 없거나 매출 정보가 없으면 다시 로드
-        if (!campaigns || campaigns.length === 0 || !campaigns[0].hasOwnProperty('posts')) {
+        // 캠페인 데이터가 없으면 다시 로드 (posts는 대시보드에서 불필요하므로 제거)
+        if (!campaigns || campaigns.length === 0) {
           try {
             const campaignsResponse = await apiEndpoints.campaigns.list({
               viewerId: user.id, 
               viewerRole: user.role
             });
-            const campaignsData = campaignsResponse.data || [];
-            
-            // posts 정보도 함께 로드
-            latestCampaigns = await Promise.all(
-              campaignsData.map(async (campaign) => {
-                try {
-                  const postsResponse = await apiEndpoints.campaigns.posts(campaign.id);
-                  return {
-                    ...campaign,
-                    posts: postsResponse.data || [],
-                    invoiceIssued: campaign.invoice_issued,
-                    paymentCompleted: campaign.payment_completed,
-                  };
-                } catch (error) {
-                  console.error(`캠페인 ${campaign.id} 포스트 로딩 실패:`, error);
-                  return { ...campaign, posts: [] };
-                }
-              })
-            );
+            latestCampaigns = campaignsResponse.data || [];
+            console.log('[DASHBOARD] 캠페인 목록 로드 완료:', latestCampaigns.length, '개');
           } catch (error) {
             console.error('캠페인 데이터 재로딩 실패:', error);
           }
@@ -109,32 +92,25 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         let pendingInvoices = 0;
         let pendingPayments = 0;
         
-        // 각 캠페인별로 재무 요약 가져오기
+        // 캠페인 기본 정보로 통계 계산 (financialSummary API 호출 제거로 성능 개선)
         if (latestCampaigns && latestCampaigns.length > 0) {
-          const campaignFinancials = await Promise.all(
-            latestCampaigns.map(async (campaign) => {
-              try {
-                const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
-                const summary = response.data;
-                
-                campaignTotalRevenue += summary.total_revenue || 0;
-                campaignTotalCost += summary.total_cost || 0;
-                
-                if (summary.completed_tasks === summary.total_tasks && summary.total_tasks > 0) {
-                  completedCampaigns++;
-                }
-                
-                // 재무 상태 확인 (캠페인 모델에 필드가 있다고 가정)
-                if (!campaign.invoice_issued) pendingInvoices++;
-                if (!campaign.payment_completed) pendingPayments++;
-                
-                return summary;
-              } catch (error) {
-                console.error(`캠페인 ${campaign.id} 재무 데이터 로딩 실패:`, error);
-                return { total_revenue: 0, total_cost: 0 };
-              }
-            })
-          );
+          console.log('[DASHBOARD] 캠페인 통계 계산 시작...');
+          
+          latestCampaigns.forEach((campaign) => {
+            // 캠페인 예산을 매출로 계산 (실제 재무 데이터가 필요하면 별도 API 필요)
+            campaignTotalRevenue += campaign.budget || 0;
+            
+            // 완료된 캠페인 카운트
+            if (campaign.status === '완료' || campaign.status === 'COMPLETED') {
+              completedCampaigns++;
+            }
+            
+            // 재무 상태 확인 (실제 필드명에 맞춰 수정 필요)
+            // if (!campaign.invoice_issued) pendingInvoices++;
+            // if (!campaign.payment_completed) pendingPayments++;
+          });
+          
+          console.log('[DASHBOARD] 캠페인 통계 계산 완료 - 총 매출:', campaignTotalRevenue);
         }
         
         // 실제 구매요청 및 발주 데이터 가져오기
@@ -181,41 +157,18 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         
         setPurchaseStats(realPurchaseStats);
 
-        // 실제 사용자 데이터 기반 인센티브 계산
+        // 간단한 인센티브 계산 (성능 최적화를 위해 API 호출 최소화)
         let totalIncentives = 0;
         try {
-          // 모든 직원 데이터 가져오기
-          const usersResponse = await apiEndpoints.users.list({
-            params: {
-              viewerId: user?.id || 1,
-              viewerRole: user?.role === '슈퍼 어드민' ? 'super_admin' :
-                         user?.role === '대행사 어드민' ? 'agency_admin' :
-                         user?.role === '직원' ? 'staff' : 'client'
-            }
-          });
-          const allUsers = usersResponse.data || [];
+          console.log('[DASHBOARD] 인센티브 계산 시작...');
           
-          // 직원들의 캠페인 매출과 인센티브율 기반으로 계산
-          for (const userItem of allUsers.filter(u => u.role === '직원')) {
-            const userCampaigns = latestCampaigns.filter(c => c.managerId === userItem.id || c.manager === userItem.id);
-            let userRevenue = 0;
-            
-            for (const campaign of userCampaigns) {
-              try {
-                const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
-                userRevenue += response.data.total_revenue || 0;
-              } catch (error) {
-                console.error(`사용자 ${userItem.id} 캠페인 ${campaign.id} 매출 데이터 로딩 실패:`, error);
-              }
-            }
-            
-            // 사용자 인센티브율 적용 (기본 10%)
-            const incentiveRate = userItem.incentive_rate ? parseFloat(userItem.incentive_rate) / 100 : 0.1;
-            totalIncentives += userRevenue * incentiveRate;
-          }
+          // 전체 매출의 평균 인센티브율로 추정 계산 (실제 정확한 계산이 필요하면 별도 API 구현)
+          const averageIncentiveRate = 0.05; // 5%
+          totalIncentives = campaignTotalRevenue * averageIncentiveRate;
+          
+          console.log('[DASHBOARD] 인센티브 계산 완료 - 총 인센티브:', totalIncentives);
         } catch (error) {
           console.error('인센티브 계산 실패:', error);
-          // 오류 시 기본값 사용 (매출의 5%)
           totalIncentives = campaignTotalRevenue * 0.05;
         }
 
