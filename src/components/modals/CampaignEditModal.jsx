@@ -5,13 +5,13 @@ import { useToast } from '../../contexts/ToastContext';
 const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    client_company: '',
     budget: '',
-    notes: '',
-    reminders: '',
-    invoiceIssued: false,
-    paymentCompleted: false,
-    invoiceDueDate: '',
-    paymentDueDate: ''
+    start_date: '',
+    end_date: '',
+    status: 'DRAFT'
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,13 +31,13 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   useEffect(() => {
     if (campaign) {
       setFormData({
+        name: campaign.name || '',
+        description: campaign.description || '',
+        client_company: campaign.client_company || '',
         budget: campaign.budget ? formatNumberWithCommas(campaign.budget.toString()) : '',
-        notes: campaign.notes || '',
-        reminders: campaign.reminders || '',
-        invoiceIssued: campaign.invoiceIssued || false,
-        paymentCompleted: campaign.paymentCompleted || false,
-        invoiceDueDate: campaign.invoiceDueDate ? campaign.invoiceDueDate.split('T')[0] : '',
-        paymentDueDate: campaign.paymentDueDate ? campaign.paymentDueDate.split('T')[0] : ''
+        start_date: campaign.start_date ? campaign.start_date.split('T')[0] : '',
+        end_date: campaign.end_date ? campaign.end_date.split('T')[0] : '',
+        status: campaign.status || 'DRAFT'
       });
     }
   }, [campaign]);
@@ -64,13 +64,13 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
 
     try {
       const updateData = {
+        name: formData.name,
+        description: formData.description || null,
+        client_company: formData.client_company || null,
         budget: formData.budget ? parseFloat(removeCommas(formData.budget)) : null,
-        notes: formData.notes || null,
-        reminders: formData.reminders || null,
-        invoiceIssued: formData.invoiceIssued,
-        paymentCompleted: formData.paymentCompleted,
-        invoiceDueDate: formData.invoiceDueDate || null,
-        paymentDueDate: formData.paymentDueDate || null
+        start_date: formData.start_date || null,
+        end_date: formData.end_date || null,
+        status: formData.status
       };
 
       await api.put(`/api/campaigns/${campaign.id}/`, updateData, {
@@ -106,18 +106,18 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
         <h3 className="text-xl font-bold mb-4">캠페인 수정 - {campaign?.name}</h3>
         
-        {/* 개발 중 안내 메시지 */}
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        {/* 성공 안내 메시지 */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <span className="text-amber-600">⚠️</span>
+              <span className="text-green-600">✅</span>
             </div>
             <div className="ml-3">
-              <h4 className="text-sm font-medium text-amber-800">
-                캠페인 편집 기능 개발 중
+              <h4 className="text-sm font-medium text-green-800">
+                캠페인 수정 기능 활성화
               </h4>
-              <p className="text-sm text-amber-700 mt-1">
-                현재 백엔드에서 캠페인 수정 API를 개발 중입니다. 일시적으로 저장이 되지 않을 수 있습니다.
+              <p className="text-sm text-green-700 mt-1">
+                이제 캠페인의 기본 정보를 수정할 수 있습니다.
               </p>
             </div>
           </div>
@@ -125,10 +125,59 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          {/* 캠페인 매출 */}
+          {/* 캠페인명 */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              📝 캠페인명 <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              name="name" 
+              id="name" 
+              value={formData.name} 
+              onChange={handleInputChange} 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+              placeholder="캠페인명을 입력하세요"
+              required
+            />
+          </div>
+
+          {/* 설명 */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+              📋 캠페인 설명
+            </label>
+            <textarea 
+              name="description" 
+              id="description" 
+              value={formData.description} 
+              onChange={handleInputChange} 
+              rows={3}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md resize-none" 
+              placeholder="캠페인에 대한 설명을 입력하세요..."
+            />
+          </div>
+
+          {/* 클라이언트 회사 */}
+          <div>
+            <label htmlFor="client_company" className="block text-sm font-medium text-gray-700">
+              🏢 클라이언트 회사
+            </label>
+            <input 
+              type="text" 
+              name="client_company" 
+              id="client_company" 
+              value={formData.client_company} 
+              onChange={handleInputChange} 
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+              placeholder="클라이언트 회사명을 입력하세요"
+            />
+          </div>
+
+          {/* 예산 */}
           <div>
             <label htmlFor="budget" className="block text-sm font-medium text-gray-700">
-              💰 캠페인 매출 (선택사항)
+              💰 예산
             </label>
             <div className="mt-1 relative">
               <input 
@@ -145,105 +194,56 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
                 원
               </div>
             </div>
-            <p className="mt-1 text-xs text-gray-500">캠페인 계약 매출을 입력하세요. (숫자만)</p>
           </div>
 
-          {/* 주의사항 및 특이사항 */}
-          <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
-              ⚠️ 주의사항 및 특이사항
-            </label>
-            <textarea 
-              name="notes" 
-              id="notes" 
-              value={formData.notes} 
-              onChange={handleInputChange} 
-              rows={3}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md resize-none" 
-              placeholder="클라이언트 요구사항, 주의할 점, 특별 지침 등을 입력하세요..."
-            />
-            <p className="mt-1 text-xs text-gray-500">담당자가 꼭 알아야 할 중요 사항을 기록하세요.</p>
-          </div>
-
-          {/* 리마인드 사항 */}
-          <div>
-            <label htmlFor="reminders" className="block text-sm font-medium text-gray-700">
-              🔔 리마인드 사항
-            </label>
-            <textarea 
-              name="reminders" 
-              id="reminders" 
-              value={formData.reminders} 
-              onChange={handleInputChange} 
-              rows={3}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md resize-none" 
-              placeholder="정기 체크 포인트, 마감일, 보고 일정 등을 입력하세요..."
-            />
-            <p className="mt-1 text-xs text-gray-500">진행 중 놓치면 안 될 일정이나 체크사항을 기록하세요.</p>
-          </div>
-
-          {/* 재무 관리 필드들 */}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="invoiceIssued"
-                  name="invoiceIssued"
-                  checked={formData.invoiceIssued}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="invoiceIssued" className="ml-2 block text-sm text-gray-900">
-                  📄 계산서 발행 완료
-                </label>
-              </div>
-              
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="paymentCompleted"
-                  name="paymentCompleted"
-                  checked={formData.paymentCompleted}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label htmlFor="paymentCompleted" className="ml-2 block text-sm text-gray-900">
-                  💰 입금 완료
-                </label>
-              </div>
+          {/* 시작일과 종료일 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
+                📅 시작일
+              </label>
+              <input
+                type="date"
+                id="start_date"
+                name="start_date"
+                value={formData.start_date}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
             </div>
             
-            {/* 예정일 입력 필드들 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="invoiceDueDate" className="block text-sm font-medium text-gray-700">
-                  📅 계산서 발행 예정일
-                </label>
-                <input
-                  type="date"
-                  id="invoiceDueDate"
-                  name="invoiceDueDate"
-                  value={formData.invoiceDueDate}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="paymentDueDate" className="block text-sm font-medium text-gray-700">
-                  💸 입금 예정일
-                </label>
-                <input
-                  type="date"
-                  id="paymentDueDate"
-                  name="paymentDueDate"
-                  value={formData.paymentDueDate}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
+            <div>
+              <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
+                📅 종료일
+              </label>
+              <input
+                type="date"
+                id="end_date"
+                name="end_date"
+                value={formData.end_date}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
             </div>
+          </div>
+
+          {/* 상태 */}
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              📊 상태
+            </label>
+            <select
+              name="status"
+              id="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+            >
+              <option value="DRAFT">초안</option>
+              <option value="ACTIVE">진행중</option>
+              <option value="COMPLETED">완료</option>
+              <option value="CANCELLED">취소</option>
+            </select>
           </div>
           
           <div className="flex justify-end space-x-3 pt-4">
