@@ -3,8 +3,29 @@
 
 // 🚨 domains.js 의존성 완전 제거 - Railway HTTPS 하드코딩만 사용
 
-// Railway HTTPS URL 상수
+// Railway HTTPS URL 상수 - 강제 HTTPS 적용
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+
+// 🚨 모든 URL을 HTTPS로 강제 변환하는 함수
+const forceHTTPS = (url) => {
+  if (!url) return url;
+  
+  // HTTP를 HTTPS로 강제 변환
+  if (url.startsWith('http://')) {
+    const httpsUrl = url.replace('http://', 'https://');
+    console.log('🔒 강제 HTTPS 변환:', url, '→', httpsUrl);
+    return httpsUrl;
+  }
+  
+  // Railway 도메인이 포함된 경우 HTTPS 확인
+  if (url.includes('brandflow-backend-production-99ae.up.railway.app') && !url.startsWith('https://')) {
+    const httpsUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (url.startsWith('/') ? url.substring(url.indexOf('/api')) : '/api' + url);
+    console.log('🔒 Railway HTTPS 강제 적용:', url, '→', httpsUrl);
+    return httpsUrl;
+  }
+  
+  return url;
+};
 
 // 🔒 직접 Railway 백엔드 호출 - 프록시 제거
 const getBackendURL = () => {
@@ -124,16 +145,8 @@ const createFetchRequest = async (method, url, data = null, config = {}) => {
     console.log('🔗 절대 경로 URL:', finalUrl);
   }
   
-  // 🚨 HTTPS 프로토콜 강제 (CSP 정책 준수)
-  if (!import.meta.env.DEV && finalUrl && !finalUrl.startsWith('https://')) {
-    if (finalUrl.startsWith('http://')) {
-      finalUrl = finalUrl.replace('http://', 'https://');
-      console.log('🔒 HTTP → HTTPS 강제 변환:', finalUrl);
-    } else if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
-      finalUrl = 'https://brandflow-backend-production-99ae.up.railway.app' + (finalUrl.startsWith('/') ? finalUrl : '/' + finalUrl);
-      console.log('🔒 Railway URL HTTPS 강제 적용:', finalUrl);
-    }
-  }
+  // 🚨 모든 환경에서 HTTPS 강제 적용 (Mixed Content 에러 방지)
+  finalUrl = forceHTTPS(finalUrl);
   
   // 쿼리 파라미터 추가
   if (config.params) {
