@@ -424,7 +424,7 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
                   className="border-b hover:bg-gray-50 cursor-pointer"
                 >
                   <td className="px-4 py-3 font-semibold text-gray-900">{c.name}</td>
-                  <td className="px-4 py-3">{c.User?.name || 'N/A'}</td>
+                  <td className="px-4 py-3">{c.User?.name || c.creator_name || 'N/A'}</td>
                   <td className="px-4 py-3">
                     {completed}/{total}
                   </td>
@@ -463,7 +463,7 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
 
       <div className="bg-white p-6 rounded-xl border border-gray-200">
         <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
-        <p className="text-gray-600 mt-1">담당자: {campaign.User?.name || 'N/A'}</p>
+        <p className="text-gray-600 mt-1">담당자: {campaign.User?.name || campaign.creator_name || 'N/A'}</p>
 
         <div className="mt-6">
           <table className="w-full text-sm text-left text-gray-500">
