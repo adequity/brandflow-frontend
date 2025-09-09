@@ -6,16 +6,16 @@
 // Railway HTTPS URL 상수
 const RAILWAY_HTTPS_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
 
-// 🔒 Netlify Redirects 프록시 사용 - CSP 정책 준수
+// 🔒 직접 Railway 백엔드 호출 - 프록시 제거
 const getBackendURL = () => {
-  // 개발환경에서는 Vite 프록시 사용, 프로덕션에서는 Netlify Redirects 프록시
+  // 개발환경에서는 Vite 프록시 사용, 프로덕션에서는 직접 Railway 호출
   if (import.meta.env.DEV) {
     console.log('🔧 개발환경: Vite 프록시 사용');
     return ''; // 프록시 사용시 빈 문자열
   } else {
-    // Netlify Redirects 프록시 사용 (CSP 'self' 정책 준수)
-    console.log('🔄 프로덕션: Netlify Redirects 프록시 사용');
-    return ''; // 프록시 사용시 빈 문자열 (같은 도메인으로 요청)
+    // 직접 Railway HTTPS URL 사용
+    console.log('🔄 프로덕션: 직접 Railway 백엔드 호출');
+    return RAILWAY_HTTPS_URL; // 직접 Railway URL 사용
   }
 };
 
@@ -102,21 +102,21 @@ const getBackendUrl = () => {
   return getBackendURL(); // 위에서 정의한 환경변수 기반 함수 사용
 };
 
-// 🔒 API 베이스 URL 설정 - 항상 프록시 사용 (Netlify Redirects)
-const API_BASE_URL = ''; // 개발환경은 Vite 프록시, 프로덕션은 Netlify Redirects
-console.log('✅ API_BASE_URL 설정 완료: 프록시 사용', 'DEV 모드:', import.meta.env.DEV);
+// 🔒 API 베이스 URL 설정 - 환경별 동적 설정
+const API_BASE_URL = getBackendURL(); // 개발환경은 Vite 프록시, 프로덕션은 직접 Railway
+console.log('✅ API_BASE_URL 설정 완료:', API_BASE_URL, 'DEV 모드:', import.meta.env.DEV);
 
 // 🔒 단순한 Fetch API 요청 처리
 const createFetchRequest = async (method, url, data = null, config = {}) => {
-  // 🔄 항상 프록시 사용 - CSP 정책 준수
+  // 🔄 환경별 URL 처리
   let finalUrl;
   if (url?.startsWith('/')) {
-    // 상대 경로 처리 - 항상 프록시 사용
-    finalUrl = url;
+    // 상대 경로 처리 - 베이스 URL 추가
+    finalUrl = API_BASE_URL + url;
     if (import.meta.env.DEV) {
       console.log('🔧 개발환경 Vite 프록시 URL:', finalUrl);
     } else {
-      console.log('🔄 프로덕션 Netlify Redirects 프록시 URL:', finalUrl);
+      console.log('🔄 프로덕션 직접 Railway URL:', finalUrl);
     }
   } else {
     // 절대 경로는 그대로 사용
