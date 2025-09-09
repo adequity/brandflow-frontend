@@ -212,13 +212,23 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   };
 
   const handleDeleteCampaign = async (campaignId, campaignName) => {
+    console.log(`[MODAL] 삭제 모달 열기 - campaignId: ${campaignId}, name: ${campaignName}`);
     setDeleteConfirm({
       isOpen: true,
       campaign: { id: campaignId, name: campaignName }
     });
+    console.log(`[MODAL] 삭제 모달 상태 설정 완료`);
   };
 
   const confirmDelete = async () => {
+    console.log(`[CONFIRM] confirmDelete 함수 호출됨`);
+    console.log(`[CONFIRM] deleteConfirm 상태:`, deleteConfirm);
+    
+    if (!deleteConfirm.campaign) {
+      console.error('[CONFIRM] deleteConfirm.campaign이 null입니다!');
+      return;
+    }
+    
     const { id: campaignId, name: campaignName } = deleteConfirm.campaign;
 
     console.log(`[DELETE] 캠페인 삭제 시작: ${campaignId}`);
@@ -666,7 +676,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         onConfirm={confirmDelete}
         title="캠페인 삭제"
         message={`정말 "${deleteConfirm.campaign?.name}" 캠페인을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 캠페인과 관련된 모든 주제/목차 데이터가 삭제됩니다.`}
-        type="danger"
+        type="error"
         confirmText="삭제"
         cancelText="취소"
         loading={deletingCampaignId !== null}
