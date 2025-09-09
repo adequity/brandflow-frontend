@@ -5,7 +5,7 @@ import api from '../api/client';
 import { useApiCache, batchRequests } from '../utils/performanceUtils';
 import CampaignList from '../components/campaigns/CampaignList';
 
-const CampaignListPage = ({ campaigns: propsCanpaigns, setCampaigns, users, loggedInUser }) => {
+const CampaignListPage = ({ campaigns: propsCanpaigns, setCampaigns, users, loggedInUser, pagination, onPageChange }) => {
   const [campaignSales, setCampaignSales] = useState({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -97,6 +97,8 @@ const CampaignListPage = ({ campaigns: propsCanpaigns, setCampaigns, users, logg
       users={users}
       onSelectCampaign={handleSelect}
       currentUser={loggedInUser}
+      pagination={pagination}
+      onPageChange={onPageChange}
     />
   );
 };

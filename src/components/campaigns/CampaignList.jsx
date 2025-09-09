@@ -9,7 +9,7 @@ import ConfirmModal from '../ui/ConfirmModal';
 import { debugAuth, checkAuthToken } from '../../utils/tokenUtils';
 import { useToast } from '../../contexts/ToastContext';
 
-const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSelectCampaign, currentUser }) => {
+const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSelectCampaign, currentUser, pagination, onPageChange }) => {
   const { showSuccess, showError } = useToast();
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -223,7 +223,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
     setDeletingCampaignId(campaignId);
     try {
-      await api.delete(`/api/campaigns/${campaignId}/`);
+      // 백엔드 API와 호환되도록 쿼리 파라미터 추가
+      await api.delete(`/api/campaigns/${campaignId}`, {
+        params: currentUser?.id ? { 
+          viewerId: currentUser.id, 
+          viewerRole: currentUser.role 
+        } : {}
+      });
       
       // 캠페인 목록에서 제거
       setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
@@ -231,7 +237,15 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       showSuccess('캠페인이 성공적으로 삭제되었습니다.');
     } catch (err) {
       console.error('캠페인 삭제 실패:', err);
-      showError(err?.response?.data?.message ?? '캠페인 삭제에 실패했습니다.');
+      
+      // 권한 없음 에러 처리
+      if (err.response?.status === 403) {
+        showError('이 캠페인을 삭제할 권한이 없습니다.');
+      } else if (err.response?.status === 404) {
+        showError('캠페인을 찾을 수 없습니다.');
+      } else {
+        showError(err?.response?.data?.detail ?? err?.response?.data?.message ?? '캠페인 삭제에 실패했습니다.');
+      }
     } finally {
       setDeletingCampaignId(null);
       setDeleteConfirm({ isOpen: false, campaign: null });
@@ -478,8 +492,11 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                           <Edit size={16} />
                         </button>
                         
-                        {/* 삭제 버튼 - 슈퍼 어드민만 가능 */}
-                        {currentUser?.role === '슈퍼 어드민' && (
+                        {/* 삭제 버튼 - 권한별 제한 */}
+                        {(currentUser?.role === '슈퍼 어드민' || 
+                          currentUser?.role === '대행사 어드민' || 
+                          (currentUser?.role === '직원' && campaign.creator_id === currentUser.id) || 
+                          currentUser?.role === '클라이언트') && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -505,6 +522,96 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
           </tbody>
         </table>
       </div>
+
+      {/* 페이지네이션 */}
+      {pagination && pagination.total_pages > 1 && (
+        <div className="bg-white px-6 py-3 border-t border-gray-200 flex justify-between items-center">
+          <div className="text-sm text-gray-700">
+            전체 {pagination.total_count}개 중 {((pagination.current_page - 1) * pagination.page_size) + 1}-{Math.min(pagination.current_page * pagination.page_size, pagination.total_count)}개 표시
+          </div>
+          <div className="flex items-center space-x-2">
+            {/* 이전 페이지 */}
+            <button
+              onClick={() => onPageChange && onPageChange(pagination.current_page - 1)}
+              disabled={!pagination.has_prev}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              이전
+            </button>
+
+            {/* 페이지 번호들 */}
+            {(() => {
+              const pages = [];
+              const currentPage = pagination.current_page;
+              const totalPages = pagination.total_pages;
+              
+              // 시작과 끝 페이지 계산 (현재 페이지 기준 ±2)
+              const start = Math.max(1, currentPage - 2);
+              const end = Math.min(totalPages, currentPage + 2);
+              
+              // 첫 페이지 표시
+              if (start > 1) {
+                pages.push(
+                  <button
+                    key={1}
+                    onClick={() => onPageChange && onPageChange(1)}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    1
+                  </button>
+                );
+                if (start > 2) {
+                  pages.push(<span key="start-ellipsis" className="px-2 text-gray-500">...</span>);
+                }
+              }
+              
+              // 현재 페이지 주변 페이지들
+              for (let i = start; i <= end; i++) {
+                pages.push(
+                  <button
+                    key={i}
+                    onClick={() => onPageChange && onPageChange(i)}
+                    className={`px-3 py-1 text-sm border rounded-md ${
+                      i === currentPage
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {i}
+                  </button>
+                );
+              }
+              
+              // 마지막 페이지 표시
+              if (end < totalPages) {
+                if (end < totalPages - 1) {
+                  pages.push(<span key="end-ellipsis" className="px-2 text-gray-500">...</span>);
+                }
+                pages.push(
+                  <button
+                    key={totalPages}
+                    onClick={() => onPageChange && onPageChange(totalPages)}
+                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  >
+                    {totalPages}
+                  </button>
+                );
+              }
+              
+              return pages;
+            })()}
+
+            {/* 다음 페이지 */}
+            <button
+              onClick={() => onPageChange && onPageChange(pagination.current_page + 1)}
+              disabled={!pagination.has_next}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              다음
+            </button>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <NewCampaignModal users={users} onSave={handleSaveCampaign} onClose={() => setModalOpen(false)} />

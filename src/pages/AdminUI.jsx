@@ -16,9 +16,11 @@ export default function AdminUI({ user, onLogout }) {
   const [users, setUsers] = useState([]);
   const [activities, setActivities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // 실제 API 데이터 사용 (더미 fallback 포함)
-  const fetchAdminData = useCallback(async () => {
+  const fetchAdminData = useCallback(async (page = 1) => {
     if (!user?.id) return;
     setIsLoading(true);
     try {
@@ -27,18 +29,35 @@ export default function AdminUI({ user, onLogout }) {
       
       if (token) {
         try {
-          // 실제 API 호출
+          // 실제 API 호출 (사용자 정보 포함)
           const [campaignsResponse, usersResponse] = await Promise.all([
-            api.get('/api/campaigns/'),
+            api.get('/api/campaigns/', {
+              params: user?.id ? {
+                viewerId: user.id,
+                viewerRole: user.role,
+                page: page,
+                size: 10  // 페이지당 10개씩 로드
+              } : {}
+            }),
             api.get('/api/users')
           ]);
           
-          setCampaigns(campaignsResponse.data.results || campaignsResponse.data);
-          setUsers(usersResponse.data.results || usersResponse.data);
+          // 백엔드 응답이 페이지네이션 형식일 경우를 처리
+          const campaignData = campaignsResponse.data.data || campaignsResponse.data.results || campaignsResponse.data;
+          const userData = usersResponse.data.results || usersResponse.data;
+          
+          setCampaigns(campaignData);
+          setUsers(userData);
+          
+          // 페이지네이션 정보 저장
+          if (campaignsResponse.data.pagination) {
+            setPagination(campaignsResponse.data.pagination);
+          }
           
           console.log('AdminUI: 실제 API 데이터 로드 성공');
-          console.log('캠페인:', (campaignsResponse.data.results || campaignsResponse.data).length, '개');
-          console.log('사용자:', (usersResponse.data.results || usersResponse.data).length, '개');
+          console.log('캠페인:', campaignData.length, '개');
+          console.log('페이지네이션:', campaignsResponse.data.pagination);
+          console.log('사용자:', userData.length, '개');
           
         } catch (apiError) {
           console.warn('AdminUI: API 호출 실패, 더미 데이터 사용', apiError);
@@ -242,7 +261,14 @@ export default function AdminUI({ user, onLogout }) {
     }
   }, [user?.id, user?.role]);
 
-  useEffect(() => { fetchAdminData(); }, [fetchAdminData]);
+  useEffect(() => { 
+    fetchAdminData(currentPage); 
+  }, [fetchAdminData, currentPage]);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   // /admin 진입 시 대시보드로 리다이렉트
   useEffect(() => {
@@ -304,7 +330,9 @@ export default function AdminUI({ user, onLogout }) {
                   campaigns={campaigns}
                   setCampaigns={setCampaigns}
                   users={users}
-                  loggedInUser={user}  // ✅ 여기서 전달
+                  loggedInUser={user}
+                  pagination={pagination}
+                  onPageChange={handlePageChange}
                 />
               }
             />
