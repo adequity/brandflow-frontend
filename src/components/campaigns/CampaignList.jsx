@@ -221,9 +221,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const confirmDelete = async () => {
     const { id: campaignId, name: campaignName } = deleteConfirm.campaign;
 
+    console.log(`[DELETE] 캠페인 삭제 시작: ${campaignId}`);
     setDeletingCampaignId(campaignId);
+    
     try {
       // 백엔드 API와 호환되도록 쿼리 파라미터 추가
+      console.log(`[DELETE] API 호출 - viewerId: ${currentUser?.id}, role: ${currentUser?.role}`);
+      
       const response = await api.delete(`/api/campaigns/${campaignId}`, {
         params: currentUser?.id ? { 
           viewerId: currentUser.id, 
@@ -231,14 +235,27 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         } : {}
       });
       
-      // 204 No Content 응답도 성공으로 처리
-      if (response.status === 204 || response.status === 200) {
+      console.log(`[DELETE] 응답 수신 - Status: ${response.status}`, response);
+      
+      // 응답이 왔으면 성공으로 처리 (2xx 상태 코드)
+      if (response.status >= 200 && response.status < 300) {
+        console.log(`[DELETE] 성공 처리 시작`);
         // 캠페인 목록에서 제거
         setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
         showSuccess('캠페인이 성공적으로 삭제되었습니다.');
+        console.log(`[DELETE] 성공 완료`);
+      } else {
+        console.log(`[DELETE] 예상치 못한 상태 코드: ${response.status}`);
+        showError(`예상치 못한 응답: ${response.status}`);
       }
     } catch (err) {
-      console.error('캠페인 삭제 실패:', err);
+      console.error('[DELETE] 캠페인 삭제 실패:', err);
+      console.error('[DELETE] 에러 상세:', {
+        message: err.message,
+        response: err.response,
+        status: err.response?.status,
+        data: err.response?.data
+      });
       
       // 권한 없음 에러 처리
       if (err.response?.status === 403) {
@@ -249,6 +266,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         showError(err?.response?.data?.detail ?? err?.response?.data?.message ?? '캠페인 삭제에 실패했습니다.');
       }
     } finally {
+      console.log(`[DELETE] finally 블록 실행`);
       setDeletingCampaignId(null);
       setDeleteConfirm({ isOpen: false, campaign: null });
     }
