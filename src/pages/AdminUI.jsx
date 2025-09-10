@@ -64,7 +64,7 @@ export default function AdminUI({ user, onLogout }) {
           // API 실패시 더미 데이터 사용
           const dummyCampaigns = [
         {
-          id: 1,
+          id: -1,
           name: '테스트 캠페인 - 상품 매핑 테스트',
           client: '테스트 클라이언트',
           manager: 1,
@@ -147,7 +147,7 @@ export default function AdminUI({ user, onLogout }) {
         // 토큰이 없으면 더미 데이터 사용
         const dummyCampaigns = [
         {
-          id: 1,
+          id: -2,
           name: '테스트 캠페인 - 상품 매핑 테스트',
           client: '테스트 클라이언트',
           manager: 1,
