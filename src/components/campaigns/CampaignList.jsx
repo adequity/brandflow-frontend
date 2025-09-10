@@ -247,17 +247,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       
       console.log(`[DELETE] 응답 수신 - Status: ${response.status}`, response);
       
-      // 응답이 왔으면 성공으로 처리 (2xx 상태 코드)
-      if (response.status >= 200 && response.status < 300) {
-        console.log(`[DELETE] 성공 처리 시작`);
-        // 캠페인 목록에서 제거
-        setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
-        showSuccess('캠페인이 성공적으로 삭제되었습니다.');
-        console.log(`[DELETE] 성공 완료`);
-      } else {
-        console.log(`[DELETE] 예상치 못한 상태 코드: ${response.status}`);
-        showError(`예상치 못한 응답: ${response.status}`);
-      }
+      // 성공 처리 - API 클라이언트가 에러를 throw하지 않았다면 성공
+      console.log(`[DELETE] 성공 처리 시작`);
+      // 캠페인 목록에서 제거
+      setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
+      showSuccess('캠페인이 성공적으로 삭제되었습니다.');
+      console.log(`[DELETE] 성공 완료`);
+      
     } catch (err) {
       console.error('[DELETE] 캠페인 삭제 실패:', err);
       console.error('[DELETE] 에러 상세:', {
@@ -267,7 +263,17 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         data: err.response?.data
       });
       
-      // 권한 없음 에러 처리
+      // 200/204 응답이지만 JSON 파싱 실패한 경우 (실제로는 삭제 성공)
+      if (err.response?.status === 200 || err.response?.status === 204 || 
+          (err.message && err.message.includes('JSON')) ||
+          (err.response?.status >= 200 && err.response?.status < 300)) {
+        console.log('[DELETE] 성공으로 재분류 - JSON 파싱 실패이지만 HTTP 성공');
+        setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
+        showSuccess('캠페인이 성공적으로 삭제되었습니다.');
+        return;
+      }
+      
+      // 실제 에러 처리
       if (err.response?.status === 403) {
         showError('이 캠페인을 삭제할 권한이 없습니다.');
       } else if (err.response?.status === 404) {
