@@ -138,4 +138,14 @@ export const apiEndpoints = {
   }
 };
 
+// Approval API for ApprovalButtons component
+export const approvalAPI = {
+  approvePost: (id, status, reason = '') => 
+    api.put(`/api/posts/${id}/approve/`, { status, reason }),
+  approvePurchaseRequest: (id, status, amount = 0, reason = '') => 
+    api.put(`/api/purchase-requests/${id}/approve/`, { status, amount, reason }),
+  approveIncentive: (id, status, amount = 0, reason = '') => 
+    api.put(`/api/incentives/${id}/approve/`, { status, amount, reason })
+};
+
 export default api;
