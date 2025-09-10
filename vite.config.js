@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     chunkSizeWarningLimit: 1000,
-    minify: true,
+    minify: true, 
+    sourcemap: false,
     rollupOptions: {
       output: {
         assetFileNames: 'assets/[name].[hash].[ext]',
