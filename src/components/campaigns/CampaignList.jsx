@@ -8,7 +8,7 @@ import ChatContentModal from '../modals/ChatContentModal';
 import ConfirmModal from '../ui/ConfirmModal';
 import { debugAuth, checkAuthToken } from '../../utils/tokenUtils';
 import { useToast } from '../../contexts/ToastContext';
-import { ensureArray } from '../../utils/dataUtils';
+import { ensureArray, safeFormatCurrency } from '../../utils/dataUtils';
 
 const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSelectCampaign, currentUser, pagination, onPageChange }) => {
   const { showSuccess, showError } = useToast();
@@ -408,13 +408,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                   >
                     <div className="text-sm">
                       <div className="font-medium text-blue-600">
-                        매출: {salesData.totalRevenue.toLocaleString()}원
+                        매출: {safeFormatCurrency(salesData.totalRevenue)}
                       </div>
                       <div className="text-xs text-gray-500">
-                        원가: {(salesData.totalCost || 0).toLocaleString()}원
+                        원가: {safeFormatCurrency(salesData.totalCost)}
                       </div>
                       <div className="text-xs text-green-600">
-                        {salesData.totalSales}건 / 이익 {salesData.totalMargin.toLocaleString()}원
+                        {salesData.totalSales || 0}건 / 이익 {safeFormatCurrency(salesData.totalMargin)}
                       </div>
                     </div>
                   </td>

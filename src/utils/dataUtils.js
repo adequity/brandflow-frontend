@@ -120,3 +120,64 @@ export const validateFinancialSummary = (summary) => {
     ...summary
   };
 };
+
+/**
+ * 안전한 숫자 포맷팅 (toLocaleString 에러 방지)
+ * @param {*} value - 포맷할 값
+ * @param {string} locale - 로케일 (기본값: 'ko-KR')
+ * @param {Object} options - 포맷 옵션
+ * @returns {string} - 포맷된 문자열
+ */
+export const safeFormatNumber = (value, locale = 'ko-KR', options = {}) => {
+  // null, undefined, NaN 처리
+  if (value == null || isNaN(value)) {
+    return '0';
+  }
+  
+  // 숫자로 변환
+  const numValue = Number(value);
+  if (isNaN(numValue)) {
+    return '0';
+  }
+  
+  try {
+    return numValue.toLocaleString(locale, options);
+  } catch (error) {
+    console.warn('safeFormatNumber: toLocaleString failed', { value, error });
+    return String(numValue);
+  }
+};
+
+/**
+ * 안전한 통화 포맷팅
+ * @param {*} value - 포맷할 금액
+ * @param {string} currency - 통화 단위 (기본값: '원')
+ * @returns {string} - 포맷된 통화 문자열
+ */
+export const safeFormatCurrency = (value, currency = '원') => {
+  return `${safeFormatNumber(value)}${currency}`;
+};
+
+/**
+ * 안전한 날짜 포맷팅 (toLocaleString 에러 방지)
+ * @param {*} date - 포맷할 날짜
+ * @param {string} locale - 로케일 (기본값: 'ko-KR')
+ * @param {Object} options - 포맷 옵션
+ * @returns {string} - 포맷된 날짜 문자열
+ */
+export const safeFormatDate = (date, locale = 'ko-KR', options = {}) => {
+  if (!date) {
+    return '-';
+  }
+  
+  try {
+    const dateObj = date instanceof Date ? date : new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      return '-';
+    }
+    return dateObj.toLocaleString(locale, options);
+  } catch (error) {
+    console.warn('safeFormatDate: toLocaleString failed', { date, error });
+    return String(date);
+  }
+};

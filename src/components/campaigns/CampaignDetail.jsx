@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
 import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
+import { safeFormatCurrency, safeFormatDate } from '../../utils/dataUtils';
 
 import StatusBadge from '../common/StatusBadge';
 import AdvancedFilter from '../common/AdvancedFilter';
@@ -486,10 +487,10 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                         '-'
                       )}
                     </td>
-                    <td className="p-2 text-xs text-gray-600">{created ? new Date(created).toLocaleString() : '-'}</td>
+                    <td className="p-2 text-xs text-gray-600">{safeFormatDate(created)}</td>
                     <td className="p-2 text-xs font-semibold text-orange-600 bg-yellow-50">
                       {post.productId && post.publishedUrl ? (
-                        <span>{((post.product?.costPrice || 0) * (post.quantity || 1)).toLocaleString()}원</span>
+                        <span>{safeFormatCurrency((post.product?.costPrice || 0) * (post.quantity || 1))}</span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
