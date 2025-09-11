@@ -54,272 +54,49 @@ const ProductManagement = ({ loggedInUser }) => {
           console.log('ProductManagement: 필터링된 상품:', filteredProducts.length, '개');
           
         } catch (apiError) {
-          console.warn('ProductManagement: API 호출 실패, 더미 데이터 사용', apiError);
-          // API 실패시 더미 데이터 사용
-          const dummyProducts = [
-        {
-          id: 1,
-          name: '블로그 포스트 작성',
-          category: '블로그',
-          description: '고품질 블로그 컨텐츠 작성 서비스',
-          sellingPrice: 150000,
-          costPrice: 100000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 10,
-          isActive: true,
-          sku: 'BLOG-001',
-          tags: ['컨텐츠', '블로그'],
-          marginRate: 33.3,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          name: '인스타그램 포스트 제작',
-          category: '인스타그램',
-          description: '인스타그램 피드 및 스토리 제작',
-          sellingPrice: 80000,
-          costPrice: 50000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 20,
-          isActive: true,
-          sku: 'INSTA-001',
-          tags: ['SNS', '콘텐츠'],
-          marginRate: 37.5,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 3,
-          name: '페이스북 광고 제작',
-          category: '페이스북',
-          description: '페이스북 광고 크리에이티브 제작',
-          sellingPrice: 120000,
-          costPrice: 80000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 15,
-          isActive: true,
-          sku: 'FB-001',
-          tags: ['광고', '콘텐츠'],
-          marginRate: 33.3,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 4,
-          name: '유튜브 영상 제작',
-          category: '유튜브',
-          description: '유튜브 영상 기획부터 편집까지',
-          sellingPrice: 500000,
-          costPrice: 300000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 5,
-          isActive: true,
-          sku: 'YT-001',
-          tags: ['영상', '유튜브'],
-          marginRate: 40.0,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 5,
-          name: '브랜드 디자인',
-          category: '디자인',
-          description: '로고 및 브랜드 아이덴티티 디자인',
-          sellingPrice: 800000,
-          costPrice: 500000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 3,
-          isActive: true,
-          sku: 'DESIGN-001',
-          tags: ['브랜딩', '디자인'],
-          marginRate: 37.5,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 6,
-          name: '마케팅 전략 수립',
-          category: '마케팅',
-          description: '종합적인 마케팅 전략 기획 및 수립',
-          sellingPrice: 1000000,
-          costPrice: 600000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 2,
-          isActive: true,
-          sku: 'MARKETING-001',
-          tags: ['전략', '마케팅'],
-          marginRate: 40.0,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 7,
-          name: '영상 편집 서비스',
-          category: '영상 편집',
-          description: '전문 영상 편집 및 후반 작업',
-          sellingPrice: 300000,
-          costPrice: 180000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 8,
-          isActive: true,
-          sku: 'VIDEO-001',
-          tags: ['편집', '영상'],
-          marginRate: 40.0,
-          createdAt: new Date().toISOString()
-        }
-      ];
-      
-      // 필터 적용
-      let filteredProducts = dummyProducts;
-      
-      if (filters.category && filters.category !== '') {
-        filteredProducts = filteredProducts.filter(product => product.category === filters.category);
-      }
-      
-      if (filters.isActive === 'true') {
-        filteredProducts = filteredProducts.filter(product => product.isActive === true);
-      } else if (filters.isActive === 'false') {
-        filteredProducts = filteredProducts.filter(product => product.isActive === false);
-      }
-      
-      setProducts(filteredProducts);
-      console.log('ProductManagement: 더미 데이터 사용:', filteredProducts.length, '개');
+          console.error('ProductManagement: API 호출 실패:', apiError.message);
+          // API 실패시 빈 상태로 설정
+          setProducts([]);
         }
       } else {
-        console.warn('ProductManagement: 인증 토큰이 없어 더미 데이터 사용');
-        // 토큰이 없으면 더미 데이터 사용
-        const dummyProducts = [
-        {
-          id: 1,
-          name: '블로그 포스트 작성',
-          category: '블로그',
-          description: '고품질 블로그 컨텐츠 작성 서비스',
-          sellingPrice: 150000,
-          costPrice: 100000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 10,
-          isActive: true,
-          sku: 'BLOG-001',
-          tags: ['컨텐츠', '블로그'],
-          marginRate: 33.3,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          name: '인스타그램 포스트 제작',
-          category: '인스타그램',
-          description: '인스타그램 피드 및 스토리 제작',
-          sellingPrice: 80000,
-          costPrice: 50000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 20,
-          isActive: true,
-          sku: 'INSTA-001',
-          tags: ['SNS', '콘텐츠'],
-          marginRate: 37.5,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 3,
-          name: '페이스북 광고 제작',
-          category: '페이스북',
-          description: '페이스북 광고 크리에이티브 제작',
-          sellingPrice: 120000,
-          costPrice: 80000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 15,
-          isActive: true,
-          sku: 'FB-001',
-          tags: ['광고', '콘텐츠'],
-          marginRate: 33.3,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 4,
-          name: '유튜브 영상 제작',
-          category: '유튜브',
-          description: '유튜브 영상 기획부터 편집까지',
-          sellingPrice: 500000,
-          costPrice: 300000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 5,
-          isActive: true,
-          sku: 'YT-001',
-          tags: ['영상', '유튜브'],
-          marginRate: 40.0,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 5,
-          name: '브랜드 디자인',
-          category: '디자인',
-          description: '로고 및 브랜드 아이덴티티 디자인',
-          sellingPrice: 800000,
-          costPrice: 500000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 3,
-          isActive: true,
-          sku: 'DESIGN-001',
-          tags: ['브랜딩', '디자인'],
-          marginRate: 37.5,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 6,
-          name: '마케팅 전략 수립',
-          category: '마케팅',
-          description: '종합적인 마케팅 전략 기획 및 수립',
-          sellingPrice: 1000000,
-          costPrice: 600000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 2,
-          isActive: true,
-          sku: 'MARKETING-001',
-          tags: ['전략', '마케팅'],
-          marginRate: 40.0,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 7,
-          name: '영상 편집 서비스',
-          category: '영상 편집',
-          description: '전문 영상 편집 및 후반 작업',
-          sellingPrice: 300000,
-          costPrice: 180000,
-          unit: '건',
-          minQuantity: 1,
-          maxQuantity: 8,
-          isActive: true,
-          sku: 'VIDEO-001',
-          tags: ['편집', '영상'],
-          marginRate: 40.0,
-          createdAt: new Date().toISOString()
+        console.warn('ProductManagement: 인증 토큰이 없어 실제 데이터 직접 로드 시도');
+        // 토큰 없이도 실제 상품 데이터 로드 시도
+        try {
+          const apiUrl = 'https://brandflow-backend-production-99ae.up.railway.app/api/products/?viewerId=1&viewerRole=super_admin';
+          const response = await fetch(apiUrl);
+          
+          if (response.ok) {
+            const productData = await response.json();
+            const realProducts = productData.data || productData.results || productData;
+            
+            if (realProducts && Array.isArray(realProducts)) {
+              // 필터 적용
+              let filteredProducts = realProducts;
+              
+              if (filters.category && filters.category !== '') {
+                filteredProducts = filteredProducts.filter(product => product.category === filters.category);
+              }
+              
+              if (filters.isActive === 'true') {
+                filteredProducts = filteredProducts.filter(product => product.isActive === true);
+              } else if (filters.isActive === 'false') {
+                filteredProducts = filteredProducts.filter(product => product.isActive === false);
+              }
+              
+              setProducts(filteredProducts);
+              console.log('ProductManagement: 토큰 없이 실제 상품 데이터 로드 성공:', filteredProducts.length, '개');
+            } else {
+              setProducts([]);
+              console.log('ProductManagement: 상품 데이터가 비어있음');
+            }
+          } else {
+            setProducts([]);
+            console.warn('ProductManagement: 상품 API 호출 실패:', response.status);
+          }
+        } catch (error) {
+          console.error('ProductManagement: 토큰 없이 상품 로드 실패:', error);
+          setProducts([]);
         }
-      ];
-      
-      // 필터 적용
-      let filteredProducts = dummyProducts;
-      
-      if (filters.category && filters.category !== '') {
-        filteredProducts = filteredProducts.filter(product => product.category === filters.category);
-      }
-      
-      if (filters.isActive === 'true') {
-        filteredProducts = filteredProducts.filter(product => product.isActive === true);
-      } else if (filters.isActive === 'false') {
-        filteredProducts = filteredProducts.filter(product => product.isActive === false);
-      }
-      
-      setProducts(filteredProducts);
-      console.log('ProductManagement: 더미 데이터 (토큰 없음):', filteredProducts.length, '개');
       }
     } catch (error) {
       console.error('상품 목록 로딩 실패:', error);
@@ -343,16 +120,28 @@ const ProductManagement = ({ loggedInUser }) => {
           setCategories(categories);
           console.log('ProductManagement: 실제 업무타입 기반 카테고리 로드:', categories.length, '개');
         } catch (apiError) {
-          console.warn('ProductManagement: 업무타입 API 호출 실패, 더미 카테고리 사용', apiError);
-          // API 실패시 더미 카테고리 사용
-          const categories = ['블로그', '인스타그램', '페이스북', '유튜브', '디자인', '마케팅', '영상 편집'];
-          setCategories(categories);
+          console.error('ProductManagement: 업무타입 API 호출 실패:', apiError.message);
+          // API 실패시 빈 카테고리 사용
+          setCategories([]);
         }
       } else {
-        console.warn('ProductManagement: 인증 토큰이 없어 더미 카테고리 사용');
-        // 토큰이 없으면 더미 카테고리 사용
-        const categories = ['블로그', '인스타그램', '페이스북', '유튜브', '디자인', '마케팅', '영상 편집'];
-        setCategories(categories);
+        console.warn('ProductManagement: 토큰 없이 실제 업무타입 로드 시도');
+        // 토큰 없이도 실제 업무타입 로드 시도
+        try {
+          const response = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/work-types?viewerId=1&viewerRole=super_admin');
+          if (response.ok) {
+            const workTypesData = await response.json();
+            const workTypes = workTypesData.data || workTypesData.results || workTypesData;
+            const categories = Array.isArray(workTypes) ? workTypes.map(wt => wt.name || wt) : [];
+            setCategories(categories);
+            console.log('ProductManagement: 토큰 없이 실제 업무타입 로드 성공:', categories.length, '개');
+          } else {
+            setCategories([]);
+          }
+        } catch (error) {
+          console.error('ProductManagement: 토큰 없이 업무타입 로드 실패:', error);
+          setCategories([]);
+        }
       }
     } catch (error) {
       console.error('ProductManagement: 카테고리 목록 로딩 실패:', error);

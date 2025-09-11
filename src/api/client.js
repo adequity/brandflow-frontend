@@ -11,7 +11,19 @@ console.log('- import.meta.env:', import.meta.env);
 
 // Simple fetch wrapper
 const createRequest = async (method, url, data = null, config = {}) => {
-  const finalUrl = url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
+  // HTTPS 강제 적용 - Mixed Content 방지
+  let finalUrl;
+  if (url.startsWith('/')) {
+    finalUrl = `${API_BASE_URL}${url}`;
+  } else {
+    finalUrl = url;
+  }
+  
+  // HTTP를 HTTPS로 강제 변환 (Mixed Content 방지)
+  if (finalUrl.startsWith('http://')) {
+    finalUrl = finalUrl.replace('http://', 'https://');
+    console.warn('⚠️ HTTP를 HTTPS로 변환:', finalUrl);
+  }
   
   // Debug: URL 구성 과정 로그
   console.log('🌐 API 요청 URL 구성:');
@@ -118,7 +130,7 @@ export const apiEndpoints = {
   
   // Campaigns
   campaigns: {
-    list: () => api.get('/api/campaigns/'),
+    list: (config = {}) => api.get('/api/campaigns/', config),
     create: (campaignData) => api.post('/api/campaigns/', campaignData),
     get: (id) => api.get(`/api/campaigns/${id}/`),
     update: (id, campaignData) => api.put(`/api/campaigns/${id}/`, campaignData),

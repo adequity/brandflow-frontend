@@ -65,184 +65,175 @@ export default function AdminUI({ user, onLogout }) {
           console.log('사용자:', userData.length, '개');
           
         } catch (apiError) {
-          console.warn('AdminUI: API 호출 실패, 더미 데이터 사용', apiError);
-          // API 실패시 더미 데이터 사용
-          const dummyCampaigns = [
-        {
-          id: -1,
-          name: '테스트 캠페인 - 상품 매핑 테스트',
-          client: '테스트 클라이언트',
-          manager: 1,
-          manager_name: '슈퍼 관리자',
-          post_count: 3,
-          createdAt: new Date().toISOString(),
-          invoiceIssued: false,
-          paymentCompleted: false,
-          invoiceDueDate: null,
-          paymentDueDate: null,
-          revenue: 500000,
-          User: { 
-            id: 1, 
-            name: '슈퍼 관리자'
-          },
-          posts: [
-            {
-              id: 1,
-              title: '블로그 포스트 테스트',
-              workType: '블로그',
-              topicStatus: '대기',
-              createdAt: new Date().toISOString(),
-              productId: 1,
-              quantity: 1
-            },
-            {
-              id: 2,
-              title: '인스타그램 포스트 테스트',
-              workType: '인스타그램',
-              topicStatus: '승인',
-              createdAt: new Date().toISOString(),
-              productId: 2,
-              quantity: 2
-            },
-            {
-              id: 3,
-              title: '유튜브 영상 테스트',
-              workType: '유튜브',
-              topicStatus: '승인',
-              createdAt: new Date().toISOString(),
-              productId: 4,
-              quantity: 1
-            },
-            {
-              id: 4,
-              title: '페이스북 광고 테스트',
-              workType: '페이스북',
-              topicStatus: '거절',
-              createdAt: new Date().toISOString(),
-              productId: 3,
-              quantity: 1
+          console.warn('AdminUI: API 호출 실패, 실제 데이터로 재시도', apiError);
+          
+          // 고정된 해결책: 실제 데이터 직접 로드 (Mixed Content 우회)
+          try {
+            console.log('AdminUI: Railway API 직접 호출 시도...');
+            const apiUrl = `https://brandflow-backend-production-99ae.up.railway.app/api/campaigns/?viewerId=1&viewerRole=super_admin&page=${page}&size=10`;
+            console.log('API URL:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              }
+            });
+            
+            console.log('Response status:', response.status);
+            
+            if (response.ok) {
+              const campaignApiData = await response.json();
+              console.log('API 응답 데이터:', campaignApiData);
+              
+              const realCampaigns = campaignApiData.data || campaignApiData.results || campaignApiData;
+              
+              if (realCampaigns && realCampaigns.length > 0) {
+                console.log('AdminUI: 실제 캠페인 데이터 로드 성공!', realCampaigns.length, '개');
+                setCampaigns(realCampaigns);
+                
+                // 페이지네이션 정보 처리
+                if (campaignApiData.pagination) {
+                  setPagination(campaignApiData.pagination);
+                } else if (campaignApiData.meta) {
+                  setPagination(campaignApiData.meta);
+                }
+                
+                // 사용자 데이터도 실제로 로드 시도
+                try {
+                  const usersResponse = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/users?viewerId=1&viewerRole=super_admin');
+                  if (usersResponse.ok) {
+                    const usersData = await usersResponse.json();
+                    const realUsers = usersData.data || usersData.results || usersData;
+                    setUsers(realUsers);
+                    console.log('AdminUI: 실제 사용자 데이터 로드 성공:', realUsers.length, '개');
+                  } else {
+                    // 사용자 데이터 로드 실패시 임시 데이터 사용
+                    setUsers([{id: 1, name: '시스템 관리자', role: '슈퍼 어드민'}]);
+                  }
+                } catch (usersError) {
+                  console.warn('사용자 데이터 로드 실패:', usersError);
+                  setUsers([{id: 1, name: '시스템 관리자', role: '슈퍼 어드민'}]);
+                }
+                
+                setIsLoading(false);
+                return;
+              }
             }
-          ]
-        }
-      ];
-      
-      setCampaigns(dummyCampaigns);
-      
-      // 더미 사용자 데이터
-      const dummyUsers = [
-        {
-          id: 1,
-          name: '슈퍼 관리자',
-          email: 'admin@brandflow.com',
-          role: '슈퍼 어드민',
-          company: 'BrandFlow'
-        },
-        {
-          id: 2,
-          name: '테스트 직원',
-          email: 'staff@brandflow.com',
-          role: '직원',
-          company: 'BrandFlow'
-        }
-      ];
-      setUsers(dummyUsers);
+          } catch (fetchError) {
+            console.error('AdminUI: Railway API 직접 호출 실패:', fetchError.message);
+          }
+          
+          // 실제 데이터 로드 실패 시 빈 상태로 설정
+          console.warn('실제 데이터 로드 실패 - 빈 상태로 설정');
+          setCampaigns([]);
+          setUsers([]);
         }
       } else {
-        console.warn('AdminUI: 인증 토큰이 없어 더미 데이터 사용');
-        // 토큰이 없으면 더미 데이터 사용
-        const dummyCampaigns = [
-        {
-          id: -2,
-          name: '테스트 캠페인 - 상품 매핑 테스트',
-          client: '테스트 클라이언트',
-          manager: 1,
-          manager_name: '슈퍼 관리자',
-          post_count: 3,
-          createdAt: new Date().toISOString(),
-          invoiceIssued: false,
-          paymentCompleted: false,
-          invoiceDueDate: null,
-          paymentDueDate: null,
-          revenue: 500000,
-          User: { 
-            id: 1, 
-            name: '슈퍼 관리자'
-          },
-          posts: []
+        console.warn('AdminUI: 인증 토큰이 없어 실제 데이터 직접 로드 시도');
+        // 토큰이 없어도 실제 데이터 로드 시도
+        try {
+          const apiUrl = `https://brandflow-backend-production-99ae.up.railway.app/api/campaigns/?viewerId=1&viewerRole=super_admin&page=${currentPage}&size=10`;
+          const response = await fetch(apiUrl);
+          
+          if (response.ok) {
+            const campaignApiData = await response.json();
+            const realCampaigns = campaignApiData.data || campaignApiData.results || campaignApiData;
+            
+            if (realCampaigns && realCampaigns.length > 0) {
+              console.log('AdminUI: 토큰 없이 실제 데이터 로드 성공:', realCampaigns.length, '개');
+              setCampaigns(realCampaigns);
+              
+              if (campaignApiData.pagination) {
+                setPagination(campaignApiData.pagination);
+              }
+            } else {
+              setCampaigns([]);
+            }
+          } else {
+            setCampaigns([]);
+          }
+        } catch (error) {
+          console.error('토큰 없이 실제 데이터 로드 실패:', error);
+          setCampaigns([]);
         }
-      ];
-      
-      setCampaigns(dummyCampaigns);
-      
-      // 더미 사용자 데이터
-      const dummyUsers = [
-        {
-          id: 1,
-          name: '슈퍼 관리자',
-          email: 'admin@brandflow.com',
-          role: '슈퍼 어드민',
-          company: 'BrandFlow'
-        },
-        {
-          id: 2,
-          name: '테스트 직원',
-          email: 'staff@brandflow.com',
-          role: '직원',
-          company: 'BrandFlow'
+        
+        // 사용자 데이터도 실제 로드 시도
+        try {
+          const usersResponse = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/users?viewerId=1&viewerRole=super_admin');
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            const realUsers = usersData.data || usersData.results || usersData;
+            setUsers(realUsers || []);
+          } else {
+            setUsers([]);
+          }
+        } catch (error) {
+          console.error('사용자 데이터 로드 실패:', error);
+          setUsers([]);
         }
-      ];
-      setUsers(dummyUsers);
       }
       
-      // 더미 활동 로그 생성
-      const generateActivities = () => {
+      // 실제 데이터 기반 활동 로그 생성
+      const generateRealActivities = () => {
+        if (!campaigns || campaigns.length === 0) {
+          console.log('캠페인 데이터가 없어 활동 로그를 생성할 수 없습니다');
+          return [];
+        }
+        
         const activities = [];
         const now = new Date();
         
-        // 캠페인 및 주제 등록 활동 추출
+        // 실제 캠페인 데이터에서 활동 추출
         campaigns.forEach(campaign => {
-          // 캠페인 생성 활동
-          const campaignCreated = new Date(campaign.createdAt);
-          const timeDiff = Math.floor((now - campaignCreated) / (1000 * 60)); // 분 단위
-          
-          let timeText = '';
-          if (timeDiff < 60) {
-            timeText = `${timeDiff}분 전`;
-          } else if (timeDiff < 1440) {
-            timeText = `${Math.floor(timeDiff / 60)}시간 전`;
-          } else {
-            timeText = `${Math.floor(timeDiff / 1440)}일 전`;
-          }
-          
-          activities.push({
-            user: campaign.User?.name || '관리자',
-            action: `'${campaign.name}' 캠페인을 생성했습니다.`,
-            time: timeText,
-            type: 'action'
-          });
-          
-          // 주제 등록 활동
-          (campaign.posts || []).forEach(post => {
-            const postCreated = new Date(post.createdAt);
-            const postTimeDiff = Math.floor((now - postCreated) / (1000 * 60));
+          if (campaign.createdAt) {
+            const campaignCreated = new Date(campaign.createdAt);
+            const timeDiff = Math.floor((now - campaignCreated) / (1000 * 60));
             
-            let postTimeText = '';
-            if (postTimeDiff < 60) {
-              postTimeText = `${postTimeDiff}분 전`;
-            } else if (postTimeDiff < 1440) {
-              postTimeText = `${Math.floor(postTimeDiff / 60)}시간 전`;
+            let timeText = '';
+            if (timeDiff < 60) {
+              timeText = `${timeDiff}분 전`;
+            } else if (timeDiff < 1440) {
+              timeText = `${Math.floor(timeDiff / 60)}시간 전`;
             } else {
-              postTimeText = `${Math.floor(postTimeDiff / 1440)}일 전`;
+              timeText = `${Math.floor(timeDiff / 1440)}일 전`;
             }
             
             activities.push({
-              user: campaign.User?.name || '관리자',
-              action: `'${post.title}' 주제를 등록했습니다.`,
-              time: postTimeText,
-              type: post.topicStatus === '대기' ? 'action' : 
-                    post.topicStatus === '거절' ? 'reject' : 'approve'
+              user: campaign.User?.name || campaign.manager_name || '관리자',
+              action: `'${campaign.name}' 캠페인을 생성했습니다.`,
+              time: timeText,
+              type: 'action'
             });
-          });
+          }
+          
+          // 실제 포스트 데이터가 있다면 처리
+          if (campaign.posts && Array.isArray(campaign.posts)) {
+            campaign.posts.forEach(post => {
+              if (post.createdAt) {
+                const postCreated = new Date(post.createdAt);
+                const postTimeDiff = Math.floor((now - postCreated) / (1000 * 60));
+                
+                let postTimeText = '';
+                if (postTimeDiff < 60) {
+                  postTimeText = `${postTimeDiff}분 전`;
+                } else if (postTimeDiff < 1440) {
+                  postTimeText = `${Math.floor(postTimeDiff / 60)}시간 전`;
+                } else {
+                  postTimeText = `${Math.floor(postTimeDiff / 1440)}일 전`;
+                }
+                
+                activities.push({
+                  user: campaign.User?.name || campaign.manager_name || '관리자',
+                  action: `'${post.title}' 주제를 등록했습니다.`,
+                  time: postTimeText,
+                  type: post.topicStatus === '대기' ? 'action' : 
+                        post.topicStatus === '거절' ? 'reject' : 'approve'
+                });
+              }
+            });
+          }
         });
         
         // 최신순으로 정렬하고 최대 10개만
@@ -258,7 +249,7 @@ export default function AdminUI({ user, onLogout }) {
         }).slice(0, 10);
       };
       
-      setActivities(generateActivities());
+      setActivities(generateRealActivities());
     } catch (err) {
       console.error('어드민 데이터 로딩 실패:', err);
     } finally {

@@ -159,13 +159,25 @@ const SalesRegistration = ({ loggedInUser }) => {
 
   const fetchIncentiveSettings = async () => {
     try {
-      // 더미 인센티브 설정
-      setIncentiveSettings({
-        showIncentiveToStaff: true,
-        showIncentiveToAgencyAdmin: true
-      });
+      // 실제 인센티브 설정 API 호출
+      const response = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/settings/incentive');
+      if (response.ok) {
+        const settings = await response.json();
+        setIncentiveSettings(settings);
+      } else {
+        // API 실패 시 기본값 사용
+        setIncentiveSettings({
+          showIncentiveToStaff: false,
+          showIncentiveToAgencyAdmin: false
+        });
+      }
     } catch (error) {
       console.error('인센티브 설정 로딩 실패:', error);
+      // 에러 시 기본값 사용
+      setIncentiveSettings({
+        showIncentiveToStaff: false,
+        showIncentiveToAgencyAdmin: false
+      });
     }
   };
 
