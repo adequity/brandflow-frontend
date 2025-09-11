@@ -66,7 +66,12 @@ export default function AdminUI({ user, onLogout }) {
           console.log('사용자:', userData.length, '개');
           
         } catch (apiError) {
-          console.warn('AdminUI: API 호출 실패, 실제 데이터로 재시도', apiError);
+          console.error('AdminUI: API 호출 실패:', apiError);
+          console.error('Error details:', {
+            message: apiError.message,
+            status: apiError.response?.status,
+            data: apiError.response?.data
+          });
           
           // 고정된 해결책: 실제 데이터 직접 로드 (Mixed Content 우회)
           try {
@@ -88,11 +93,12 @@ export default function AdminUI({ user, onLogout }) {
               const campaignApiData = await response.json();
               console.log('API 응답 데이터:', campaignApiData);
               
-              const realCampaigns = campaignApiData.data || campaignApiData.results || campaignApiData;
+              // 안전한 데이터 추출 사용
+              const realCampaigns = extractArrayFromResponse({ data: campaignApiData });
               
               if (realCampaigns && realCampaigns.length > 0) {
                 console.log('AdminUI: 실제 캠페인 데이터 로드 성공!', realCampaigns.length, '개');
-                setCampaigns(realCampaigns);
+                setCampaigns(validateCampaignData(realCampaigns));
                 
                 // 페이지네이션 정보 처리
                 if (campaignApiData.pagination) {
@@ -106,7 +112,7 @@ export default function AdminUI({ user, onLogout }) {
                   const usersResponse = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/users?viewerId=1&viewerRole=super_admin');
                   if (usersResponse.ok) {
                     const usersData = await usersResponse.json();
-                    const realUsers = usersData.data || usersData.results || usersData;
+                    const realUsers = extractArrayFromResponse({ data: usersData });
                     setUsers(realUsers);
                     console.log('AdminUI: 실제 사용자 데이터 로드 성공:', realUsers.length, '개');
                   } else {

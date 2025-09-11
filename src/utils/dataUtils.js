@@ -15,10 +15,29 @@ export const ensureArray = (data) => {
  * @returns {Array} - 추출된 배열 데이터
  */
 export const extractArrayFromResponse = (response) => {
-  const data = response?.data?.data || 
-               response?.data?.results || 
-               response?.data;
-  return ensureArray(data);
+  // API 응답 구조: {data: {data: [...], pagination: {...}}} 또는 {data: [...]}
+  if (!response?.data) {
+    console.warn('extractArrayFromResponse: No response.data found');
+    return [];
+  }
+  
+  // 페이지네이션 응답 형태인 경우
+  if (response.data.data && Array.isArray(response.data.data)) {
+    return response.data.data;
+  }
+  
+  // results 필드가 있는 경우
+  if (response.data.results && Array.isArray(response.data.results)) {
+    return response.data.results;
+  }
+  
+  // 직접 배열인 경우
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+  
+  console.warn('extractArrayFromResponse: Could not extract array from response', response.data);
+  return [];
 };
 
 /**
@@ -42,13 +61,40 @@ export const safeGet = (obj, path, fallback = null) => {
  * @returns {Array} - 검증된 캠페인 배열
  */
 export const validateCampaignData = (campaignData) => {
-  return ensureArray(campaignData).map(campaign => ({
-    ...campaign,
-    id: campaign?.id || 0,
-    name: campaign?.name || '제목 없음',
-    status: campaign?.status || '상태 없음',
-    client_company: campaign?.client_company || '클라이언트 없음'
-  }));
+  return ensureArray(campaignData).map(campaign => {
+    // campaign이 객체가 아닌 경우 기본 구조로 변환
+    if (!campaign || typeof campaign !== 'object') {
+      console.warn('validateCampaignData: Invalid campaign data:', campaign);
+      return {
+        id: 0,
+        name: '잘못된 데이터',
+        status: '오류',
+        client_company: '알 수 없음',
+        description: '',
+        budget: 0,
+        start_date: null,
+        end_date: null,
+        creator_id: null,
+        created_at: null,
+        updated_at: null
+      };
+    }
+    
+    return {
+      ...campaign,
+      id: Number(campaign.id) || 0,
+      name: String(campaign.name || '제목 없음'),
+      status: String(campaign.status || '상태 없음'),
+      client_company: String(campaign.client_company || '클라이언트 없음'),
+      description: String(campaign.description || ''),
+      budget: Number(campaign.budget) || 0,
+      start_date: campaign.start_date || null,
+      end_date: campaign.end_date || null,
+      creator_id: Number(campaign.creator_id) || null,
+      created_at: campaign.created_at || null,
+      updated_at: campaign.updated_at || null
+    };
+  });
 };
 
 /**
