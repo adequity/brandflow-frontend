@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle, DollarSign, Calendar, Package, FileText } from 'lucide-react';
 import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
+import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 
 const EnhancedPurchaseRequestModal = ({ 
   isOpen, 
@@ -41,16 +42,6 @@ const EnhancedPurchaseRequestModal = ({
   const [isLoading, setIsLoading] = useState(false);
   const [calculatedAmount, setCalculatedAmount] = useState(0);
 
-  // 숫자 포맷팅 함수들
-  const formatNumberWithCommas = (value) => {
-    if (!value) return '';
-    const numericValue = value.toString().replace(/[^0-9]/g, '');
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
-  const removeCommas = (value) => {
-    return value.toString().replace(/,/g, '');
-  };
 
   // 초기 데이터 설정
   useEffect(() => {

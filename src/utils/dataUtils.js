@@ -159,6 +159,26 @@ export const safeFormatCurrency = (value, currency = '원') => {
 };
 
 /**
+ * 숫자에 콤마 추가하는 함수
+ * @param {*} value - 포맷할 값
+ * @returns {string} - 콤마가 추가된 문자열
+ */
+export const formatNumberWithCommas = (value) => {
+  if (!value) return '';
+  const numericValue = value.toString().replace(/[^0-9]/g, '');
+  return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+/**
+ * 콤마 제거하고 숫자만 추출하는 함수
+ * @param {*} value - 콤마를 제거할 값
+ * @returns {string} - 콤마가 제거된 숫자 문자열
+ */
+export const removeCommas = (value) => {
+  return value.toString().replace(/,/g, '');
+};
+
+/**
  * 안전한 날짜 포맷팅 (toLocaleString 에러 방지)
  * @param {*} date - 포맷할 날짜
  * @param {string} locale - 로케일 (기본값: 'ko-KR')

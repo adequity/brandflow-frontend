@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api, { apiEndpoints } from '../../api/client';
 import { canSelectClient, canSelectEmployee, ROLES, ROLE_MAPPING } from '../../utils/permissions';
 import { useToast } from '../../contexts/ToastContext';
+import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 
 const NewCampaignModal = ({ users, onSave, onClose }) => {
     const { showSuccess, showError, showWarning } = useToast();
@@ -9,18 +10,6 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     const [budget, setBudget] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState(null);
-    
-    // 숫자에 콤마 추가하는 함수
-    const formatNumberWithCommas = (value) => {
-        if (!value) return '';
-        const numericValue = value.toString().replace(/[^0-9]/g, '');
-        return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    };
-
-    // 콤마 제거하고 숫자만 추출하는 함수
-    const removeCommas = (value) => {
-        return value.toString().replace(/,/g, '');
-    };
     const [reminders, setReminders] = useState('');
     const [invoiceIssued, setInvoiceIssued] = useState(false);
     const [paymentCompleted, setPaymentCompleted] = useState(false);

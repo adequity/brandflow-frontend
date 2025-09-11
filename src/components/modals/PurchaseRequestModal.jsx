@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
+import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 
 const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, request = null, initialData = null }) => {
   const { showError } = useToast();
@@ -23,17 +24,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
   const [campaignPosts, setCampaignPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 숫자에 콤마 추가하는 함수
-  const formatNumberWithCommas = (value) => {
-    if (!value) return '';
-    const numericValue = value.toString().replace(/[^0-9]/g, '');
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
-  // 콤마 제거하고 숫자만 추출하는 함수
-  const removeCommas = (value) => {
-    return value.toString().replace(/,/g, '');
-  };
 
   useEffect(() => {
     if (request) {

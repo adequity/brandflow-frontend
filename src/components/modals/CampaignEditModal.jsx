@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
+import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 
 const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const { showSuccess, showError } = useToast();
@@ -18,17 +19,6 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const [staffMembers, setStaffMembers] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
 
-  // 숫자에 콤마 추가하는 함수
-  const formatNumberWithCommas = (value) => {
-    if (!value) return '';
-    const numericValue = value.toString().replace(/[^0-9]/g, '');
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
-  // 콤마 제거하고 숫자만 추출하는 함수
-  const removeCommas = (value) => {
-    return value.toString().replace(/,/g, '');
-  };
 
   // 직원 목록 불러오기 (대행사 어드민만)
   const fetchStaffMembers = async () => {
