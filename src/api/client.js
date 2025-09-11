@@ -13,6 +13,12 @@ console.log('- import.meta.env:', import.meta.env);
 const createRequest = async (method, url, data = null, config = {}) => {
   const finalUrl = url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
   
+  // Debug: URL 구성 과정 로그
+  console.log('🌐 API 요청 URL 구성:');
+  console.log('- 입력 URL:', url);
+  console.log('- API_BASE_URL:', API_BASE_URL);
+  console.log('- 최종 URL:', finalUrl);
+  
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
