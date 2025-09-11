@@ -107,18 +107,17 @@ export default function AdminUI({ user, onLogout }) {
                   setPagination(campaignApiData.meta);
                 }
                 
-                // 사용자 데이터도 실제로 로드 시도
+                // 사용자 데이터도 실제로 로드 시도 (API client 사용)
                 try {
-                  const usersResponse = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/users?viewerId=1&viewerRole=super_admin');
-                  if (usersResponse.ok) {
-                    const usersData = await usersResponse.json();
-                    const realUsers = extractArrayFromResponse({ data: usersData });
-                    setUsers(realUsers);
-                    console.log('AdminUI: 실제 사용자 데이터 로드 성공:', realUsers.length, '개');
-                  } else {
-                    // 사용자 데이터 로드 실패시 임시 데이터 사용
-                    setUsers([{id: 1, name: '시스템 관리자', role: '슈퍼 어드민'}]);
-                  }
+                  const usersResponse = await api.get('/api/users', {
+                    params: {
+                      viewerId: 1,
+                      viewerRole: 'super_admin'
+                    }
+                  });
+                  const realUsers = extractArrayFromResponse(usersResponse);
+                  setUsers(realUsers);
+                  console.log('AdminUI: 실제 사용자 데이터 로드 성공:', realUsers.length, '개');
                 } catch (usersError) {
                   console.warn('사용자 데이터 로드 실패:', usersError);
                   setUsers([{id: 1, name: '시스템 관리자', role: '슈퍼 어드민'}]);
@@ -166,16 +165,17 @@ export default function AdminUI({ user, onLogout }) {
           setCampaigns([]);
         }
         
-        // 사용자 데이터도 실제 로드 시도
+        // 사용자 데이터도 실제 로드 시도 (API client 사용)
         try {
-          const usersResponse = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/users?viewerId=1&viewerRole=super_admin');
-          if (usersResponse.ok) {
-            const usersData = await usersResponse.json();
-            const realUsers = usersData.data || usersData.results || usersData;
-            setUsers(realUsers || []);
-          } else {
-            setUsers([]);
-          }
+          const usersResponse = await api.get('/api/users', {
+            params: {
+              viewerId: 1,
+              viewerRole: 'super_admin'
+            }
+          });
+          const realUsers = extractArrayFromResponse(usersResponse);
+          setUsers(realUsers);
+          console.log('AdminUI: 사용자 데이터 로드 성공:', realUsers.length, '개');
         } catch (error) {
           console.error('사용자 데이터 로드 실패:', error);
           setUsers([]);
