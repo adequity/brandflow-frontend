@@ -3,6 +3,12 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
+// Debug: 환경 변수 확인
+console.log('🔧 API Client 환경 변수 확인:');
+console.log('- API_BASE_URL:', API_BASE_URL);
+console.log('- DEBUG_MODE:', DEBUG_MODE);
+console.log('- import.meta.env:', import.meta.env);
+
 // Simple fetch wrapper
 const createRequest = async (method, url, data = null, config = {}) => {
   const finalUrl = url.startsWith('/') ? `${API_BASE_URL}${url}` : url;

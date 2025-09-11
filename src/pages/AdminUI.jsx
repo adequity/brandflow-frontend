@@ -39,7 +39,12 @@ export default function AdminUI({ user, onLogout }) {
                 size: 10  // 페이지당 10개씩 로드
               } : {}
             }),
-            api.get('/api/users')
+            api.get('/api/users', {
+              params: user?.id ? {
+                viewerId: user.id,
+                viewerRole: user.role
+              } : {}
+            })
           ]);
           
           // 백엔드 응답이 페이지네이션 형식일 경우를 처리
