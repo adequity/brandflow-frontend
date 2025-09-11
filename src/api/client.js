@@ -53,9 +53,9 @@ const createRequest = async (method, url, data = null, config = {}) => {
     requestUrl += (requestUrl.includes('?') ? '&' : '?') + searchParams.toString();
   }
   
-  // Add user context for authorization
+  // Add user context for authorization (prevent duplicate parameters)
   const userData = localStorage.getItem('user');
-  if (userData && !requestUrl.includes('/auth/login')) {
+  if (userData && !requestUrl.includes('/auth/login') && !requestUrl.includes('viewerId')) {
     const user = JSON.parse(userData);
     const separator = requestUrl.includes('?') ? '&' : '?';
     requestUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;

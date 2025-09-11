@@ -8,6 +8,7 @@ import ChatContentModal from '../modals/ChatContentModal';
 import ConfirmModal from '../ui/ConfirmModal';
 import { debugAuth, checkAuthToken } from '../../utils/tokenUtils';
 import { useToast } from '../../contexts/ToastContext';
+import { ensureArray } from '../../utils/dataUtils';
 
 const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSelectCampaign, currentUser, pagination, onPageChange }) => {
   const { showSuccess, showError } = useToast();
@@ -288,7 +289,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
     }
   };
 
-  const filteredCampaigns = (campaigns || []).filter((c) =>
+  const filteredCampaigns = ensureArray(campaigns).filter((c) =>
     (c.name || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 

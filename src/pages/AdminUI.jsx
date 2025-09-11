@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/client';
+import { extractArrayFromResponse, validateCampaignData } from '../utils/dataUtils';
 
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
@@ -47,11 +48,11 @@ export default function AdminUI({ user, onLogout }) {
             })
           ]);
           
-          // 백엔드 응답이 페이지네이션 형식일 경우를 처리
-          const campaignData = campaignsResponse.data.data || campaignsResponse.data.results || campaignsResponse.data;
-          const userData = usersResponse.data.results || usersResponse.data;
+          // 백엔드 응답이 페이지네이션 형식일 경우를 처리 - 안전한 데이터 추출
+          const campaignData = extractArrayFromResponse(campaignsResponse);
+          const userData = extractArrayFromResponse(usersResponse);
           
-          setCampaigns(campaignData);
+          setCampaigns(validateCampaignData(campaignData));
           setUsers(userData);
           
           // 페이지네이션 정보 저장

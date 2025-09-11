@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useApiCache, batchRequests } from '../utils/performanceUtils';
 import CampaignList from '../components/campaigns/CampaignList';
+import { validateFinancialSummary } from '../utils/dataUtils';
 
 const CampaignListPage = ({ campaigns: propsCanpaigns, setCampaigns, users, loggedInUser, pagination, onPageChange }) => {
   const [campaignSales, setCampaignSales] = useState({});
@@ -29,19 +30,19 @@ const CampaignListPage = ({ campaigns: propsCanpaigns, setCampaigns, users, logg
       campaignList.forEach((campaign, index) => {
         try {
           const response = responses[index];
-          const summary = response?.data;
+          const summary = validateFinancialSummary(response?.data);
           
           salesData[campaign.id] = {
-            totalSales: summary.completed_tasks || 0,
-            totalRevenue: summary.total_revenue || 0,
-            totalMargin: summary.total_profit || 0,
-            totalCost: summary.total_cost || 0,
+            totalSales: summary.completed_tasks,
+            totalRevenue: summary.total_revenue,
+            totalMargin: summary.total_profit,
+            totalCost: summary.total_cost,
             financial: {
-              totalRevenue: summary.total_revenue || 0,
-              totalCost: summary.total_cost || 0,
-              totalProfit: summary.total_profit || 0,
-              completedTasksCount: summary.completed_tasks || 0,
-              totalTasksCount: summary.total_tasks || 0,
+              totalRevenue: summary.total_revenue,
+              totalCost: summary.total_cost,
+              totalProfit: summary.total_profit,
+              completedTasksCount: summary.completed_tasks,
+              totalTasksCount: summary.total_tasks,
               completionRate: summary.completion_rate || 0,
               marginRate: summary.margin_rate || 0
             }
