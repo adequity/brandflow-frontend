@@ -69,6 +69,12 @@ const createRequest = async (method, url, data = null, config = {}) => {
     requestUrl += `${separator}viewerId=${user.id}&viewerRole=${encodeURIComponent(user.role)}`;
   }
   
+  // Final HTTP to HTTPS conversion (after all URL modifications)
+  if (requestUrl.startsWith('http://')) {
+    requestUrl = requestUrl.replace('http://', 'https://');
+    console.warn('⚠️ Final HTTP를 HTTPS로 변환:', requestUrl);
+  }
+  
   if (DEBUG_MODE) {
     console.log(`API Request: ${method} ${requestUrl}`);
   }
