@@ -92,7 +92,9 @@ export const validateCampaignData = (campaignData) => {
       end_date: campaign.end_date || null,
       creator_id: Number(campaign.creator_id) || null,
       created_at: campaign.created_at || null,
-      updated_at: campaign.updated_at || null
+      updated_at: campaign.updated_at || null,
+      // 백엔드 필드와 프론트엔드 필드 매핑
+      manager_name: campaign.creator_name || campaign.User?.name || null
     };
   });
 };
