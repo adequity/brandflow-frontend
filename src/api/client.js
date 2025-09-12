@@ -20,8 +20,11 @@ const createRequest = async (method, url, data = null, config = {}) => {
   }
   
   // Add trailing slash to prevent 307 redirects for API endpoints
-  if (finalUrl.includes('/api/') && !finalUrl.includes('?') && !finalUrl.endsWith('/')) {
-    finalUrl += '/';
+  if (finalUrl.includes('/api/')) {
+    const [baseUrl, queryString] = finalUrl.split('?');
+    if (!baseUrl.endsWith('/')) {
+      finalUrl = baseUrl + '/' + (queryString ? '?' + queryString : '');
+    }
   }
   
   // HTTP를 HTTPS로 강제 변환 (Mixed Content 방지)
