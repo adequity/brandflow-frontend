@@ -5,6 +5,7 @@ import api from '../api/client';
 import WorkTypeManagement from '../components/WorkTypeManagement';
 import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
+import { getCurrentUser } from '../utils/permissions';
 
 const ProductManagement = ({ loggedInUser }) => {
   const { showSuccess, showError, showWarning } = useToast();
@@ -32,7 +33,13 @@ const ProductManagement = ({ loggedInUser }) => {
       if (token) {
         try {
           // 실제 API 호출
-          const response = await api.get('/api/products/');
+          const currentUser = getCurrentUser();
+          const params = currentUser?.id ? {
+            viewerId: currentUser.id,
+            viewerRole: currentUser.role
+          } : {};
+
+          const response = await api.get('/api/products', { params });
           let allProducts = response.data.products || response.data;
           
           console.log('ProductManagement: 실제 API 데이터 로드 성공', allProducts.length, '개');
@@ -113,7 +120,13 @@ const ProductManagement = ({ loggedInUser }) => {
       if (token) {
         try {
           // 실제 API에서 업무타입 목록을 가져와서 카테고리로 사용 (1:1 매핑)
-          const response = await api.get('/api/work-types/');
+          const currentUser = getCurrentUser();
+          const params = currentUser?.id ? {
+            viewerId: currentUser.id,
+            viewerRole: currentUser.role
+          } : {};
+
+          const response = await api.get('/api/work-types', { params });
           const workTypes = response.data;
           const categories = workTypes.map(wt => wt.name);
           
@@ -157,10 +170,13 @@ const ProductManagement = ({ loggedInUser }) => {
   const handleCreateProduct = async (productData) => {
     try {
       // 실제 API 호출
-      const response = await api.post('/api/products/', {
-        ...productData,
-        viewerId: loggedInUser?.id,
-        viewerRole: loggedInUser?.role
+      const response = await api.post('/api/products', {
+        ...productData
+      }, {
+        params: {
+          viewerId: loggedInUser?.id,
+          viewerRole: loggedInUser?.role
+        }
       });
       showSuccess('상품이 생성되었습니다!');
       fetchProducts();
@@ -174,10 +190,13 @@ const ProductManagement = ({ loggedInUser }) => {
   const handleUpdateProduct = async (productId, productData) => {
     try {
       // 실제 API 호출
-      const response = await api.put(`/api/products/${productId}/`, {
-        ...productData,
-        viewerId: loggedInUser?.id,
-        viewerRole: loggedInUser?.role
+      const response = await api.put(`/api/products/${productId}`, {
+        ...productData
+      }, {
+        params: {
+          viewerId: loggedInUser?.id,
+          viewerRole: loggedInUser?.role
+        }
       });
       showSuccess('상품이 수정되었습니다!');
       fetchProducts();
@@ -192,7 +211,7 @@ const ProductManagement = ({ loggedInUser }) => {
   const handleDeleteProduct = async (productId) => {
     try {
       // 실제 API 호출
-      const response = await api.delete(`/api/products/${productId}/`, {
+      const response = await api.delete(`/api/products/${productId}`, {
         params: {
           viewerId: loggedInUser?.id,
           viewerRole: loggedInUser?.role

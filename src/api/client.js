@@ -132,12 +132,18 @@ const createRequest = async (method, url, data = null, config = {}) => {
       signal: AbortSignal.timeout(API_TIMEOUT)
     };
     
-    // Railway API 설정 - HTTP/HTTPS 리다이렉트 허용
+    // Railway API 설정 - HTTPS 전용으로 CSP 위반 방지
     if (requestUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
+      // fetch 직전 HTTPS 재확인 (CSP 위반 방지)
+      if (requestUrl.startsWith('http://')) {
+        requestUrl = requestUrl.replace('http://', 'https://');
+        console.log('🔒 Fetch 직전 HTTPS 재변환:', requestUrl);
+      }
+      
       fetchOptions.mode = 'cors';
       fetchOptions.credentials = 'omit';
-      fetchOptions.redirect = 'follow'; // HTTP/HTTPS 리다이렉트 자동 처리
-      console.log('🔧 Railway API 호출 (HTTP/HTTPS 허용):', requestUrl);
+      fetchOptions.redirect = 'follow'; // 리다이렉트 자동 처리
+      console.log('🔧 Railway API 호출 (HTTPS 전용):', requestUrl);
     }
     
     const response = await fetch(requestUrl, fetchOptions);
