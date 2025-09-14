@@ -67,53 +67,16 @@ const CampaignDetailPage = () => {
                     console.log('캠페인:', campaignData.name);
                     console.log('포스트:', (campaignData.posts || []).length, '개');
                 } catch (apiError) {
-                    console.warn('CampaignDetailPage: API 호출 실패, 더미 데이터 사용', apiError);
-                    // API 실패시 더미 데이터 사용
-                    const dummyCampaign = {
-                        id: parseInt(campaignId),
-                        name: '테스트 캠페인 - 상품 매핑 테스트',
-                        client: '테스트 클라이언트',
-                        managerId: 1,
-                        Manager: { name: '슈퍼 관리자' },
-                        posts: [
-                            {
-                                id: 1,
-                                title: '블로그 포스트 테스트',
-                                workType: '블로그',
-                                topicStatus: '대기',
-                                outline: null,
-                                outlineStatus: null,
-                                images: [],
-                                publishedUrl: null,
-                                orderRequestStatus: null,
-                                orderRequestId: null,
-                                createdAt: new Date().toISOString(),
-                                startDate: '2025-08-21',
-                                dueDate: '2025-08-25',
-                                productId: 1,
-                                quantity: 1
-                            }
-                        ]
-                    };
-                    
-                    setCampaign(dummyCampaign);
-                    setPosts(dummyCampaign.posts || []);
-                    console.log('캠페인 상세 더미 데이터 로드 성공:', dummyCampaign.name);
+                    console.error('CampaignDetailPage: API 호출 실패', apiError);
+                    setError(`캠페인 데이터를 불러올 수 없습니다: ${apiError.message}`);
+                    setLoading(false);
+                    return;
                 }
             } else {
-                console.warn('CampaignDetailPage: 인증 토큰이 없어 더미 데이터 사용');
-                // 토큰이 없으면 더미 데이터 사용
-                const dummyCampaign = {
-                    id: parseInt(campaignId),
-                    name: '테스트 캠페인 - 상품 매핑 테스트',
-                    client: '테스트 클라이언트',
-                    managerId: 1,
-                    Manager: { name: '슈퍼 관리자' },
-                    posts: []
-                };
-                
-                setCampaign(dummyCampaign);
-                setPosts(dummyCampaign.posts || []);
+                console.error('CampaignDetailPage: 인증 토큰이 없습니다');
+                setError('로그인이 필요합니다. 다시 로그인해주세요.');
+                setLoading(false);
+                return;
             }
         } catch (error) {
             console.error("캠페인 상세 정보 로딩 실패:", error);
@@ -286,8 +249,7 @@ const CampaignDetailPage = () => {
             payload = { outline: updatedContent, outlineStatus: '대기' };
         }
         try {
-            // 더미로 수정 성공 처리
-            showSuccess('수정이 완료되었습니다! (더미 모드)');
+            showError('수정 기능이 현재 사용 불가능합니다. 관리자에게 문의하세요.');
             fetchCampaignDetail();
         } catch (error) { 
             showError('수정 실패'); 
@@ -314,9 +276,12 @@ const CampaignDetailPage = () => {
 
     const handleRegisterTopic = async (topicData) => {
         try {
-            // 더미로 새 포스트 생성
+            showError('새 업무 추가 기능이 현재 사용 불가능합니다. 관리자에게 문의하세요.');
+            return;
+            
+            // 더미 코드 (사용 안함)
             const newPost = {
-                id: Date.now(), // 더미 ID
+                id: Date.now(),
                 title: topicData.title,
                 workType: topicData.workType,
                 topicStatus: topicData.skipApproval ? '승인' : '대기',
@@ -335,7 +300,7 @@ const CampaignDetailPage = () => {
             };
             
             setPosts(prevPosts => [...prevPosts, newPost]);
-            showSuccess('새로운 업무가 성공적으로 등록되었습니다! (더미 모드)');
+            // 더미 코드로 실행되지 않음
         } catch (error) { 
             console.error('업무 등록 실패:', error);
             showError('업무 등록에 실패했습니다.'); 

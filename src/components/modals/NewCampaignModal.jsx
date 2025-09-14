@@ -223,19 +223,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                         stack: error.stack
                     });
                     
-                    // 🚨 긴급 테스트: 하드코딩된 테스트 데이터 추가
-                    console.log('🚨 API 실패 - 하드코딩 데이터 사용');
-                    const testClients = [
-                        { id: 999, name: 'TEST 클라이언트 1', company: 'TEST 회사', role: '클라이언트' },
-                        { id: 998, name: 'TEST 클라이언트 2', company: 'TEST 회사 2', role: '클라이언트' },
-                        { id: 997, name: '실제 API 호출 실패', company: '백엔드 연결 문제', role: '클라이언트' },
-                        { id: 996, name: 'HTTP/HTTPS 이슈', company: 'Mixed Content 에러', role: '클라이언트' }
-                    ];
-                    console.log('🚨 테스트 클라이언트 데이터 설정:', testClients);
-                    setClientUsers(testClients);
-                    
-                    // 별도 토스트 메시지로 에러 알림
-                    showError('클라이언트 API 호출 실패 - 테스트 데이터 표시 중');
+                    console.error('클라이언트 목록을 불러올 수 없습니다:', error);
+                    setClientUsers([]);
+                    showError('클라이언트 목록 로드 실패. 관리자에게 문의하세요.');
                 } else {
                     console.log('🚫 API 요청이 중단되었습니다 (정상)');
                 }
