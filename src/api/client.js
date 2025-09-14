@@ -1,5 +1,13 @@
 // API Client - Clean implementation with Railway optimization
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production-99ae.up.railway.app').replace(/\/$/, '');
+// Railway 대체 URL 시도 (HTTPS 강제)
+const RAILWAY_ALTERNATIVES = [
+  'https://brandflow-backend-production-99ae.up.railway.app',
+  'https://web-production-99ae.up.railway.app', // Railway 대체 도메인 패턴
+  'https://production-99ae.up.railway.app' // 또 다른 패턴
+];
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || RAILWAY_ALTERNATIVES[0]).replace(/\/$/, '');
+console.log('🔧 사용할 API URL:', API_BASE_URL);
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -19,19 +27,22 @@ const createRequest = async (method, url, data = null, config = {}) => {
     finalUrl = url;
   }
   
-  // Railway HTTPS 강제 적용 - HTTP 리다이렉트 방지
+  // Railway HTTPS 307 리다이렉트 방지 전략
   if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
-    // Railway에서는 HTTPS만 사용
+    console.log('🔧 Railway URL 처리 시작:', finalUrl);
+    
+    // 1. HTTPS 강제 유지
     finalUrl = finalUrl.replace('http://', 'https://');
-    // Railway에서 trailing slash가 307 리다이렉트 원인이므로 제거 (query parameter 유무 관계없이)
+    
+    // 2. Railway 특수 case: trailing slash 완전 제거 (모든 경우)
     if (finalUrl.includes('/api/')) {
       const [baseUrl, queryString] = finalUrl.split('?');
-      if (baseUrl.endsWith('/')) {
-        const cleanUrl = baseUrl.slice(0, -1);
-        finalUrl = queryString ? `${cleanUrl}?${queryString}` : cleanUrl;
-      }
+      // 끝에 /가 있으면 무조건 제거
+      const cleanedBaseUrl = baseUrl.replace(/\/$/, '');
+      finalUrl = queryString ? `${cleanedBaseUrl}?${queryString}` : cleanedBaseUrl;
     }
-    console.log('🔒 Railway HTTPS 강제 적용 (trailing slash 제거):', finalUrl);
+    
+    console.log('✅ Railway URL 최종 처리:', finalUrl);
   } else {
     // 다른 API의 경우 기존 로직 사용
     if (finalUrl.includes('/api/')) {
@@ -103,9 +114,12 @@ const createRequest = async (method, url, data = null, config = {}) => {
       signal: AbortSignal.timeout(API_TIMEOUT)
     };
     
-    // Railway API 최적화
+    // Railway API 307 리다이렉트 처리
     if (requestUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
-      console.log('🚀 Railway API 호출:', requestUrl);
+      fetchOptions.mode = 'cors';
+      fetchOptions.credentials = 'omit';
+      fetchOptions.redirect = 'follow'; // 리다이렉트 따라가기
+      console.log('🔧 Railway API 호출 (redirect follow):', requestUrl);
     }
     
     const response = await fetch(requestUrl, fetchOptions);
