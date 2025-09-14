@@ -1,5 +1,5 @@
 // API Client - Clean implementation without hardcoding
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production-99ae.up.railway.app';
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -19,18 +19,29 @@ const createRequest = async (method, url, data = null, config = {}) => {
     finalUrl = url;
   }
   
-  // Add trailing slash to prevent 307 redirects for API endpoints
-  if (finalUrl.includes('/api/')) {
-    const [baseUrl, queryString] = finalUrl.split('?');
-    if (!baseUrl.endsWith('/')) {
-      finalUrl = baseUrl + '/' + (queryString ? '?' + queryString : '');
-    }
-  }
-  
-  // HTTP를 HTTPS로 강제 변환 (Mixed Content 방지)
-  if (finalUrl.startsWith('http://')) {
+  // Railway HTTPS 강제 적용 - HTTP 리다이렉트 방지
+  if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
+    // Railway에서는 HTTPS만 사용하고 trailing slash 제거
     finalUrl = finalUrl.replace('http://', 'https://');
-    console.warn('⚠️ HTTP를 HTTPS로 변환:', finalUrl);
+    // Railway에서 trailing slash가 307 리다이렉트 원인이므로 제거
+    if (finalUrl.includes('/api/') && finalUrl.endsWith('/') && !finalUrl.includes('?')) {
+      finalUrl = finalUrl.slice(0, -1);
+    }
+    console.log('🔒 Railway HTTPS 강제 적용:', finalUrl);
+  } else {
+    // 다른 API의 경우 기존 로직 사용
+    if (finalUrl.includes('/api/')) {
+      const [baseUrl, queryString] = finalUrl.split('?');
+      if (!baseUrl.endsWith('/')) {
+        finalUrl = baseUrl + '/' + (queryString ? '?' + queryString : '');
+      }
+    }
+    
+    // HTTP를 HTTPS로 강제 변환 (Mixed Content 방지)
+    if (finalUrl.startsWith('http://')) {
+      finalUrl = finalUrl.replace('http://', 'https://');
+      console.warn('⚠️ HTTP를 HTTPS로 변환:', finalUrl);
+    }
   }
   
   // Debug: URL 구성 과정 로그

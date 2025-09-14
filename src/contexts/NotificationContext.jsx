@@ -196,17 +196,15 @@ export const NotificationProvider = ({ children }) => {
     };
   }, []);
 
-  // 컴포넌트 마운트 시 미읽음 개수 조회 (임시 비활성화)
+  // 컴포넌트 마운트 시 미읽음 개수 조회
   useEffect(() => {
-    // 알림 기능 임시 비활성화 - CSP 문제 해결까지
-    console.warn('알림 기능 임시 비활성화 - CSP 문제 해결 중');
-    setUnreadCount(0);
+    fetchUnreadCount();
     
-    // fetchUnreadCount();
     // 주기적으로 미읽음 개수 업데이트 (30초마다)
-    // const interval = setInterval(fetchUnreadCount, 30000);
-    // return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(fetchUnreadCount, 30000);
+    
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
   const value = useMemo(() => ({
     notifications,
