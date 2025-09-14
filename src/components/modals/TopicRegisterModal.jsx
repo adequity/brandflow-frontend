@@ -3,6 +3,7 @@ import { ImagePlus } from 'lucide-react';
 import useImagePaste from '../../hooks/useImagePaste';
 import ImageViewer from '../common/ImageViewer';
 import api from '../../api/client';
+import { getCurrentUser } from '../../utils/permissions';
 
 const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
     const [title, setTitle] = useState('');
@@ -61,10 +62,16 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                 
                 if (token) {
                     try {
-                        // 실제 API 호출
+                        // 실제 API 호출 - 현재 사용자 정보와 함께 요청
+                        const currentUser = getCurrentUser();
+                        const params = currentUser?.id ? {
+                            viewerId: currentUser.id,
+                            viewerRole: currentUser.role
+                        } : {};
+
                         const [productsResponse, workTypesResponse] = await Promise.all([
-                            api.get('/api/products/'),
-                            api.get('/api/work-types/')
+                            api.get('/api/products/', { params }),
+                            api.get('/api/work-types/', { params })
                         ]);
                         
                         // API 응답에서 products 배열 추출 (백엔드가 직접 배열을 응답하거나 {products: [], total: n} 형태로 응답)
