@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
+import { canEditCampaign } from '../../utils/permissions';
 
 const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const { showSuccess, showError } = useToast();
@@ -81,6 +82,13 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 권한 재검증
+    if (!canEditCampaign(currentUser, campaign)) {
+      showError('이 캠페인을 수정할 권한이 없습니다.');
+      return;
+    }
+    
     setIsLoading(true);
 
     try {

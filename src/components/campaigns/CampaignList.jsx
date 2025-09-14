@@ -9,6 +9,7 @@ import ConfirmModal from '../ui/ConfirmModal';
 import { debugAuth, checkAuthToken } from '../../utils/tokenUtils';
 import { useToast } from '../../contexts/ToastContext';
 import { ensureArray, safeFormatCurrency } from '../../utils/dataUtils';
+import { canEditCampaign } from '../../utils/permissions';
 
 const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSelectCampaign, currentUser, pagination, onPageChange }) => {
   const { showSuccess, showError } = useToast();
@@ -514,10 +515,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                       <MessageSquare size={16} />
                     </button>
                   </td>
-                  {(currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민' || currentUser?.role === '직원') && (
+                  {canEditCampaign(currentUser, campaign) && (
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        {/* 편집 버튼 - 슈퍼 어드민, 대행사 어드민, 직원 모두 가능 */}
+                        {/* 편집 버튼 - 모든 계정이 자신의 권한 안에 있는 캠페인 편집 가능 */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -529,11 +530,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                           <Edit size={16} />
                         </button>
                         
-                        {/* 삭제 버튼 - 권한별 제한 */}
-                        {(currentUser?.role === '슈퍼 어드민' || 
-                          currentUser?.role === '대행사 어드민' || 
-                          (currentUser?.role === '직원' && campaign.creator_id === currentUser.id) || 
-                          currentUser?.role === '클라이언트') && (
+                        {/* 삭제 버튼 - 편집 권한과 동일하게 적용 */}
+                        {canEditCampaign(currentUser, campaign) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

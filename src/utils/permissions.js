@@ -377,6 +377,39 @@ export const canAccessCampaign = (user, campaign) => {
 };
 
 /**
+ * 캠페인 수정 권한 확인 - 모든 계정은 자신의 권한 안에 있는 캠페인을 수정할 수 있음
+ */
+export const canEditCampaign = (user, campaign) => {
+  if (!user || !campaign) return false;
+  
+  // 슈퍼 어드민: 모든 캠페인 수정 가능
+  if (user.role === ROLES.SUPER_ADMIN) return true;
+  
+  // 대행사 어드민: 자신이 관리하는 캠페인 수정 가능
+  if (user.role === ROLES.AGENCY_ADMIN) {
+    if (!user.company) return false;
+    // 같은 회사의 캠페인이거나, 본인이 매니저인 캠페인
+    return campaign.User?.company === user.company || 
+           campaign.Client?.company === user.company ||
+           campaign.managerId === user.id ||
+           campaign.creator_id === user.id;
+  }
+  
+  // 직원: 배정받은 캠페인 수정 가능 (담당자이거나 생성자인 경우)
+  if (user.role === ROLES.EMPLOYEE) {
+    return campaign.managerId === user.id || campaign.creator_id === user.id;
+  }
+  
+  // 클라이언트: 자신의 회사 캠페인 수정 가능
+  if (user.role === ROLES.CLIENT) {
+    return campaign.userId === user.id || 
+           (campaign.Client?.company === user.company);
+  }
+  
+  return false;
+};
+
+/**
  * 승인/반려 버튼 표시 여부 확인
  */
 export const shouldShowApprovalButtons = (user, resourceType, resource) => {
@@ -410,5 +443,6 @@ export default {
   canApprovePurchaseRequest,
   canApproveIncentive,
   canAccessCampaign,
+  canEditCampaign,
   shouldShowApprovalButtons
 };

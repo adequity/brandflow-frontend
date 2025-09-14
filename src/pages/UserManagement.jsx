@@ -516,6 +516,9 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                       // 대행사 어드민은 슈퍼 어드민 제외하고 관리 가능
                       if (loggedInUser?.role === '대행사 어드민' && user.role !== '슈퍼 어드민') return true;
                       
+                      // 직원은 클라이언트만 관리 가능
+                      if (loggedInUser?.role === '직원' && user.role === '클라이언트') return true;
+                      
                       // 그 외에는 관리 불가
                       return false;
                     })() && (
