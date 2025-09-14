@@ -34,9 +34,16 @@ const createRequest = async (method, url, data = null, config = {}) => {
       if (baseUrl.includes('/api/users') || 
           baseUrl.includes('/api/campaigns') || 
           baseUrl.includes('/api/purchase-requests') ||
-          baseUrl.includes('/api/notifications')) {
-        // 리스트 API는 trailing slash 필요
-        cleanedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+          baseUrl.includes('/api/notifications') ||
+          baseUrl.includes('/api/company')) {
+        // 리스트 API는 trailing slash 필요 (단, 하위 경로가 있는 경우 제외)
+        if (baseUrl.includes('/notifications/unread-count') || 
+            baseUrl.includes('/company/logo')) {
+          // 특정 하위 경로는 trailing slash 제거
+          cleanedBaseUrl = baseUrl.replace(/\/$/, '');
+        } else {
+          cleanedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+        }
       } else {
         // 다른 API는 trailing slash 제거
         cleanedBaseUrl = baseUrl.replace(/\/$/, '');
