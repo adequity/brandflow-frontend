@@ -21,9 +21,15 @@ const createRequest = async (method, url, data = null, config = {}) => {
     finalUrl = url;
   }
   
-  // Railway API 최적화 - HTTP/HTTPS 리다이렉트 허용
+  // Railway API 최적화 - HTTPS 강제 적용 (CSP 위반 방지)
   if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
     console.log('🔧 Railway URL 처리 시작:', finalUrl);
+    
+    // Railway 특수 case: HTTPS 강제 변환 (CSP 위반 방지)
+    if (finalUrl.startsWith('http://')) {
+      finalUrl = finalUrl.replace('http://', 'https://');
+      console.log('🔒 HTTP→HTTPS 강제 변환:', finalUrl);
+    }
     
     // Railway 특수 case: 이중 slash 방지 + trailing slash 정규화
     if (finalUrl.includes('/api/')) {

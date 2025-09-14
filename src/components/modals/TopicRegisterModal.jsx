@@ -17,6 +17,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
     const [skipApproval, setSkipApproval] = useState(false);
     const [loading, setLoading] = useState(false);
     const [workTypes, setWorkTypes] = useState([]);
+    const [error, setError] = useState(null);
 
     // 업무타입과 상품의 work_type 필드 매핑
     const workTypeCategoryMap = {
@@ -70,8 +71,8 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                         } : {};
 
                         const [productsResponse, workTypesResponse] = await Promise.all([
-                            api.get('/api/products/', { params }),
-                            api.get('/api/work-types/', { params })
+                            api.get('/api/products', { params }),
+                            api.get('/api/work-types', { params })
                         ]);
                         
                         // API 응답에서 products 배열 추출 (백엔드가 직접 배열을 응답하거나 {products: [], total: n} 형태로 응답)
