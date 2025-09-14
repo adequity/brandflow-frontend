@@ -41,11 +41,15 @@ const createRequest = async (method, url, data = null, config = {}) => {
           baseUrl.includes('/api/campaigns') || 
           baseUrl.includes('/api/purchase-requests') ||
           baseUrl.includes('/api/notifications') ||
-          baseUrl.includes('/api/company')) {
+          baseUrl.includes('/api/company') ||
+          baseUrl.includes('/api/products') ||
+          baseUrl.includes('/api/work-types')) {
         // 특정 하위 경로는 trailing slash 제거
         if (baseUrl.includes('/notifications/unread-count') || 
             baseUrl.includes('/company/logo') ||
             baseUrl.includes('/campaigns/staff-list') ||
+            baseUrl.includes('/api/products') ||
+            baseUrl.includes('/api/work-types') ||
             (baseUrl.includes('/api/campaigns/') && /\/api\/campaigns\/\d+$/.test(baseUrl))) {
           cleanedBaseUrl = baseUrl.replace(/\/$/, '');
         } else {

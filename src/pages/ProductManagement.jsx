@@ -128,7 +128,7 @@ const ProductManagement = ({ loggedInUser }) => {
 
           const response = await api.get('/api/work-types', { params });
           const workTypes = response.data;
-          const categories = workTypes.map(wt => wt.name);
+          const categories = Array.isArray(workTypes) ? workTypes.map(wt => wt.name) : [];
           
           setCategories(categories);
           console.log('ProductManagement: 실제 업무타입 기반 카테고리 로드:', categories.length, '개');
