@@ -78,85 +78,22 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                         console.log('상품 목록:', Array.isArray(productsData) ? productsData.length : 'undefined', '개');
                         console.log('업무타입 목록:', Array.isArray(workTypesData) ? workTypesData.length : 'undefined', '개');
                     } catch (apiError) {
-                        console.warn('TopicRegisterModal: API 호출 실패, 더미 데이터 사용', apiError);
-                        // API 실패시 더미 데이터 사용
-                        const dummyProducts = [
-                            { id: 1, name: '블로그 포스트 작성', category: '블로그', costPrice: 100000, sellingPrice: 150000 },
-                            { id: 2, name: '인스타그램 포스트 제작', category: '인스타그램', costPrice: 50000, sellingPrice: 80000 },
-                            { id: 3, name: '페이스북 광고 제작', category: '페이스북', costPrice: 80000, sellingPrice: 120000 },
-                            { id: 4, name: '유튜브 영상 제작', category: '유튜브', costPrice: 300000, sellingPrice: 500000 },
-                            { id: 5, name: '브랜드 디자인', category: '디자인', costPrice: 500000, sellingPrice: 800000 },
-                            { id: 6, name: '마케팅 전략 수립', category: '마케팅', costPrice: 600000, sellingPrice: 1000000 },
-                            { id: 7, name: '영상 편집 서비스', category: '영상 편집', costPrice: 180000, sellingPrice: 300000 }
-                        ];
-                        
-                        const dummyWorkTypes = [
-                            { id: 1, name: '블로그' },
-                            { id: 2, name: '인스타그램' },
-                            { id: 3, name: '페이스북' },
-                            { id: 4, name: '유튜브' },
-                            { id: 5, name: '디자인' },
-                            { id: 6, name: '마케팅' },
-                            { id: 7, name: '영상 편집' }
-                        ];
-                        
-                        setProducts(dummyProducts);
-                        setWorkTypes(dummyWorkTypes);
-                        
-                        console.log('상품 목록 로드 성공:', dummyProducts.length, '개');
-                        console.log('업무타입 목록 로드 성공:', dummyWorkTypes.length, '개');
+                        console.error('TopicRegisterModal: API 호출 실패', apiError);
+                        setProducts([]);
+                        setWorkTypes([]);
+                        setError('상품 및 업무타입 목록을 불러올 수 없습니다. 관리자에게 문의하세요.');
                     }
                 } else {
-                    console.warn('TopicRegisterModal: 인증 토큰이 없어 더미 데이터 사용');
-                    // 토큰이 없으면 더미 데이터 사용
-                    const dummyProducts = [
-                        { id: 1, name: '블로그 포스트 작성', category: '블로그', costPrice: 100000, sellingPrice: 150000 },
-                        { id: 2, name: '인스타그램 포스트 제작', category: '인스타그램', costPrice: 50000, sellingPrice: 80000 },
-                        { id: 3, name: '페이스북 광고 제작', category: '페이스북', costPrice: 80000, sellingPrice: 120000 },
-                        { id: 4, name: '유튜브 영상 제작', category: '유튜브', costPrice: 300000, sellingPrice: 500000 },
-                        { id: 5, name: '브랜드 디자인', category: '디자인', costPrice: 500000, sellingPrice: 800000 },
-                        { id: 6, name: '마케팅 전략 수립', category: '마케팅', costPrice: 600000, sellingPrice: 1000000 },
-                        { id: 7, name: '영상 편집 서비스', category: '영상 편집', costPrice: 180000, sellingPrice: 300000 }
-                    ];
-                    
-                    const dummyWorkTypes = [
-                        { id: 1, name: '블로그' },
-                        { id: 2, name: '인스타그램' },
-                        { id: 3, name: '페이스북' },
-                        { id: 4, name: '유튜브' },
-                        { id: 5, name: '디자인' },
-                        { id: 6, name: '마케팅' },
-                        { id: 7, name: '영상 편집' }
-                    ];
-                    
-                    setProducts(dummyProducts);
-                    setWorkTypes(dummyWorkTypes);
+                    console.error('TopicRegisterModal: 인증 토큰이 없습니다');
+                    setError('로그인이 필요합니다. 다시 로그인해 주세요.');
+                    setProducts([]);
+                    setWorkTypes([]);
                 }
             } catch (error) {
                 console.error('TopicRegisterModal: 데이터 로드 실패:', error);
-                // 에러시 더미 데이터 사용
-                const dummyProducts = [
-                    { id: 1, name: '블로그 포스트 작성', category: '블로그', costPrice: 100000, sellingPrice: 150000 },
-                    { id: 2, name: '인스타그램 포스트 제작', category: '인스타그램', costPrice: 50000, sellingPrice: 80000 },
-                    { id: 3, name: '페이스북 광고 제작', category: '페이스북', costPrice: 80000, sellingPrice: 120000 },
-                    { id: 4, name: '유튜브 영상 제작', category: '유튜브', costPrice: 300000, sellingPrice: 500000 },
-                    { id: 5, name: '브랜드 디자인', category: '디자인', costPrice: 500000, sellingPrice: 800000 },
-                    { id: 6, name: '마케팅 전략 수립', category: '마케팅', costPrice: 600000, sellingPrice: 1000000 },
-                    { id: 7, name: '영상 편집 서비스', category: '영상 편집', costPrice: 180000, sellingPrice: 300000 }
-                ];
-                
-                const dummyWorkTypes = [
-                    { id: 1, name: '블로그' },
-                    { id: 2, name: '인스타그램' },
-                    { id: 3, name: '페이스북' },
-                    { id: 4, name: '유튜브' },
-                    { id: 5, name: '디자인' },
-                    { id: 6, name: '마케팅' },
-                    { id: 7, name: '영상 편집' }
-                ];
-                
-                setProducts(dummyProducts);
-                setWorkTypes(dummyWorkTypes);
+                setError(`데이터를 불러올 수 없습니다: ${error.message}`);
+                setProducts([]);
+                setWorkTypes([]);
             } finally {
                 setLoading(false);
             }
