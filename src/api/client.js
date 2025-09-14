@@ -6,8 +6,13 @@ console.log('🔧 API Client 초기화:', API_BASE_URL);
 
 // Simple API client
 const createRequest = async (method, url, data = null, config = {}) => {
-  // Build final URL
-  const finalUrl = url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
+  // Build final URL with trailing slash for work-types
+  let finalUrl = url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
+  
+  // Fix trailing slash for work-types API
+  if (finalUrl.includes('/api/work-types') && !finalUrl.includes('/api/work-types/')) {
+    finalUrl = finalUrl.replace('/api/work-types', '/api/work-types/');
+  }
   
   // Headers
   const headers = {
