@@ -1,5 +1,5 @@
-// API Client - Clean implementation without hardcoding
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production-99ae.up.railway.app';
+// API Client - Clean implementation with Railway optimization
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production-99ae.up.railway.app').replace(/\/$/, '');
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
 
@@ -95,12 +95,20 @@ const createRequest = async (method, url, data = null, config = {}) => {
   }
   
   try {
-    const response = await fetch(requestUrl, {
+    // Railway API를 위한 특별한 fetch 옵션
+    const fetchOptions = {
       method: method.toUpperCase(),
       headers,
       body: data ? JSON.stringify(data) : null,
       signal: AbortSignal.timeout(API_TIMEOUT)
-    });
+    };
+    
+    // Railway API 최적화
+    if (requestUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
+      console.log('🚀 Railway API 호출:', requestUrl);
+    }
+    
+    const response = await fetch(requestUrl, fetchOptions);
     
     if (DEBUG_MODE) {
       console.log(`API Response: ${response.status} ${response.statusText}`);

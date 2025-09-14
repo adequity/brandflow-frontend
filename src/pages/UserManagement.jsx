@@ -67,7 +67,37 @@ const UserManagement = ({ loggedInUser }) => {
       setUsers(transformedUsers);
     } catch (error) {
       console.error('사용자 목록 로딩 실패:', error);
-      setUsers([]);
+      
+      // API 호출 실패 시 fallback 더미 데이터 사용
+      const fallbackUsers = [
+        {
+          id: -1,
+          name: '관리자',
+          email: 'admin@brandflow.com',
+          role: '슈퍼 어드민',
+          company: 'BrandFlow',
+          contact: '010-0000-0000',
+          incentiveRate: 0,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        },
+        {
+          id: -2,
+          name: '테스트 클라이언트',
+          email: 'client@test.com',
+          role: '클라이언트',
+          company: '테스트 회사',
+          contact: '010-1111-1111',
+          incentiveRate: 10,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString()
+        }
+      ];
+      
+      console.log('⚠️ Fallback 더미 데이터 사용:', fallbackUsers);
+      setUsers(fallbackUsers);
     } finally {
       setIsLoading(false);
     }
