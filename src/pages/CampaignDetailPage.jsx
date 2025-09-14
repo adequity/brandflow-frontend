@@ -24,6 +24,7 @@ const CampaignDetailPage = () => {
     
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [posts, setPosts] = useState([]);
     const [filteredPosts, setFilteredPosts] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]);
@@ -69,13 +70,13 @@ const CampaignDetailPage = () => {
                 } catch (apiError) {
                     console.error('CampaignDetailPage: API 호출 실패', apiError);
                     setError(`캠페인 데이터를 불러올 수 없습니다: ${apiError.message}`);
-                    setLoading(false);
+                    setIsLoading(false);
                     return;
                 }
             } else {
                 console.error('CampaignDetailPage: 인증 토큰이 없습니다');
                 setError('로그인이 필요합니다. 다시 로그인해주세요.');
-                setLoading(false);
+                setIsLoading(false);
                 return;
             }
         } catch (error) {
@@ -500,6 +501,23 @@ const CampaignDetailPage = () => {
 
     if (isLoading) {
         return <div className="p-6">캠페인 상세 정보를 불러오는 중...</div>;
+    }
+    
+    if (error) {
+        return (
+            <div className="p-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    <h3 className="font-medium">오류가 발생했습니다</h3>
+                    <p className="mt-1">{error}</p>
+                    <button 
+                        onClick={() => { setError(null); fetchCampaignDetail(); }}
+                        className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                        다시 시도
+                    </button>
+                </div>
+            </div>
+        );
     }
     
     if (!campaign) {
