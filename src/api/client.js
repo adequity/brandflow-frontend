@@ -1,12 +1,6 @@
 // API Client - Clean implementation with Railway optimization
-// Railway 대체 URL 시도 (HTTPS 강제)
-const RAILWAY_ALTERNATIVES = [
-  'https://brandflow-backend-production-99ae.up.railway.app',
-  'https://web-production-99ae.up.railway.app', // Railway 대체 도메인 패턴
-  'https://production-99ae.up.railway.app' // 또 다른 패턴
-];
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || RAILWAY_ALTERNATIVES[0]).replace(/\/$/, '');
+// Railway API - HTTP/HTTPS 자동 감지
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://brandflow-backend-production-99ae.up.railway.app').replace(/\/$/, '');
 console.log('🔧 사용할 API URL:', API_BASE_URL);
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000;
 const DEBUG_MODE = import.meta.env.VITE_DEBUG_MODE === 'true';
@@ -27,17 +21,13 @@ const createRequest = async (method, url, data = null, config = {}) => {
     finalUrl = url;
   }
   
-  // Railway HTTPS 307 리다이렉트 방지 전략
+  // Railway API 최적화 - HTTP/HTTPS 리다이렉트 허용
   if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
     console.log('🔧 Railway URL 처리 시작:', finalUrl);
     
-    // 1. HTTPS 강제 유지
-    finalUrl = finalUrl.replace('http://', 'https://');
-    
-    // 2. Railway 특수 case: trailing slash 완전 제거 (모든 경우)
+    // Railway 특수 case: trailing slash 완전 제거 (리다이렉트 방지)
     if (finalUrl.includes('/api/')) {
       const [baseUrl, queryString] = finalUrl.split('?');
-      // 끝에 /가 있으면 무조건 제거
       const cleanedBaseUrl = baseUrl.replace(/\/$/, '');
       finalUrl = queryString ? `${cleanedBaseUrl}?${queryString}` : cleanedBaseUrl;
     }
@@ -114,12 +104,12 @@ const createRequest = async (method, url, data = null, config = {}) => {
       signal: AbortSignal.timeout(API_TIMEOUT)
     };
     
-    // Railway API 307 리다이렉트 처리
+    // Railway API 설정 - HTTP/HTTPS 리다이렉트 허용
     if (requestUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
       fetchOptions.mode = 'cors';
       fetchOptions.credentials = 'omit';
-      fetchOptions.redirect = 'follow'; // 리다이렉트 따라가기
-      console.log('🔧 Railway API 호출 (redirect follow):', requestUrl);
+      fetchOptions.redirect = 'follow'; // HTTP/HTTPS 리다이렉트 자동 처리
+      console.log('🔧 Railway API 호출 (HTTP/HTTPS 허용):', requestUrl);
     }
     
     const response = await fetch(requestUrl, fetchOptions);
