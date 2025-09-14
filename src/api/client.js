@@ -145,7 +145,7 @@ const createRequest = async (method, url, data = null, config = {}) => {
       
       fetchOptions.mode = 'cors';
       fetchOptions.credentials = 'omit';
-      fetchOptions.redirect = 'follow'; // 리다이렉트 자동 처리
+      fetchOptions.redirect = 'manual'; // 리다이렉트 수동 처리하여 HTTPS 강제 유지
       console.log('🔧 Railway API 호출 (HTTPS 전용):', requestUrl);
     }
     
@@ -153,6 +153,37 @@ const createRequest = async (method, url, data = null, config = {}) => {
     
     if (DEBUG_MODE) {
       console.log(`API Response: ${response.status} ${response.statusText}`);
+    }
+    
+    // 수동 리다이렉트 처리 (HTTPS 강제 유지)
+    if (response.type === 'opaqueredirect' || [301, 302, 307, 308].includes(response.status)) {
+      const location = response.headers.get('Location');
+      if (location) {
+        console.log('🔀 리다이렉트 감지:', location);
+        // HTTP를 HTTPS로 강제 변환
+        const httpsLocation = location.replace(/^http:\/\//, 'https://');
+        console.log('🔒 HTTPS 강제 변환:', httpsLocation);
+        
+        // 리다이렉트된 URL로 재요청
+        return await fetch(httpsLocation, {
+          ...fetchOptions,
+          redirect: 'follow'
+        }).then(async (redirectResponse) => {
+          if (!redirectResponse.ok) {
+            let errorData;
+            try {
+              errorData = await redirectResponse.json();
+            } catch {
+              errorData = { message: redirectResponse.statusText };
+            }
+            const error = new Error(`HTTP ${redirectResponse.status}: ${redirectResponse.statusText}`);
+            error.response = { data: errorData, status: redirectResponse.status };
+            throw error;
+          }
+          const responseData = await redirectResponse.json();
+          return { data: responseData, status: redirectResponse.status, headers: redirectResponse.headers };
+        });
+      }
     }
     
     if (!response.ok) {
