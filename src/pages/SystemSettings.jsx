@@ -1,10 +1,11 @@
 // src/pages/SystemSettings.jsx
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, DollarSign, FileText, ToggleLeft, ToggleRight, Save, RefreshCw, Image } from 'lucide-react';
+import { Settings, Shield, DollarSign, FileText, ToggleLeft, ToggleRight, Save, RefreshCw, Image, List } from 'lucide-react';
 import api from '../api/client';
 import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import LogoUpload from '../components/LogoUpload';
+import WorkTypeManagement from '../components/WorkTypeManagement';
 import useLogo from '../hooks/useLogo';
 
 const SystemSettings = ({ loggedInUser }) => {
@@ -21,6 +22,7 @@ const SystemSettings = ({ loggedInUser }) => {
   const categories = [
     { id: 'all', label: '전체', icon: <Settings size={16} /> },
     { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
+    { id: 'worktype', label: '업무타입', icon: <List size={16} /> },
     { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
     { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
     { id: 'document', label: '문서', icon: <FileText size={16} /> },
@@ -271,6 +273,13 @@ const SystemSettings = ({ loggedInUser }) => {
               showSuccess(newLogo ? '로고가 업데이트되었습니다!' : '로고가 제거되었습니다!');
             }}
           />
+        </div>
+      )}
+
+      {/* 업무타입 관리 섹션 */}
+      {(selectedCategory === 'all' || selectedCategory === 'worktype') && (
+        <div className="mb-6">
+          <WorkTypeManagement loggedInUser={loggedInUser} />
         </div>
       )}
 
