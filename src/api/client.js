@@ -48,7 +48,6 @@ const createRequest = async (method, url, data = null, config = {}) => {
         if (baseUrl.includes('/notifications/unread-count') || 
             baseUrl.includes('/company/logo') ||
             baseUrl.includes('/campaigns/staff-list') ||
-            baseUrl.includes('/api/products') ||
             baseUrl.includes('/api/work-types') ||
             (baseUrl.includes('/api/campaigns/') && /\/api\/campaigns\/\d+$/.test(baseUrl))) {
           cleanedBaseUrl = baseUrl.replace(/\/$/, '');
