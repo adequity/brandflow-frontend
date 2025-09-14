@@ -25,10 +25,23 @@ const createRequest = async (method, url, data = null, config = {}) => {
   if (finalUrl.includes('brandflow-backend-production-99ae.up.railway.app')) {
     console.log('🔧 Railway URL 처리 시작:', finalUrl);
     
-    // Railway 특수 case: trailing slash 완전 제거 (리다이렉트 방지)
+    // Railway 특수 case: 이중 slash 방지 + trailing slash 정규화
     if (finalUrl.includes('/api/')) {
       const [baseUrl, queryString] = finalUrl.split('?');
-      const cleanedBaseUrl = baseUrl.replace(/\/$/, '');
+      
+      // API 엔드포인트별 trailing slash 규칙
+      let cleanedBaseUrl;
+      if (baseUrl.includes('/api/users') || 
+          baseUrl.includes('/api/campaigns') || 
+          baseUrl.includes('/api/purchase-requests') ||
+          baseUrl.includes('/api/notifications')) {
+        // 리스트 API는 trailing slash 필요
+        cleanedBaseUrl = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+      } else {
+        // 다른 API는 trailing slash 제거
+        cleanedBaseUrl = baseUrl.replace(/\/$/, '');
+      }
+      
       finalUrl = queryString ? `${cleanedBaseUrl}?${queryString}` : cleanedBaseUrl;
     }
     
