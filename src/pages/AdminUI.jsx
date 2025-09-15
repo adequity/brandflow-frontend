@@ -69,14 +69,17 @@ export default function AdminUI({ user, onLogout }) {
           // 고정된 해결책: 실제 데이터 직접 로드 (Mixed Content 우회)
           try {
             console.log('AdminUI: Railway API 직접 호출 시도...');
-            const apiUrl = `https://brandflow-backend-production-99ae.up.railway.app/api/campaigns/?viewerId=1&viewerRole=super_admin&page=${page}&size=10`;
+            // JWT 기반 API 호출로 수정하여 budget 필드 포함된 최신 응답 받기
+            const token = localStorage.getItem('authToken');
+            const apiUrl = `https://brandflow-backend-production-99ae.up.railway.app/api/campaigns/?page=${page}&size=10`;
             console.log('API URL:', apiUrl);
             
             const response = await fetch(apiUrl, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : undefined
               }
             });
             
@@ -126,32 +129,11 @@ export default function AdminUI({ user, onLogout }) {
         }
       } else {
         console.warn('AdminUI: 인증 토큰이 없어 실제 데이터 직접 로드 시도');
-        // 토큰이 없어도 실제 데이터 로드 시도
-        try {
-          const apiUrl = `https://brandflow-backend-production-99ae.up.railway.app/api/campaigns/?viewerId=1&viewerRole=super_admin&page=${currentPage}&size=10`;
-          const response = await fetch(apiUrl);
-          
-          if (response.ok) {
-            const campaignApiData = await response.json();
-            const realCampaigns = campaignApiData.data || campaignApiData.results || campaignApiData;
-            
-            if (realCampaigns && realCampaigns.length > 0) {
-              console.log('AdminUI: 토큰 없이 실제 데이터 로드 성공:', realCampaigns.length, '개');
-              setCampaigns(realCampaigns);
-              
-              if (campaignApiData.pagination) {
-                setPagination(campaignApiData.pagination);
-              }
-            } else {
-              setCampaigns([]);
-            }
-          } else {
-            setCampaigns([]);
-          }
-        } catch (error) {
-          console.error('토큰 없이 실제 데이터 로드 실패:', error);
-          setCampaigns([]);
-        }
+        // 토큰이 없으면 로그인 필요 안내
+        console.warn('인증 토큰이 없습니다. 로그인이 필요합니다.');
+        setCampaigns([]);
+        setUsers([]);
+        return;
         
         // JWT 인증을 통한 사용자 데이터 로드 시도
         try {
