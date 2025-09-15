@@ -80,21 +80,19 @@ const WorkTypeManagement = ({ loggedInUser }) => {
   const confirmDelete = async () => {
     const workType = deleteConfirm.workType;
     if (!workType) return;
-    
+
     try {
-      await api.delete(`/api/work-types/${workType.id}`, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      
+      console.log('📝 업무타입 삭제 시작 (JWT):', workType.id);
+
+      // JWT 기반 API 호출 (파라미터 없이, Authorization 헤더만 사용)
+      await api.delete(`/api/work-types/${workType.id}`);
+
       showSuccess('업무타입이 비활성화되었습니다.');
       fetchWorkTypes();
       setDeleteConfirm({ isOpen: false, workType: null });
     } catch (error) {
       console.error('업무타입 삭제 실패:', error);
-      const message = error.response?.data?.message || '업무타입 삭제에 실패했습니다.';
+      const message = error.response?.data?.detail || error.response?.data?.message || '업무타입 삭제에 실패했습니다.';
       showError(message);
     }
   };
