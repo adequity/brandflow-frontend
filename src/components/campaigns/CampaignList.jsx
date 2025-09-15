@@ -525,12 +525,12 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       {pagination && pagination.total_pages > 1 && (
         <div className="bg-white px-6 py-3 border-t border-gray-200 flex justify-between items-center">
           <div className="text-sm text-gray-700">
-            전체 {pagination.total_count}개 중 {((pagination.current_page - 1) * pagination.page_size) + 1}-{Math.min(pagination.current_page * pagination.page_size, pagination.total_count)}개 표시
+            전체 {pagination.total}개 중 {((pagination.page - 1) * pagination.size) + 1}-{Math.min(pagination.page * pagination.size, pagination.total)}개 표시
           </div>
           <div className="flex items-center space-x-2">
             {/* 이전 페이지 */}
             <button
-              onClick={() => onPageChange && onPageChange(pagination.current_page - 1)}
+              onClick={() => onPageChange && onPageChange(pagination.page - 1)}
               disabled={!pagination.has_prev}
               className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -540,7 +540,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
             {/* 페이지 번호들 */}
             {(() => {
               const pages = [];
-              const currentPage = pagination.current_page;
+              const currentPage = pagination.page;
               const totalPages = pagination.total_pages;
               
               // 시작과 끝 페이지 계산 (현재 페이지 기준 ±2)
@@ -601,7 +601,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
             {/* 다음 페이지 */}
             <button
-              onClick={() => onPageChange && onPageChange(pagination.current_page + 1)}
+              onClick={() => onPageChange && onPageChange(pagination.page + 1)}
               disabled={!pagination.has_next}
               className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
