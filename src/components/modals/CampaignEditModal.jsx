@@ -69,8 +69,13 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   // 초기값 설정
   useEffect(() => {
     if (campaign) {
-      console.log('[CAMPAIGN-EDIT] Campaign data received:', campaign);
-      console.log('[CAMPAIGN-EDIT] Budget:', campaign.budget, 'Start Date:', campaign.start_date, 'End Date:', campaign.end_date);
+      console.log('[CAMPAIGN-EDIT] ===== DETAILED CAMPAIGN DATA ANALYSIS =====');
+      console.log('[CAMPAIGN-EDIT] Full campaign object:', JSON.stringify(campaign, null, 2));
+      console.log('[CAMPAIGN-EDIT] Campaign keys:', Object.keys(campaign));
+      console.log('[CAMPAIGN-EDIT] Budget value:', campaign.budget, 'Type:', typeof campaign.budget);
+      console.log('[CAMPAIGN-EDIT] Start Date value:', campaign.start_date, 'Type:', typeof campaign.start_date);
+      console.log('[CAMPAIGN-EDIT] End Date value:', campaign.end_date, 'Type:', typeof campaign.end_date);
+      console.log('[CAMPAIGN-EDIT] ==============================================');
       
       const formattedData = {
         name: campaign.name || '',
@@ -84,6 +89,9 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
       };
       
       console.log('[CAMPAIGN-EDIT] Formatted form data:', formattedData);
+      console.log('[CAMPAIGN-EDIT] Budget after formatting:', formattedData.budget);
+      console.log('[CAMPAIGN-EDIT] Start date after formatting:', formattedData.start_date);
+      console.log('[CAMPAIGN-EDIT] End date after formatting:', formattedData.end_date);
       setFormData(formattedData);
     }
   }, [campaign]);
