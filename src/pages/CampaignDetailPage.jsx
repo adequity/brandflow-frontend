@@ -22,6 +22,7 @@ const CampaignDetailPage = () => {
     const { showSuccess, showError, showInfo } = useToast();
     const { createOrderRequest } = useOrder();
     
+    
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -58,7 +59,7 @@ const CampaignDetailPage = () => {
             
             if (token) {
                 try {
-                    // 실제 API 호출
+                    // JWT 토큰 기반 보안 API 호출 (파라미터 없이 토큰만 사용)
                     const response = await api.get(`/api/campaigns/${campaignId}`);
                     const campaignData = response.data;
                     
