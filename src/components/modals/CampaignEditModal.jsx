@@ -77,19 +77,25 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
       console.log('[CAMPAIGN-EDIT] End Date value:', campaign.end_date, 'Type:', typeof campaign.end_date);
       console.log('[CAMPAIGN-EDIT] ==============================================');
       
-      // Helper function to format date or provide reasonable default
-      const formatDateOrDefault = (dateValue, defaultDaysFromNow = 0) => {
-        if (dateValue && dateValue !== 'null') {
-          try {
-            return dateValue.split('T')[0];
-          } catch (error) {
-            console.warn('[CAMPAIGN-EDIT] Date parsing error:', error);
-          }
+      // Helper function to format date - ONLY use actual data, no defaults
+      const formatDateForEdit = (dateValue) => {
+        console.log('[CAMPAIGN-EDIT] Processing date value:', dateValue, 'Type:', typeof dateValue);
+        
+        if (!dateValue || dateValue === 'null' || dateValue === null) {
+          console.log('[CAMPAIGN-EDIT] Date is null/empty, returning empty string');
+          return '';
         }
-        // Provide a reasonable default date
-        const defaultDate = new Date();
-        defaultDate.setDate(defaultDate.getDate() + defaultDaysFromNow);
-        return defaultDate.toISOString().split('T')[0];
+        
+        try {
+          // Handle both string and Date object formats
+          const dateStr = dateValue instanceof Date ? dateValue.toISOString() : dateValue.toString();
+          const formattedDate = dateStr.split('T')[0];
+          console.log('[CAMPAIGN-EDIT] Formatted date result:', formattedDate);
+          return formattedDate;
+        } catch (error) {
+          console.warn('[CAMPAIGN-EDIT] Date parsing error:', error);
+          return '';
+        }
       };
 
       const formattedData = {
@@ -97,8 +103,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         description: campaign.description || '',
         client_company: campaign.client_company || '',
         budget: campaign.budget ? formatNumberWithCommas(campaign.budget.toString()) : '',
-        start_date: formatDateOrDefault(campaign.start_date, 0), // Default to today
-        end_date: formatDateOrDefault(campaign.end_date, 30), // Default to 30 days from now
+        start_date: formatDateForEdit(campaign.start_date),
+        end_date: formatDateForEdit(campaign.end_date),
         status: campaign.status || 'DRAFT',
         UserId: campaign.creator_id || ''
       };

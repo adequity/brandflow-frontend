@@ -71,6 +71,12 @@ const createRequest = async (method, url, data = null, config = {}) => {
       throw error;
     }
     
+    // 204 No Content는 body가 없으므로 JSON 파싱 건너뛰기
+    if (response.status === 204) {
+      console.log('✅ API 성공: 204 No Content (빈 응답)');
+      return { data: null, status: response.status, headers: response.headers };
+    }
+
     const responseData = await response.json();
     console.log('✅ API 성공:', responseData);
     return { data: responseData, status: response.status, headers: response.headers };

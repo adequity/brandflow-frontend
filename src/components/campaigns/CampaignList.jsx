@@ -228,15 +228,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         data: err.response?.data
       });
       
-      // 200/204 응답이지만 JSON 파싱 실패한 경우 (실제로는 삭제 성공)
-      if (err.response?.status === 200 || err.response?.status === 204 || 
-          (err.message && err.message.includes('JSON')) ||
-          (err.response?.status >= 200 && err.response?.status < 300)) {
-        console.log('[DELETE] 성공으로 재분류 - JSON 파싱 실패이지만 HTTP 성공');
-        setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
-        showSuccess('캠페인이 성공적으로 삭제되었습니다.');
-        return;
-      }
       
       // 실제 에러 처리
       if (err.response?.status === 403) {
@@ -372,14 +363,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                   >
                     <div className="text-sm">
                       <div className="font-medium text-blue-600">
-                        매출: {safeFormatCurrency(salesData.totalRevenue)}
+                        매출: {safeFormatCurrency(campaign.budget || 0)}
+                        {console.log(`[CAMPAIGN-DEBUG] Campaign ${campaign.id} budget:`, campaign.budget, typeof campaign.budget)}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        원가: {safeFormatCurrency(salesData.totalCost)}
-                      </div>
-                      <div className="text-xs text-green-600">
-                        {salesData.totalSales || 0}건 / 이익 {safeFormatCurrency(salesData.totalMargin)}
-                      </div>
+                      {/* 간단화: budget만 표시 */}
                     </div>
                   </td>
                   
