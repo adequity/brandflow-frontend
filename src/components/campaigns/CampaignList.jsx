@@ -67,48 +67,18 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       
       console.log('Payload to send:', payload);
 
-      // 대행사/슈퍼 권한 체크용 viewer 파라미터 포함 (영어 역할명으로 변환)
-      const convertRoleToEnglish = (koreanRole) => {
-        const roleMap = {
-          '슈퍼 어드민': 'super_admin',
-          '슈퍼어드민': 'super_admin', 
-          '대행사 어드민': 'agency_admin',
-          '대행사어드민': 'agency_admin',
-          '직원': 'staff',
-          '클라이언트': 'client'
-        };
-        return roleMap[koreanRole] || 'client';
-      };
       
       console.log('🚀 캠페인 생성 API 호출 시작:', '/api/campaigns/');
       console.log('🚀 Payload:', payload);
-      console.log('🚀 Params:', actualCreatorId ? { 
-        viewerId: actualCreatorId, 
-        viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
-      } : {});
       
       // 🚨 CORS 우회 시도: 다른 방식으로 요청
       console.log('🚨 CORS 이슈로 인해 대체 방식 시도');
       
-      let data, status;
-      try {
-        // 우선 params 없이 시도
-        const response = await api.post('/api/campaigns/', payload);
-        data = response.data;
-        status = response.status;
-        console.log('✅ 파라미터 없는 요청 성공:', { data, status });
-      } catch (firstError) {
-        console.log('❌ 첫 번째 시도 실패, 파라미터 포함 재시도');
-        // 실패하면 원래 방식으로 재시도
-        const response = await api.post('/api/campaigns/', payload, {
-          params: actualCreatorId ? { 
-            viewerId: actualCreatorId, 
-            viewerRole: convertRoleToEnglish(currentUser.role) || 'super_admin' 
-          } : {},
-        });
-        data = response.data;
-        status = response.status;
-      }
+      // JWT 인증을 통한 간단한 API 호출
+      const response = await api.post('/api/campaigns/', payload);
+      const data = response.data;
+      const status = response.status;
+      console.log('✅ 캠페인 생성 성공:', { data, status });
       
       console.log('✅ 캠페인 생성 API 성공:', { data, status });
 
@@ -201,10 +171,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
   const handleSaveEditedCampaign = async () => {
     try {
-      // 캠페인 목록 새로고침
-      const { data } = await api.get('/api/campaigns/', {
-        params: currentUser?.id ? { viewerId: currentUser.id, viewerRole: currentUser.role } : {},
-      });
+      // 캠페인 목록 새로고침 (JWT 인증)
+      const { data } = await api.get('/api/campaigns/');
       setCampaigns(data || []);
       setEditModalOpen(false);
       setEditingCampaign(null);
@@ -237,15 +205,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
     setDeletingCampaignId(campaignId);
     
     try {
-      // 백엔드 API와 호환되도록 쿼리 파라미터 추가
-      console.log(`[DELETE] API 호출 - viewerId: ${currentUser?.id}, role: ${currentUser?.role}`);
+      // JWT 인증을 통한 캠페인 삭제
+      console.log(`[DELETE] API 호출 - campaignId: ${campaignId}`);
       
-      const response = await api.delete(`/api/campaigns/${campaignId}`, {
-        params: currentUser?.id ? { 
-          viewerId: currentUser.id, 
-          viewerRole: currentUser.role 
-        } : {}
-      });
+      const response = await api.delete(`/api/campaigns/${campaignId}`);
       
       console.log(`[DELETE] 응답 수신 - Status: ${response.status}`, response);
       

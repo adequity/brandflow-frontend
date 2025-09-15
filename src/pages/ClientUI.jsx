@@ -673,10 +673,8 @@ export default function ClientUI({ user, onLogout }) {
     const load = async () => {
       setLoading(true);
       try {
-        const role = user.role || '클라이언트';
-        const response = await api.get(
-          `/api/campaigns/?viewerId=${user.id}&viewerRole=${encodeURIComponent(role)}`
-        );
+        // JWT 인증을 통한 캠페인 데이터 로드
+        const response = await api.get('/api/campaigns/');
         
         // 백엔드 응답 구조 처리: { data: [...], pagination: {...} }
         const campaignData = response.data?.data || response.data || [];

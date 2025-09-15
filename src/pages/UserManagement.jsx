@@ -10,18 +10,6 @@ import UserDeleteModal from '../components/modals/UserDeleteModal';
 const UserManagement = ({ loggedInUser }) => {
   const { showSuccess, showError, showWarning } = useToast();
   
-  // 한글 역할명을 영어로 변환하는 함수
-  const convertRoleToEnglish = (koreanRole) => {
-    const roleMap = {
-      '슈퍼 어드민': 'super_admin',
-      '슈퍼어드민': 'super_admin', 
-      '대행사 어드민': 'agency_admin',
-      '대행사어드민': 'agency_admin',
-      '직원': 'staff',
-      '클라이언트': 'client'
-    };
-    return roleMap[koreanRole] || 'client';
-  };
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -38,20 +26,13 @@ const UserManagement = ({ loggedInUser }) => {
     }
     setIsLoading(true);
     try {
-      // 사용자 데이터 가져오기 - 직접 API 호출로 테스트
+      // JWT 인증을 통한 사용자 데이터 가져오기
       console.log('UserManagement: API 호출 시작', {
-        viewerId: loggedInUser?.id || 1,
-        viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin',
         authToken: localStorage.getItem('authToken') ? 'exists' : 'missing'
       });
       
-      // 직접 api.get 호출로 테스트
-      const response = await api.get('/api/users', {
-        params: {
-          viewerId: loggedInUser?.id || 1,
-          viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
-        }
-      });
+      // JWT 토큰을 통한 간단한 API 호출
+      const response = await api.get('/api/users');
       const usersData = response.data || [];
       
       // Express API 응답을 프론트엔드 형식에 맞게 변환
@@ -148,24 +129,14 @@ const UserManagement = ({ loggedInUser }) => {
       }
       
       if (currentUser) {
-        // 사용자 수정 (Node.js API 호환 모드 파라미터 포함)
-        await apiEndpoints.users.update(currentUser.id, apiData, {
-          params: {
-            viewerId: loggedInUser?.id || 1,
-            viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
-          }
-        });
+        // 사용자 수정 (JWT 인증)
+        await apiEndpoints.users.update(currentUser.id, apiData);
         showSuccess('사용자가 수정되었습니다!');
       } else {
         // 사용자 생성
         console.log('Sending API data:', JSON.stringify(apiData, null, 2));
-        // 쿼리 파라미터와 함께 사용자 생성
-        const response = await apiEndpoints.users.create(apiData, {
-          params: {
-            viewerId: loggedInUser?.id || 1,
-            viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
-          }
-        });
+        // JWT 인증을 통한 사용자 생성
+        const response = await apiEndpoints.users.create(apiData);
         console.log('API response:', response.data);
         showSuccess('사용자가 생성되었습니다!');
       }

@@ -30,22 +30,15 @@ export default function AdminUI({ user, onLogout }) {
       
       if (token) {
         try {
-          // 실제 API 호출 (사용자 정보 포함)
+          // JWT 인증을 통한 실제 API 호출
           const [campaignsResponse, usersResponse] = await Promise.all([
             api.get('/api/campaigns/', {
-              params: user?.id ? {
-                viewerId: user.id,
-                viewerRole: user.role,
+              params: {
                 page: page,
                 size: 10  // 페이지당 10개씩 로드
-              } : {}
+              }
             }),
-            api.get('/api/users', {
-              params: user?.id ? {
-                viewerId: user.id,
-                viewerRole: user.role
-              } : {}
-            })
+            api.get('/api/users')
           ]);
           
           // 백엔드 응답이 페이지네이션 형식일 경우를 처리 - 안전한 데이터 추출
@@ -107,14 +100,9 @@ export default function AdminUI({ user, onLogout }) {
                   setPagination(campaignApiData.meta);
                 }
                 
-                // 사용자 데이터도 실제로 로드 시도 (API client 사용)
+                // JWT 인증을 통한 사용자 데이터 로드 시도
                 try {
-                  const usersResponse = await api.get('/api/users', {
-                    params: {
-                      viewerId: 1,
-                      viewerRole: 'super_admin'
-                    }
-                  });
+                  const usersResponse = await api.get('/api/users');
                   const realUsers = extractArrayFromResponse(usersResponse);
                   setUsers(realUsers);
                   console.log('AdminUI: 실제 사용자 데이터 로드 성공:', realUsers.length, '개');
@@ -165,14 +153,9 @@ export default function AdminUI({ user, onLogout }) {
           setCampaigns([]);
         }
         
-        // 사용자 데이터도 실제 로드 시도 (API client 사용)
+        // JWT 인증을 통한 사용자 데이터 로드 시도
         try {
-          const usersResponse = await api.get('/api/users', {
-            params: {
-              viewerId: 1,
-              viewerRole: 'super_admin'
-            }
-          });
+          const usersResponse = await api.get('/api/users');
           const realUsers = extractArrayFromResponse(usersResponse);
           setUsers(realUsers);
           console.log('AdminUI: 사용자 데이터 로드 성공:', realUsers.length, '개');
