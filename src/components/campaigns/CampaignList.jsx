@@ -172,8 +172,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const handleSaveEditedCampaign = async () => {
     try {
       // 캠페인 목록 새로고침 (JWT 인증)
+      console.log('[CAMPAIGN-REFRESH] Calling API: /api/campaigns/');
       const response = await api.get('/api/campaigns/');
       console.log('[CAMPAIGN-REFRESH] API Response:', response.data);
+      console.log('[CAMPAIGN-REFRESH] Response status:', response.status);
 
       // 백엔드 응답 구조: { data: [...], pagination: {...} }
       const campaignsData = response.data?.data || response.data || [];
