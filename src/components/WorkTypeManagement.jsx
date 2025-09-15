@@ -3,7 +3,6 @@ import { Plus, Edit, Trash2, Settings, Eye, EyeOff } from 'lucide-react';
 import api from '../api/client';
 import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from './ui/ConfirmModal';
-import { getCurrentUser } from '../utils/permissions';
 
 const WorkTypeManagement = ({ loggedInUser }) => {
   const { showSuccess, showError, showWarning } = useToast();
@@ -18,25 +17,12 @@ const WorkTypeManagement = ({ loggedInUser }) => {
   const fetchWorkTypes = async () => {
     setIsLoading(true);
     try {
-      console.log('🔍 WorkTypeManagement v3: API 호출 시작 - /api/work-types');
-      console.log('🆕 캐시 무효화 테스트:', new Date().getTime());
+      console.log('🔍 WorkTypeManagement JWT: API 호출 시작 - /api/work-types');
       console.log('📋 loggedInUser 상태:', loggedInUser);
-      
-      const currentUser = getCurrentUser();
-      console.log('📋 getCurrentUser 결과:', currentUser);
-      
-      const params = currentUser?.id ? {
-        viewerId: currentUser.id,
-        viewerRole: currentUser.role
-      } : loggedInUser?.id ? {
-        viewerId: loggedInUser.id,
-        viewerRole: loggedInUser.role
-      } : {};
 
-      console.log('📋 API 요청 파라미터:', params);
-
-      const response = await api.get('/api/work-types', { params });
-      console.log('✅ WorkTypeManagement: API 호출 성공', response.data);
+      // JWT 기반 API 호출 (파라미터 없이, Authorization 헤더만 사용)
+      const response = await api.get('/api/work-types');
+      console.log('✅ WorkTypeManagement JWT: API 호출 성공', response.data);
       setWorkTypes(response.data || []);
     } catch (error) {
       console.error('업무타입 목록 로딩 실패:', error);
@@ -53,52 +39,36 @@ const WorkTypeManagement = ({ loggedInUser }) => {
 
   const handleCreateWorkType = async (workTypeData) => {
     try {
-      console.log('📝 새 업무타입 생성 시작:', workTypeData);
+      console.log('📝 새 업무타입 생성 시작 (JWT):', workTypeData);
       console.log('📝 loggedInUser:', loggedInUser);
-      
-      const currentUser = getCurrentUser();
-      const params = currentUser?.id ? {
-        viewerId: currentUser.id,
-        viewerRole: currentUser.role
-      } : loggedInUser?.id ? {
-        viewerId: loggedInUser.id,
-        viewerRole: loggedInUser.role
-      } : {};
 
-      console.log('📝 POST 요청 파라미터:', params);
+      // JWT 기반 API 호출 (파라미터 없이, Authorization 헤더만 사용)
+      const response = await api.post('/api/work-types', workTypeData);
 
-      const response = await api.post('/api/work-types', {
-        ...workTypeData
-      }, {
-        params
-      });
-      
       showSuccess('업무타입이 생성되었습니다.');
       fetchWorkTypes();
       setCreateModalOpen(false);
     } catch (error) {
       console.error('업무타입 생성 실패:', error);
-      const message = error.response?.data?.message || '업무타입 생성에 실패했습니다.';
+      const message = error.response?.data?.detail || error.response?.data?.message || '업무타입 생성에 실패했습니다.';
       showError(message);
     }
   };
 
   const handleUpdateWorkType = async (workTypeId, workTypeData) => {
     try {
-      const response = await api.put(`/api/work-types/${workTypeId}`, workTypeData, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      
+      console.log('📝 업무타입 수정 시작 (JWT):', workTypeId, workTypeData);
+
+      // JWT 기반 API 호출 (파라미터 없이, Authorization 헤더만 사용)
+      const response = await api.put(`/api/work-types/${workTypeId}`, workTypeData);
+
       showSuccess('업무타입이 수정되었습니다.');
       fetchWorkTypes();
       setEditModalOpen(false);
       setSelectedWorkType(null);
     } catch (error) {
       console.error('업무타입 수정 실패:', error);
-      const message = error.response?.data?.message || '업무타입 수정에 실패했습니다.';
+      const message = error.response?.data?.detail || error.response?.data?.message || '업무타입 수정에 실패했습니다.';
       showError(message);
     }
   };
