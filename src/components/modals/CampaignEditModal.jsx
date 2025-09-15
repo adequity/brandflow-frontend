@@ -77,13 +77,28 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
       console.log('[CAMPAIGN-EDIT] End Date value:', campaign.end_date, 'Type:', typeof campaign.end_date);
       console.log('[CAMPAIGN-EDIT] ==============================================');
       
+      // Helper function to format date or provide reasonable default
+      const formatDateOrDefault = (dateValue, defaultDaysFromNow = 0) => {
+        if (dateValue && dateValue !== 'null') {
+          try {
+            return dateValue.split('T')[0];
+          } catch (error) {
+            console.warn('[CAMPAIGN-EDIT] Date parsing error:', error);
+          }
+        }
+        // Provide a reasonable default date
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + defaultDaysFromNow);
+        return defaultDate.toISOString().split('T')[0];
+      };
+
       const formattedData = {
         name: campaign.name || '',
         description: campaign.description || '',
         client_company: campaign.client_company || '',
         budget: campaign.budget ? formatNumberWithCommas(campaign.budget.toString()) : '',
-        start_date: campaign.start_date ? campaign.start_date.split('T')[0] : '',
-        end_date: campaign.end_date ? campaign.end_date.split('T')[0] : '',
+        start_date: formatDateOrDefault(campaign.start_date, 0), // Default to today
+        end_date: formatDateOrDefault(campaign.end_date, 30), // Default to 30 days from now
         status: campaign.status || 'DRAFT',
         UserId: campaign.creator_id || ''
       };
