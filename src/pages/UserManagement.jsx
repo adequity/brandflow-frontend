@@ -38,8 +38,15 @@ const UserManagement = ({ loggedInUser }) => {
     }
     setIsLoading(true);
     try {
-      // 새로운 API 엔드포인트로 사용자 데이터 가져오기 (Node.js API 호환 모드 파라미터 포함)
-      const response = await apiEndpoints.users.list({
+      // 사용자 데이터 가져오기 - 직접 API 호출로 테스트
+      console.log('UserManagement: API 호출 시작', {
+        viewerId: loggedInUser?.id || 1,
+        viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin',
+        authToken: localStorage.getItem('authToken') ? 'exists' : 'missing'
+      });
+      
+      // 직접 api.get 호출로 테스트
+      const response = await api.get('/api/users', {
         params: {
           viewerId: loggedInUser?.id || 1,
           viewerRole: convertRoleToEnglish(loggedInUser?.role) || 'super_admin'
@@ -67,9 +74,32 @@ const UserManagement = ({ loggedInUser }) => {
       setUsers(transformedUsers);
     } catch (error) {
       console.error('사용자 목록 로딩 실패:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          params: error.config?.params
+        }
+      });
       setUsers([]);
-      // Toast로 에러 메시지 표시
-      showError('사용자 데이터를 불러올 수 없습니다. 네트워크 연결을 확인해주세요.');
+      
+      // 상세한 에러 메시지 표시
+      let errorMessage = '사용자 데이터를 불러올 수 없습니다.';
+      if (error.response?.status === 401) {
+        errorMessage = '인증이 필요합니다. 다시 로그인해주세요.';
+      } else if (error.response?.status === 403) {
+        errorMessage = '접근 권한이 없습니다.';
+      } else if (error.response?.status === 500) {
+        errorMessage = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+      } else if (!error.response) {
+        errorMessage = '네트워크 연결을 확인해주세요.';
+      }
+      
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +177,7 @@ const UserManagement = ({ loggedInUser }) => {
       console.error('Error response data:', err?.response?.data);
       console.error('Error status:', err?.response?.status);
       console.error('Error message:', err?.message);
-      console.error('Request payload:', JSON.stringify(apiData, null, 2));
+      console.error('Request payload:', JSON.stringify(apiData || {}, null, 2));
       
       // CORS 오류 또는 네트워크 오류 처리
       if (err.isCORSError || !err.response && (err.message?.includes('CORS') || err.message?.includes('fetch') || err.message?.includes('Failed to fetch') || err.message?.includes('Network') || err.name === 'TypeError')) {
@@ -369,7 +399,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 <p className="text-sm text-gray-600">관리 중인 클라이언트</p>
                 <p className="text-2xl font-bold text-orange-600">{clientUsers.length}</p>
               </div>
-              <div className="text-orange-400">🤝</div>
+              <div className="text-orange-400">CLIENT</div>
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -378,7 +408,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 <p className="text-sm text-gray-600">본인 소속</p>
                 <p className="text-lg font-bold text-gray-800">{loggedInUser?.company}</p>
               </div>
-              <div className="text-gray-400">🏢</div>
+              <div className="text-gray-400">OFFICE</div>
             </div>
           </div>
         </div>
@@ -390,7 +420,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 <p className="text-sm text-gray-600">전체 팀원</p>
                 <p className="text-2xl font-bold text-blue-600">{staffUsers.length}</p>
               </div>
-              <div className="text-blue-400">👥</div>
+              <div className="text-blue-400">TEAM</div>
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -399,7 +429,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 <p className="text-sm text-gray-600">활성 클라이언트</p>
                 <p className="text-2xl font-bold text-orange-600">{clientUsers.length}</p>
               </div>
-              <div className="text-orange-400">🤝</div>
+              <div className="text-orange-400">CLIENT</div>
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl border border-gray-200">
@@ -408,7 +438,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 <p className="text-sm text-gray-600">전체 사용자</p>
                 <p className="text-2xl font-bold text-gray-800">{users.length}</p>
               </div>
-              <div className="text-gray-400">📊</div>
+              <div className="text-gray-400">STATS</div>
             </div>
           </div>
         </div>
@@ -425,7 +455,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 : 'text-gray-600 hover:text-blue-600'
             }`}
           >
-            👥 팀원 관리 ({staffUsers.length})
+            TEAM 팀원 관리 ({staffUsers.length})
           </button>
           <button
             onClick={() => setActiveTab('clients')}
@@ -435,7 +465,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 : 'text-gray-600 hover:text-blue-600'
             }`}
           >
-            🤝 클라이언트 ({clientUsers.length})
+            CLIENT 클라이언트 ({clientUsers.length})
           </button>
         </div>
       )}
@@ -445,7 +475,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
         {currentUsers.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">
-              {activeTab === 'staff' ? '👥' : '🤝'}
+              {activeTab === 'staff' ? 'TEAM' : 'CLIENT'}
             </div>
             <p className="text-gray-500 mb-4">
               {activeTab === 'staff' ? '등록된 팀원이 없습니다.' : '등록된 클라이언트가 없습니다.'}

@@ -1,5 +1,7 @@
-// API Client - Simplified Railway connection
-const API_BASE_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
+// API Client - Railway Production Backend
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://brandflow-backend-production-99ae.up.railway.app'
+  : 'https://brandflow-backend-production-99ae.up.railway.app';
 const API_TIMEOUT = 30000;
 
 console.log('🔧 API Client 초기화:', API_BASE_URL);
@@ -9,10 +11,13 @@ const createRequest = async (method, url, data = null, config = {}) => {
   // Build final URL with trailing slash for work-types
   let finalUrl = url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
   
-  // Fix trailing slash for work-types API
-  if (finalUrl.includes('/api/work-types') && !finalUrl.includes('/api/work-types/')) {
-    finalUrl = finalUrl.replace('/api/work-types', '/api/work-types/');
-  }
+  // Fix trailing slash for API endpoints that require it
+  const endpointsNeedingSlash = ['/api/work-types', '/api/products', '/api/users'];
+  endpointsNeedingSlash.forEach(endpoint => {
+    if (finalUrl.includes(endpoint) && !finalUrl.includes(endpoint + '/') && finalUrl.split('?')[0].endsWith(endpoint)) {
+      finalUrl = finalUrl.replace(endpoint, endpoint + '/');
+    }
+  });
   
   // Headers
   const headers = {
@@ -48,7 +53,7 @@ const createRequest = async (method, url, data = null, config = {}) => {
       body: data ? JSON.stringify(data) : null,
       signal: AbortSignal.timeout(API_TIMEOUT),
       mode: 'cors',
-      credentials: 'omit'
+      credentials: 'include'
     });
     
     console.log(`📡 API 응답: ${response.status} ${response.statusText}`);
@@ -98,7 +103,16 @@ export const apiEndpoints = {
     list: (params = {}) => api.get('/api/purchase-requests', { params })
   },
   users: {
-    list: (params = {}) => api.get('/api/users', { params })
+    list: (params = {}) => api.get('/api/users', { params }),
+    create: (userData, config = {}) => api.post('/api/users', userData, config),
+    update: (userId, userData, config = {}) => api.put(`/api/users/${userId}`, userData, config),
+    delete: (userId, config = {}) => api.delete(`/api/users/${userId}`, config)
+  },
+  products: {
+    list: (params = {}) => api.get('/api/products', { params }),
+    create: (productData, config = {}) => api.post('/api/products', productData, config),
+    update: (productId, productData, config = {}) => api.put(`/api/products/${productId}`, productData, config),
+    delete: (productId, config = {}) => api.delete(`/api/products/${productId}`, config)
   }
 };
 
