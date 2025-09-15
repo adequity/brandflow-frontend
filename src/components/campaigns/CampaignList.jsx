@@ -178,6 +178,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       // 백엔드 응답 구조: { data: [...], pagination: {...} }
       const campaignsData = response.data?.data || response.data || [];
       console.log('[CAMPAIGN-REFRESH] Extracted campaigns:', campaignsData);
+      console.log('[CAMPAIGN-REFRESH] First campaign structure:', campaignsData[0]);
 
       setCampaigns(campaignsData);
       setEditModalOpen(false);
