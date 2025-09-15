@@ -45,13 +45,19 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     }
   };
 
-  // 클라이언트 목록 불러오기
+  // 클라이언트 목록 불러오기 - 해당 캠페인의 클라이언트와 같은 회사 클라이언트들
   const fetchClientMembers = async () => {
+    if (!campaign?.id) return;
+    
     setLoadingClients(true);
     try {
-      const response = await api.get('/api/campaigns/client-list');
+      const response = await api.get('/api/campaigns/client-list', {
+        params: {
+          campaign_id: campaign.id
+        }
+      });
       setClientMembers(response.data);
-      console.log('[CLIENT-MEMBERS] Loaded client members:', response.data);
+      console.log('[CLIENT-MEMBERS] Loaded client members for campaign:', campaign.id, response.data);
     } catch (error) {
       console.error('클라이언트 목록 불러오기 실패:', error);
       setClientMembers([]);
