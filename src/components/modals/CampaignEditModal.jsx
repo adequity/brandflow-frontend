@@ -19,6 +19,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [staffMembers, setStaffMembers] = useState([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
+  const [clientMembers, setClientMembers] = useState([]);
+  const [loadingClients, setLoadingClients] = useState(false);
 
 
   // 직원 목록 불러오기 (대행사 어드민만)
@@ -43,6 +45,21 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     }
   };
 
+  // 클라이언트 목록 불러오기
+  const fetchClientMembers = async () => {
+    setLoadingClients(true);
+    try {
+      const response = await api.get('/api/campaigns/client-list');
+      setClientMembers(response.data);
+      console.log('[CLIENT-MEMBERS] Loaded client members:', response.data);
+    } catch (error) {
+      console.error('클라이언트 목록 불러오기 실패:', error);
+      setClientMembers([]);
+    } finally {
+      setLoadingClients(false);
+    }
+  };
+
   // 초기값 설정
   useEffect(() => {
     if (campaign) {
@@ -59,9 +76,10 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     }
   }, [campaign]);
 
-  // 직원 목록 불러오기 (대행사 어드민인 경우)
+  // 직원 목록과 클라이언트 목록 불러오기
   useEffect(() => {
     fetchStaffMembers();
+    fetchClientMembers();
   }, [currentUser]);
 
   const handleInputChange = (e) => {
@@ -197,23 +215,38 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             />
           </div>
 
-          {/* 클라이언트 회사 (대행사 어드민이 아닌 경우에만 표시) */}
-          {currentUser.role !== '대행사 어드민' && (
-            <div>
-              <label htmlFor="client_company" className="block text-sm font-medium text-gray-700">
-                🏢 클라이언트 회사
-              </label>
-              <input 
-                type="text" 
-                name="client_company" 
-                id="client_company" 
-                value={formData.client_company} 
-                onChange={handleInputChange} 
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
-                placeholder="클라이언트 회사명을 입력하세요"
-              />
-            </div>
-          )}
+          {/* 클라이언트 회사 드롭다운 */}
+          <div>
+            <label htmlFor="client_company" className="block text-sm font-medium text-gray-700">
+              🏢 클라이언트 회사
+            </label>
+            {loadingClients ? (
+              <div className="mt-1 flex items-center text-sm text-gray-500">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
+                클라이언트 목록 불러오는 중...
+              </div>
+            ) : (
+              <select
+                name="client_company"
+                id="client_company"
+                value={formData.client_company}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="">클라이언트를 선택하세요</option>
+                {clientMembers.map((client) => (
+                  <option key={client.id} value={`${client.name} (ID: ${client.id})`}>
+                    {client.name} ({client.email})
+                  </option>
+                ))}
+              </select>
+            )}
+            {clientMembers.length === 0 && !loadingClients && (
+              <p className="mt-1 text-xs text-gray-500">
+                같은 회사의 클라이언트가 없습니다.
+              </p>
+            )}
+          </div>
 
           {/* 담당 직원 선택 (대행사 어드민만) */}
           {currentUser.role === '대행사 어드민' && (
