@@ -3,7 +3,6 @@ import { ImagePlus } from 'lucide-react';
 import useImagePaste from '../../hooks/useImagePaste';
 import ImageViewer from '../common/ImageViewer';
 import api from '../../api/client';
-import { getCurrentUser } from '../../utils/permissions';
 
 const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
     const [title, setTitle] = useState('');
@@ -19,21 +18,34 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
     const [workTypes, setWorkTypes] = useState([]);
     const [error, setError] = useState(null);
 
-    // 업무타입과 상품의 work_type 필드 매핑
-    const workTypeCategoryMap = {
-        '블로그': '블로그',
-        '인스타그램': '인스타그램',
-        '유튜브': '유튜브',
-        '페이스북': '페이스북',
-        '네이버블로그': '네이버블로그',
-        '틱톡': '틱톡'
-    };
+    // workTypeCategoryMap 제거 - 실제 백엔드 데이터와 직접 매칭
 
-    // 선택된 업무타입에 따라 필터링된 상품 목록 (work_type 필드 기준)
+    // 선택된 업무타입에 따라 필터링된 상품 목록 (category 필드 기준)
     const filteredProducts = Array.isArray(products) ? products.filter(product => {
-        const expectedWorkType = workTypeCategoryMap[workType];
-        return expectedWorkType ? product.work_type === expectedWorkType : true;
+        // 업무타입이 선택되지 않았으면 모든 상품 표시
+        if (!workType) return true;
+
+        // 정확한 매칭: work_type 이름과 product.category가 정확히 일치하는 상품만 필터링
+        return product.category === workType;
     }) : [];
+
+    console.log('TopicRegisterModal 필터링 디버그:', {
+        selectedWorkType: workType,
+        workTypesCount: workTypes?.length,
+        allWorkTypes: workTypes?.map(wt => ({ id: wt.id, name: wt.name })),
+        productsCount: products?.length,
+        allProducts: products?.map(p => ({ id: p.id, name: p.name, category: p.category })),
+        filteredProductsCount: filteredProducts?.length,
+        filteredProducts: filteredProducts?.map(p => ({ id: p.id, name: p.name, category: p.category })),
+        matchingCheck: products?.map(p => ({
+            productName: p.name,
+            productCategory: p.category,
+            selectedWorkType: workType,
+            isMatch: p.category === workType,
+            categoryType: typeof p.category,
+            workTypeType: typeof workType
+        }))
+    });
 
     const handleImageAdd = (imageData) => {
         setImages(prev => [...prev, imageData]);
@@ -45,11 +57,53 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
 
     const { handlePaste, handleDrop, handleDragOver, handleDragLeave, isDragging } = useImagePaste(handleImageAdd);
 
-    // 업무타입 변경 시 상품 선택 초기화
-    const handleWorkTypeChange = (newWorkType) => {
+    // 업무타입 변경 시 상품 선택 초기화 및 상품 목록 로드
+    const handleWorkTypeChange = async (newWorkType) => {
+        console.log('업무타입 변경:', {
+            previousWorkType: workType,
+            newWorkType: newWorkType
+        });
+
         setWorkType(newWorkType);
         setSelectedProductId(''); // 상품 선택 초기화
         setQuantity(1); // 수량 초기화
+
+        // 업무타입이 선택되었을 때만 상품 목록 로드
+        if (newWorkType) {
+            console.log(`"${newWorkType}" 업무타입 선택됨 - 상품 목록 로드 시작`);
+            await loadProducts();
+        } else {
+            console.log('업무타입 선택 해제 - 상품 목록 비우기');
+            setProducts([]); // 업무타입이 선택 해제되면 상품 목록 비우기
+        }
+    };
+
+    // 상품 목록 로드 함수
+    const loadProducts = async () => {
+        try {
+            console.log('상품 목록 로드 시작...');
+            const token = localStorage.getItem('authToken');
+
+            if (token) {
+                const productsResponse = await api.get('/api/products');
+                const productsData = productsResponse.data?.products || productsResponse.data || [];
+
+                setProducts(Array.isArray(productsData) ? productsData : []);
+
+                console.log('상품 목록 로드 성공');
+                console.log('상품 목록:', Array.isArray(productsData) ? productsData.length : 'undefined', '개');
+                console.log('전체 상품 데이터:', productsData?.map(p => ({ id: p.id, name: p.name, category: p.category })));
+                console.log('상품 카테고리 목록:', [...new Set(productsData?.map(p => p.category).filter(Boolean))]);
+
+                // 현재 선택된 업무타입과 매칭되는 상품들 확인
+                const matchingProducts = productsData?.filter(p => p.category === workType) || [];
+                console.log(`현재 선택된 업무타입 "${workType}"과 매칭되는 상품:`, matchingProducts.length, '개');
+                console.log('매칭된 상품들:', matchingProducts?.map(p => ({ id: p.id, name: p.name, category: p.category })));
+            }
+        } catch (error) {
+            console.error('상품 목록 로드 실패:', error);
+            setProducts([]);
+        }
     };
 
     // 상품 목록과 업무타입 목록 로드 (모달이 열릴 때마다 최신 데이터 로드)
@@ -63,28 +117,17 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                 
                 if (token) {
                     try {
-                        // 실제 API 호출 - 현재 사용자 정보와 함께 요청
-                        const currentUser = getCurrentUser();
-                        const params = currentUser?.id ? {
-                            viewerId: currentUser.id,
-                            viewerRole: currentUser.role
-                        } : {};
+                        // JWT 기반 API 호출 - 초기에는 업무타입만 로드
+                        console.log('TopicRegisterModal JWT: 업무타입 목록 로드');
 
-                        const [productsResponse, workTypesResponse] = await Promise.all([
-                            api.get('/api/products', { params }),
-                            api.get('/api/work-types', { params })
-                        ]);
-                        
-                        // API 응답에서 products 배열 추출 (백엔드가 직접 배열을 응답하거나 {products: [], total: n} 형태로 응답)
-                        const productsData = productsResponse.data?.products || productsResponse.data || [];
+                        const workTypesResponse = await api.get('/api/work-types');
                         const workTypesData = workTypesResponse.data || [];
-                        
-                        setProducts(Array.isArray(productsData) ? productsData : []);
+
                         setWorkTypes(Array.isArray(workTypesData) ? workTypesData : []);
-                        
-                        console.log('TopicRegisterModal: 실제 API 데이터 로드 성공');
-                        console.log('상품 목록:', Array.isArray(productsData) ? productsData.length : 'undefined', '개');
+
+                        console.log('TopicRegisterModal: 업무타입 로드 성공');
                         console.log('업무타입 목록:', Array.isArray(workTypesData) ? workTypesData.length : 'undefined', '개');
+                        console.log('전체 업무타입 데이터:', workTypesData?.map(wt => ({ id: wt.id, name: wt.name })));
                     } catch (apiError) {
                         console.error('TopicRegisterModal: API 호출 실패', apiError);
                         setProducts([]);
@@ -110,32 +153,6 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
         fetchData();
     }, [campaignId]); // campaignId가 변경되거나 컴포넌트가 마운트될 때 데이터 로드
 
-    // 모달이 열릴 때마다 최신 상품/업무타입 데이터 새로고침
-    const refreshData = async () => {
-        try {
-            setLoading(true);
-            const token = localStorage.getItem('authToken');
-            
-            if (token) {
-                const [productsResponse, workTypesResponse] = await Promise.all([
-                    api.get('/api/products/'),
-                    api.get('/api/work-types/')
-                ]);
-                
-                const productsData = productsResponse.data?.products || productsResponse.data || [];
-                const workTypesData = workTypesResponse.data || [];
-                
-                setProducts(Array.isArray(productsData) ? productsData : []);
-                setWorkTypes(Array.isArray(workTypesData) ? workTypesData : []);
-                
-                console.log('TopicRegisterModal: 데이터 새로고침 완료');
-            }
-        } catch (error) {
-            console.error('데이터 새로고침 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleSave = () => {
         const data = {
@@ -179,9 +196,9 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                     <div className="border-t pt-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-3">
                             💰 매출 연결 (선택사항)
-                            {workTypeCategoryMap[workType] && (
+                            {workType && (
                                 <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                    {workTypeCategoryMap[workType]} 카테고리 상품만 표시
+                                    "{workType}" 카테고리 상품만 표시 ({filteredProducts.length}개)
                                 </span>
                             )}
                         </h4>
@@ -198,11 +215,13 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                                     {filteredProducts && filteredProducts.length > 0 ? (
                                         filteredProducts.map((product) => (
                                             <option key={product.id} value={product.id}>
-                                                {product.name} - {product.costPrice?.toLocaleString()}원
+                                                {product.name} - {(product.costPrice || product.price)?.toLocaleString()}원
                                             </option>
                                         ))
+                                    ) : workType ? (
+                                        <option value="" disabled>"{workType}" 업무타입에 해당하는 상품이 없습니다</option>
                                     ) : (
-                                        <option value="" disabled>해당 업무타입의 상품이 없습니다</option>
+                                        <option value="" disabled>업무타입을 먼저 선택해주세요</option>
                                     )}
                                 </select>
                             </div>
