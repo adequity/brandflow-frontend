@@ -15,6 +15,8 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     const [paymentCompleted, setPaymentCompleted] = useState(false);
     const [invoiceDueDate, setInvoiceDueDate] = useState('');
     const [paymentDueDate, setPaymentDueDate] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [allUsers, setAllUsers] = useState(Array.isArray(users) ? users : (users?.results || []));
     
     // 현재 사용자 정보 가져오기
@@ -304,7 +306,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
             invoiceIssued: invoiceIssued,
             paymentCompleted: paymentCompleted,
             invoiceDueDate: invoiceDueDate || null,
-            paymentDueDate: paymentDueDate || null
+            paymentDueDate: paymentDueDate || null,
+            start_date: startDate ? startDate + 'T00:00:00' : null,
+            end_date: endDate ? endDate + 'T00:00:00' : null
         };
         
         console.log('Submitting form data:', formData);
@@ -505,6 +509,35 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                             </div>
                         </div>
                         
+                        {/* 캠페인 기간 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+                                    🚀 캠페인 시작일
+                                </label>
+                                <input
+                                    type="date"
+                                    id="startDate"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+                                    🏁 캠페인 종료일
+                                </label>
+                                <input
+                                    type="date"
+                                    id="endDate"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                        </div>
+
                         {/* 예정일 입력 필드들 */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>

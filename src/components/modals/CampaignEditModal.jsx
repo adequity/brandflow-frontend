@@ -69,7 +69,10 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   // 초기값 설정
   useEffect(() => {
     if (campaign) {
-      setFormData({
+      console.log('[CAMPAIGN-EDIT] Campaign data received:', campaign);
+      console.log('[CAMPAIGN-EDIT] Budget:', campaign.budget, 'Start Date:', campaign.start_date, 'End Date:', campaign.end_date);
+      
+      const formattedData = {
         name: campaign.name || '',
         description: campaign.description || '',
         client_company: campaign.client_company || '',
@@ -78,7 +81,10 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         end_date: campaign.end_date ? campaign.end_date.split('T')[0] : '',
         status: campaign.status || 'DRAFT',
         UserId: campaign.creator_id || ''
-      });
+      };
+      
+      console.log('[CAMPAIGN-EDIT] Formatted form data:', formattedData);
+      setFormData(formattedData);
     }
   }, [campaign]);
 
