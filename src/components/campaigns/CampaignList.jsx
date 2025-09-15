@@ -172,12 +172,21 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const handleSaveEditedCampaign = async () => {
     try {
       // 캠페인 목록 새로고침 (JWT 인증)
-      const { data } = await api.get('/api/campaigns/');
-      setCampaigns(data || []);
+      const response = await api.get('/api/campaigns/');
+      console.log('[CAMPAIGN-REFRESH] API Response:', response.data);
+
+      // 백엔드 응답 구조: { data: [...], pagination: {...} }
+      const campaignsData = response.data?.data || response.data || [];
+      console.log('[CAMPAIGN-REFRESH] Extracted campaigns:', campaignsData);
+
+      setCampaigns(campaignsData);
       setEditModalOpen(false);
       setEditingCampaign(null);
+
+      showSuccess('캠페인이 성공적으로 수정되었습니다.');
     } catch (error) {
       console.error('캠페인 목록 새로고침 실패:', error);
+      showError('캠페인 목록 새로고침에 실패했습니다.');
     }
   };
 
