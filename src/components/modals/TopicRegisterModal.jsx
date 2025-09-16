@@ -166,7 +166,16 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
             skipApproval: skipApproval,
             campaignId: campaignId // 캠페인 ID 자동 연결
         };
-        onSave(data);
+
+        console.log('TopicRegisterModal handleSave 호출:', data);
+        console.log('onSave 함수 존재 여부:', typeof onSave);
+
+        try {
+            onSave(data);
+            console.log('onSave 함수 호출 완료');
+        } catch (error) {
+            console.error('onSave 함수 호출 중 에러:', error);
+        }
     };
 
     return (

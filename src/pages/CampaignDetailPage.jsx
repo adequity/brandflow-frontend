@@ -278,10 +278,9 @@ const CampaignDetailPage = () => {
 
     const handleRegisterTopic = async (topicData) => {
         try {
-            showError('새 업무 추가 기능이 현재 사용 불가능합니다. 관리자에게 문의하세요.');
-            return;
-            
-            // 더미 코드 (사용 안함)
+            console.log('새 업무 등록 시작:', topicData);
+
+            // 새 업무 생성
             const newPost = {
                 id: Date.now(),
                 title: topicData.title,
@@ -300,9 +299,12 @@ const CampaignDetailPage = () => {
                 quantity: topicData.quantity,
                 campaignId: topicData.campaignId // 캠페인 자동 연결
             };
-            
+
             setPosts(prevPosts => [...prevPosts, newPost]);
-            // 더미 코드로 실행되지 않음
+            setTopicRegisterModalOpen(false);
+
+            console.log('새 업무 등록 성공:', newPost);
+            showSuccess(`새 업무 "${topicData.title}"이(가) 등록되었습니다.`);
         } catch (error) { 
             console.error('업무 등록 실패:', error);
             showError('업무 등록에 실패했습니다.'); 
