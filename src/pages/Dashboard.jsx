@@ -156,6 +156,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         }
         
         setPurchaseStats(realPurchaseStats);
+        console.log('[DASHBOARD] 구매요청 통계:', realPurchaseStats);
 
         // 간단한 인센티브 계산 (성능 최적화를 위해 API 호출 최소화)
         let totalIncentives = 0;
@@ -224,6 +225,12 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         const totalExpenses = realPurchaseStats.totalAmount + campaignTotalCost + approvedPostsExpense;
         const netProfit = totalRevenue - totalExpenses;
         const finalNetProfit = netProfit - totalIncentives;
+
+        console.log('[DASHBOARD] 지출 계산 상세:');
+        console.log('- 구매요청 총액 (realPurchaseStats.totalAmount):', realPurchaseStats.totalAmount);
+        console.log('- 캠페인 비용 (campaignTotalCost):', campaignTotalCost);
+        console.log('- 발주 승인 지출 (approvedPostsExpense):', approvedPostsExpense);
+        console.log('- 총 지출 (totalExpenses):', totalExpenses);
 
         setFinancialOverview({
           totalRevenue: totalRevenue,
