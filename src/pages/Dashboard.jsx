@@ -183,9 +183,26 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         };
         setSalesStats(realSalesStats);
 
-        // 종합 재무 현황 계산 (실제 데이터 기반)
+        // 발주 승인된 posts의 지출 계산 (product.cost * quantity)
+        let approvedPostsExpense = 0;
+        try {
+          const approvedExpenseResponse = await api.get('/api/campaigns/approved-posts-expense');
+          approvedPostsExpense = approvedExpenseResponse.data.total_expense || 0;
+          console.log('[DASHBOARD] 발주 승인 지출:', approvedPostsExpense, '원');
+        } catch (error) {
+          console.error('발주 승인 지출 조회 실패:', error);
+          console.error('Error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message,
+            url: error.config?.url
+          });
+        }
+
+        // 종합 재무 현황 계산 (실제 데이터 기반 + 발주 승인 지출 포함)
         const totalRevenue = campaignTotalRevenue;
-        const totalExpenses = realPurchaseStats.totalAmount + campaignTotalCost;
+        const totalExpenses = realPurchaseStats.totalAmount + campaignTotalCost + approvedPostsExpense;
         const netProfit = totalRevenue - totalExpenses;
         const finalNetProfit = netProfit - totalIncentives;
 
