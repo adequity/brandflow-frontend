@@ -280,12 +280,8 @@ const CampaignDetailPage = () => {
                 campaignId: updatedPost.campaign_id
             };
 
-            // 로컬 state 업데이트
-            setPosts(prevPosts =>
-                prevPosts.map(post =>
-                    post.id === selectedPost.id ? updatedPostFrontend : post
-                )
-            );
+            // 전체 데이터 다시 가져오기
+            await fetchCampaignDetail();
 
             console.log('업무 수정 성공:', updatedPostFrontend);
             showSuccess(`업무 "${updatedPost.title}"이(가) 수정되었습니다.`);
@@ -364,8 +360,8 @@ const CampaignDetailPage = () => {
                 campaignId: savedPost.campaign_id
             };
 
-            // 로컬 state 업데이트
-            setPosts(prevPosts => [...prevPosts, newPost]);
+            // 전체 데이터 다시 가져오기
+            await fetchCampaignDetail();
             setTopicModalOpen(false);
 
             console.log('새 업무 등록 성공:', newPost);
