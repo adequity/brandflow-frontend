@@ -33,11 +33,8 @@ const OrderManagement = ({ loggedInUser }) => {
     
     setIsLoading(true);
     try {
-      // 발주 관련 resourceType만 필터링
-      const filters = {
-        resourceType: '업무 발주'
-      };
-      await fetchOrderRequests(filters);
+      // 모든 발주요청 조회 (필터링 제거)
+      await fetchOrderRequests();
       console.log('OrderManagement: 발주 요청 목록 로드 완료');
     } catch (error) {
       console.error('발주요청 목록 로딩 실패:', error);

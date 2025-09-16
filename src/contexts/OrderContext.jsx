@@ -115,14 +115,8 @@ export const OrderProvider = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // 서버에서 발주 요청 목록 조회
-      const params = new URLSearchParams();
-      if (filters.status) params.append('status', filters.status);
-      if (filters.resourceType) params.append('resourceType', filters.resourceType);
-      params.append('page', filters.page || 1);
-      params.append('limit', filters.limit || 20);
-
       // JWT 기반 발주요청 목록 조회 (새로운 OrderRequest 테이블)
+      // 현재는 모든 발주요청을 조회하고 프론트엔드에서 필터링
       const response = await api.get(`/api/campaigns/order-requests`);
       const orders = response.data || [];
       
