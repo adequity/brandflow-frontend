@@ -60,14 +60,19 @@ const CampaignDetailPage = () => {
             if (token) {
                 try {
                     // JWT 토큰 기반 보안 API 호출 (파라미터 없이 토큰만 사용)
-                    const response = await api.get(`/api/campaigns/${campaignId}`);
-                    const campaignData = response.data;
-                    
+                    const [campaignResponse, postsResponse] = await Promise.all([
+                        api.get(`/api/campaigns/${campaignId}`),
+                        api.get(`/api/campaigns/${campaignId}/posts/jwt`)
+                    ]);
+
+                    const campaignData = campaignResponse.data;
+                    const postsData = postsResponse.data;
+
                     setCampaign(campaignData);
-                    setPosts(campaignData.posts || []);
+                    setPosts(postsData || []);
                     console.log('CampaignDetailPage: 실제 API 데이터 로드 성공');
                     console.log('캠페인:', campaignData.name);
-                    console.log('포스트:', (campaignData.posts || []).length, '개');
+                    console.log('포스트:', (postsData || []).length, '개');
                 } catch (apiError) {
                     console.error('CampaignDetailPage: API 호출 실패', apiError);
                     setError(`캠페인 데이터를 불러올 수 없습니다: ${apiError.message}`);
