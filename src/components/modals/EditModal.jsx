@@ -18,21 +18,16 @@ const EditModal = ({ post, type, onSave, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [workTypes, setWorkTypes] = useState([]);
 
-    // 업무타입과 상품의 work_type 필드 매핑
-    const workTypeCategoryMap = {
-        '블로그': '블로그',
-        '인스타그램': '인스타그램',
-        '유튜브': '유튜브',
-        '페이스북': '페이스북',
-        '네이버블로그': '네이버블로그',
-        '틱톡': '틱톡'
-    };
+    // workTypeCategoryMap 제거 - 실제 백엔드 데이터와 직접 매칭
 
-    // 선택된 업무타입에 따라 필터링된 상품 목록 (work_type 필드 기준)
-    const filteredProducts = products.filter(product => {
-        const expectedWorkType = workTypeCategoryMap[workType];
-        return expectedWorkType ? product.work_type === expectedWorkType : true;
-    });
+    // 선택된 업무타입에 따라 필터링된 상품 목록 (category 필드 기준)
+    const filteredProducts = Array.isArray(products) ? products.filter(product => {
+        // 업무타입이 선택되지 않았으면 모든 상품 표시
+        if (!workType) return true;
+
+        // 정확한 매칭: work_type 이름과 product.category가 정확히 일치하는 상품만 필터링
+        return product.category === workType;
+    }) : [];
 
     const handleImageAdd = (imageData) => {
         setImages(prev => [...prev, imageData]);
@@ -44,123 +39,101 @@ const EditModal = ({ post, type, onSave, onClose }) => {
 
     const { handlePaste, handleDrop, handleDragOver, handleDragLeave, isDragging } = useImagePaste(handleImageAdd);
 
-    // 업무타입 변경 시 상품 선택 초기화
-    const handleWorkTypeChange = (newWorkType) => {
+
+    // 업무타입 변경 시 상품 선택 초기화 및 상품 목록 로드
+    const handleWorkTypeChange = async (newWorkType) => {
+        console.log('EditModal 업무타입 변경:', {
+            previousWorkType: workType,
+            newWorkType: newWorkType
+        });
+
         setWorkType(newWorkType);
-        setSelectedProductId('');
-        setQuantity(1);
+        setSelectedProductId(''); // 상품 선택 초기화
+        setQuantity(1); // 수량 초기화
+
+        // 업무타입이 선택되었을 때만 상품 목록 로드
+        if (newWorkType) {
+            console.log(`EditModal "${newWorkType}" 업무타입 선택됨 - 상품 목록 로드 시작`);
+            await loadProducts();
+        } else {
+            console.log('EditModal 업무타입 선택 해제 - 상품 목록 비우기');
+            setProducts([]); // 업무타입이 선택 해제되면 상품 목록 비우기
+        }
     };
 
-    // 상품 목록과 업무타입 목록 로드 (실제 API 사용 + 더미 fallback)
+    // 상품 목록 로드 함수
+    const loadProducts = async () => {
+        try {
+            console.log('EditModal 상품 목록 로드 시작...');
+            const token = localStorage.getItem('authToken');
+
+            if (token) {
+                const productsResponse = await api.get('/api/products');
+                const productsData = productsResponse.data?.products || productsResponse.data || [];
+
+                setProducts(Array.isArray(productsData) ? productsData : []);
+
+                console.log('EditModal 상품 목록 로드 성공');
+                console.log('EditModal 상품 목록:', Array.isArray(productsData) ? productsData.length : 'undefined', '개');
+                console.log('EditModal 전체 상품 데이터:', productsData?.map(p => ({ id: p.id, name: p.name, category: p.category })));
+                console.log('EditModal 상품 카테고리 목록:', [...new Set(productsData?.map(p => p.category).filter(Boolean))]);
+
+                // 현재 선택된 업무타입과 매칭되는 상품들 확인
+                const matchingProducts = productsData?.filter(p => p.category === workType) || [];
+                console.log(`EditModal 현재 선택된 업무타입 "${workType}"과 매칭되는 상품:`, matchingProducts.length, '개');
+                console.log('EditModal 매칭된 상품들:', matchingProducts?.map(p => ({ id: p.id, name: p.name, category: p.category })));
+            }
+        } catch (error) {
+            console.error('EditModal 상품 목록 로드 실패:', error);
+            setProducts([]);
+        }
+    };
+
+    // 상품 목록과 업무타입 목록 로드 (모달이 열릴 때마다 최신 데이터 로드)
     useEffect(() => {
         if (!isTopic) return; // 목차 수정 시에는 로드하지 않음
-        
+
         const fetchData = async () => {
             try {
                 setLoading(true);
-                
-                // localStorage에서 토큰 확인
-                const token = localStorage.getItem('authToken');
-                if (!token) {
-                    console.warn('EditModal: 인증 토큰이 없어 더미 데이터 사용');
-                    // 더미 데이터 사용
-                    const dummyProducts = [
-                        { id: 1, name: '블로그 포스트 작성', category: '블로그', costPrice: 100000, sellingPrice: 150000 },
-                        { id: 2, name: '인스타그램 포스트 제작', category: '인스타그램', costPrice: 50000, sellingPrice: 80000 },
-                        { id: 3, name: '페이스북 광고 제작', category: '페이스북', costPrice: 80000, sellingPrice: 120000 },
-                        { id: 4, name: '유튜브 영상 제작', category: '유튜브', costPrice: 300000, sellingPrice: 500000 },
-                        { id: 5, name: '브랜드 디자인', category: '디자인', costPrice: 500000, sellingPrice: 800000 },
-                        { id: 6, name: '마케팅 전략 수립', category: '마케팅', costPrice: 600000, sellingPrice: 1000000 },
-                        { id: 7, name: '영상 편집 서비스', category: '영상 편집', costPrice: 180000, sellingPrice: 300000 }
-                    ];
-                    const dummyWorkTypes = [
-                        { id: 1, name: '블로그' },
-                        { id: 2, name: '인스타그램' },
-                        { id: 3, name: '페이스북' },
-                        { id: 4, name: '유튜브' },
-                        { id: 5, name: '디자인' },
-                        { id: 6, name: '마케팅' },
-                        { id: 7, name: '영상 편집' }
-                    ];
-                    setProducts(dummyProducts);
-                    setWorkTypes(dummyWorkTypes);
-                    return;
-                }
 
-                // 실제 API 호출 시도
-                const [productsResponse, workTypesResponse] = await Promise.all([
-                    api.get('/api/products/').catch(err => {
-                        console.warn('상품 API 실패, 더미 데이터 사용:', err.message);
-                        return { data: { results: [] } };
-                    }),
-                    api.get('/api/work-types/').catch(err => {
-                        console.warn('업무타입 API 실패, 더미 데이터 사용:', err.message);
-                        return { data: { results: [] } };
-                    })
-                ]);
-                
-                // 실제 데이터가 있으면 사용, 없으면 더미 데이터
-                const realProducts = productsResponse.data?.results || productsResponse.data || [];
-                const realWorkTypes = workTypesResponse.data?.results || workTypesResponse.data || [];
-                
-                if (realProducts.length > 0 && realWorkTypes.length > 0) {
-                    setProducts(realProducts);
-                    setWorkTypes(realWorkTypes);
-                    console.log('✅ 실제 API 데이터 로드 성공 - 상품:', realProducts.length, '업무타입:', realWorkTypes.length);
+                const token = localStorage.getItem('authToken');
+                console.log('EditModal: 토큰 상태:', token ? '존재' : '없음');
+
+                if (token) {
+                    try {
+                        // JWT 기반 API 호출 - 초기에는 업무타입만 로드
+                        console.log('EditModal JWT: 업무타입 목록 로드');
+
+                        const workTypesResponse = await api.get('/api/work-types');
+                        const workTypesData = workTypesResponse.data || [];
+
+                        setWorkTypes(Array.isArray(workTypesData) ? workTypesData : []);
+
+                        console.log('EditModal: 업무타입 로드 성공');
+                        console.log('EditModal 업무타입 목록:', Array.isArray(workTypesData) ? workTypesData.length : 'undefined', '개');
+                        console.log('EditModal 전체 업무타입 데이터:', workTypesData?.map(wt => ({ id: wt.id, name: wt.name })));
+                    } catch (apiError) {
+                        console.error('EditModal: API 호출 실패', apiError);
+                        setProducts([]);
+                        setWorkTypes([]);
+                    }
                 } else {
-                    // 실제 API에 데이터가 없으면 더미 데이터 사용
-                    const dummyProducts = [
-                        { id: 1, name: '블로그 포스트 작성', category: '블로그', costPrice: 100000, sellingPrice: 150000 },
-                        { id: 2, name: '인스타그램 포스트 제작', category: '인스타그램', costPrice: 50000, sellingPrice: 80000 },
-                        { id: 3, name: '페이스북 광고 제작', category: '페이스북', costPrice: 80000, sellingPrice: 120000 },
-                        { id: 4, name: '유튜브 영상 제작', category: '유튜브', costPrice: 300000, sellingPrice: 500000 },
-                        { id: 5, name: '브랜드 디자인', category: '디자인', costPrice: 500000, sellingPrice: 800000 },
-                        { id: 6, name: '마케팅 전략 수립', category: '마케팅', costPrice: 600000, sellingPrice: 1000000 },
-                        { id: 7, name: '영상 편집 서비스', category: '영상 편집', costPrice: 180000, sellingPrice: 300000 }
-                    ];
-                    const dummyWorkTypes = [
-                        { id: 1, name: '블로그' },
-                        { id: 2, name: '인스타그램' },
-                        { id: 3, name: '페이스북' },
-                        { id: 4, name: '유튜브' },
-                        { id: 5, name: '디자인' },
-                        { id: 6, name: '마케팅' },
-                        { id: 7, name: '영상 편집' }
-                    ];
-                    setProducts(dummyProducts);
-                    setWorkTypes(dummyWorkTypes);
-                    console.log('⚠️ API 데이터 없음, 더미 데이터 사용');
+                    console.error('EditModal: 인증 토큰이 없습니다');
+                    setProducts([]);
+                    setWorkTypes([]);
                 }
             } catch (error) {
-                console.error('EditModal - 데이터 로드 실패:', error);
-                // 에러 시 더미 데이터로 fallback
-                const dummyProducts = [
-                    { id: 1, name: '블로그 포스트 작성', category: '블로그', costPrice: 100000, sellingPrice: 150000 },
-                    { id: 2, name: '인스타그램 포스트 제작', category: '인스타그램', costPrice: 50000, sellingPrice: 80000 },
-                    { id: 3, name: '페이스북 광고 제작', category: '페이스북', costPrice: 80000, sellingPrice: 120000 },
-                    { id: 4, name: '유튜브 영상 제작', category: '유튜브', costPrice: 300000, sellingPrice: 500000 },
-                    { id: 5, name: '브랜드 디자인', category: '디자인', costPrice: 500000, sellingPrice: 800000 },
-                    { id: 6, name: '마케팅 전략 수립', category: '마케팅', costPrice: 600000, sellingPrice: 1000000 },
-                    { id: 7, name: '영상 편집 서비스', category: '영상 편집', costPrice: 180000, sellingPrice: 300000 }
-                ];
-                const dummyWorkTypes = [
-                    { id: 1, name: '블로그' },
-                    { id: 2, name: '인스타그램' },
-                    { id: 3, name: '페이스북' },
-                    { id: 4, name: '유튜브' },
-                    { id: 5, name: '디자인' },
-                    { id: 6, name: '마케팅' },
-                    { id: 7, name: '영상 편집' }
-                ];
-                setProducts(dummyProducts);
-                setWorkTypes(dummyWorkTypes);
+                console.error('EditModal: 데이터 로드 실패:', error);
+                setProducts([]);
+                setWorkTypes([]);
             } finally {
                 setLoading(false);
             }
         };
-        
+
         fetchData();
-    }, [isTopic]);
+    }, [isTopic]); // isTopic이 변경되거나 컴포넌트가 마운트될 때 데이터 로드
 
     const handleSave = () => {
         if (isTopic) {
@@ -225,9 +198,9 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                     <div className="border-t pt-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-3">
                             💰 매출 연결 (선택사항)
-                            {workTypeCategoryMap[workType] && (
+                            {workType && (
                                 <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                    {workTypeCategoryMap[workType]} 카테고리 상품만 표시
+                                    "{workType}" 카테고리 상품만 표시 ({filteredProducts.length}개)
                                 </span>
                             )}
                         </h4>
@@ -244,11 +217,13 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                                     {filteredProducts && filteredProducts.length > 0 ? (
                                         filteredProducts.map((product) => (
                                             <option key={product.id} value={product.id}>
-                                                {product.name} - {product.costPrice?.toLocaleString()}원
+                                                {product.name} - {(product.costPrice || product.price)?.toLocaleString()}원
                                             </option>
                                         ))
+                                    ) : workType ? (
+                                        <option value="" disabled>"{workType}" 업무타입에 해당하는 상품이 없습니다</option>
                                     ) : (
-                                        <option value="" disabled>해당 업무타입의 상품이 없습니다</option>
+                                        <option value="" disabled>업무타입을 먼저 선택해주세요</option>
                                     )}
                                 </select>
                             </div>

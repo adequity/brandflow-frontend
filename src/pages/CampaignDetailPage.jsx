@@ -619,6 +619,7 @@ const CampaignDetailPage = () => {
                             <tr>
                                 <th className="p-2 w-4"><input type="checkbox" onChange={handleSelectAll} /></th>
                                 <th className="p-2">업무 타입</th>
+                                <th className="p-2">제품명</th>
                                 <th className="p-2">업무 내용</th>
                                 <th className="p-2">시작일</th>
                                 <th className="p-2">마감일</th>
@@ -639,6 +640,11 @@ const CampaignDetailPage = () => {
                                     <td className="p-2">
                                         <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                                             {post.workType || '블로그'}
+                                        </span>
+                                    </td>
+                                    <td className="p-2">
+                                        <span className="text-sm text-gray-600">
+                                            {post.productName || '-'}
                                         </span>
                                     </td>
                                     <td className="p-2">
@@ -785,7 +791,7 @@ const CampaignDetailPage = () => {
                                             </button>
                                         )}
                                     </td>
-                                    <td className="p-2 text-xs text-gray-600">{new Date(post.createdAt).toLocaleString()}</td>
+                                    <td className="p-2 text-xs text-gray-600">{new Date(post.createdAt).toLocaleDateString()}</td>
                                     <td className="p-2"><div className="flex items-center space-x-2"><button onClick={() => openEditModal(post, 'topic')} className="text-gray-400 hover:text-blue-600"><Edit size={16} /></button><button onClick={() => handleDeleteClick(post)} className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button></div></td>
                                 </tr>
                             ))}
