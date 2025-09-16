@@ -41,6 +41,11 @@ const OrderManagement = ({ loggedInUser }) => {
       }
     } catch (error) {
       console.error('상태 목록 로딩 실패:', error);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      if (error.response?.data?.detail) {
+        console.error('Detailed error:', error.response.data.detail);
+      }
       // 실패 시 기본값 사용 (하드코딩 대신 안전한 fallback)
       setStatusList([
         { value: "대기", label: "대기", color: "yellow" },
