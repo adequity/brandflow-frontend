@@ -280,36 +280,62 @@ const CampaignDetailPage = () => {
         try {
             console.log('새 업무 등록 시작:', topicData);
 
-            // 새 업무 생성
-            const newPost = {
-                id: Date.now(),
+            // 백엔드 API 호출로 DB에 저장
+            const postPayload = {
                 title: topicData.title,
-                workType: topicData.workType,
-                topicStatus: topicData.skipApproval ? '승인' : '대기',
+                work_type: topicData.workType,
+                topic_status: topicData.skipApproval ? '승인' : '대기',
                 outline: null,
-                outlineStatus: null,
+                outline_status: null,
                 images: topicData.images || [],
-                publishedUrl: null,
-                orderRequestStatus: null,
-                orderRequestId: null,
-                createdAt: new Date().toISOString(),
-                startDate: topicData.startDate,
-                dueDate: topicData.dueDate,
-                productId: topicData.productId,
-                quantity: topicData.quantity,
-                campaignId: topicData.campaignId // 캠페인 자동 연결
+                published_url: null,
+                order_request_status: null,
+                order_request_id: null,
+                start_date: topicData.startDate,
+                due_date: topicData.dueDate,
+                product_id: topicData.productId,
+                quantity: topicData.quantity || 1,
+                campaign_id: parseInt(campaignId)
             };
 
+            console.log('API 호출 페이로드:', postPayload);
+
+            const response = await api.post(`/api/campaigns/${campaignId}/posts/`, postPayload);
+            const savedPost = response.data;
+
+            console.log('백엔드 응답:', savedPost);
+
+            // 프론트엔드 형식으로 변환
+            const newPost = {
+                id: savedPost.id,
+                title: savedPost.title,
+                workType: savedPost.work_type,
+                topicStatus: savedPost.topic_status,
+                outline: savedPost.outline,
+                outlineStatus: savedPost.outline_status,
+                images: savedPost.images || [],
+                publishedUrl: savedPost.published_url,
+                orderRequestStatus: savedPost.order_request_status,
+                orderRequestId: savedPost.order_request_id,
+                createdAt: savedPost.created_at,
+                startDate: savedPost.start_date,
+                dueDate: savedPost.due_date,
+                productId: savedPost.product_id,
+                quantity: savedPost.quantity,
+                campaignId: savedPost.campaign_id
+            };
+
+            // 로컬 state 업데이트
             setPosts(prevPosts => [...prevPosts, newPost]);
-            setTopicRegisterModalOpen(false);
+            setTopicModalOpen(false);
 
             console.log('새 업무 등록 성공:', newPost);
             showSuccess(`새 업무 "${topicData.title}"이(가) 등록되었습니다.`);
-        } catch (error) { 
+        } catch (error) {
             console.error('업무 등록 실패:', error);
-            showError('업무 등록에 실패했습니다.'); 
+            console.error('API 에러 상세:', error.response?.data);
+            showError(`업무 등록 실패: ${error.response?.data?.detail || error.message}`);
         }
-        setTopicModalOpen(false);
     };
 
     const handleRegisterLink = async (url) => {
