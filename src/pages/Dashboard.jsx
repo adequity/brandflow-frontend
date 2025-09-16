@@ -116,6 +116,29 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           console.log('[DASHBOARD] 캠페인 통계 계산 완료 - 총 매출:', campaignTotalRevenue, ', 총 지출:', campaignTotalCost);
         }
         
+        // 디버그: 현재 vs 변경 후 금액 비교
+        try {
+          console.log('[DEBUG] 금액 비교 디버그 API 호출 시작...');
+          const debugResponse = await api.get('/api/campaigns/debug-amounts');
+          console.log('[DEBUG] 금액 비교 결과:', debugResponse.data);
+
+          // 콘솔에 비교 결과 출력
+          const debug = debugResponse.data;
+          console.log('=== 📊 금액 비교 분석 ===');
+          console.log(`📅 분석 기간: ${debug.debug_date}`);
+          console.log(`💰 현재 purchase_requests (이번 달 전체): ${debug.current_purchase_requests.count}건, ${debug.current_purchase_requests.amount.toLocaleString()}원`);
+          console.log(`📦 order_requests (이번 달 전체): ${debug.order_requests_all.count}건, ${debug.order_requests_all.amount.toLocaleString()}원`);
+          console.log(`✅ order_requests (이번 달 승인된 것만): ${debug.order_requests_approved_only.count}건, ${debug.order_requests_approved_only.amount.toLocaleString()}원`);
+          console.log('📋 상태별 분포:', debug.order_requests_by_status);
+
+          if (debug.order_requests_approved_only.amount !== debug.current_purchase_requests.amount) {
+            const diff = debug.order_requests_approved_only.amount - debug.current_purchase_requests.amount;
+            console.log(`🔄 변경 시 금액 변화: ${diff > 0 ? '+' : ''}${diff.toLocaleString()}원`);
+          }
+        } catch (error) {
+          console.log('[DEBUG] 금액 비교 디버그 실패:', error);
+        }
+
         // 실제 구매요청 및 발주 데이터 가져오기
         let realPurchaseStats = {
           totalRequests: 0,
