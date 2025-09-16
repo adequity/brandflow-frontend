@@ -328,8 +328,7 @@ const CampaignDetailPage = () => {
                 start_date: topicData.startDate,
                 due_date: topicData.dueDate,
                 product_id: topicData.productId,
-                quantity: topicData.quantity || 1,
-                campaign_id: parseInt(campaignId)
+                quantity: topicData.quantity || 1
             };
 
             console.log('API 호출 페이로드:', postPayload);
@@ -369,6 +368,10 @@ const CampaignDetailPage = () => {
         } catch (error) {
             console.error('업무 등록 실패:', error);
             console.error('API 에러 상세:', error.response?.data);
+            console.error('API 응답 상태:', error.response?.status);
+            console.error('API 응답 헤더:', error.response?.headers);
+            console.error('요청 URL:', error.config?.url);
+            console.error('요청 데이터:', error.config?.data);
             showError(`업무 등록 실패: ${error.response?.data?.detail || error.message}`);
         }
     };
