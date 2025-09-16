@@ -95,22 +95,25 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         // 캠페인 기본 정보로 통계 계산 (financialSummary API 호출 제거로 성능 개선)
         if (latestCampaigns && latestCampaigns.length > 0) {
           console.log('[DASHBOARD] 캠페인 통계 계산 시작...');
-          
+
           latestCampaigns.forEach((campaign) => {
             // 캠페인 예산을 매출로 계산 (실제 재무 데이터가 필요하면 별도 API 필요)
             campaignTotalRevenue += campaign.budget || 0;
-            
+
+            // 캠페인 지출 계산 (새로 추가된 cost 필드 사용)
+            campaignTotalCost += campaign.cost || 0;
+
             // 완료된 캠페인 카운트
             if (campaign.status === '완료' || campaign.status === 'COMPLETED') {
               completedCampaigns++;
             }
-            
+
             // 재무 상태 확인 (실제 필드명에 맞춰 수정 필요)
             // if (!campaign.invoice_issued) pendingInvoices++;
             // if (!campaign.payment_completed) pendingPayments++;
           });
-          
-          console.log('[DASHBOARD] 캠페인 통계 계산 완료 - 총 매출:', campaignTotalRevenue);
+
+          console.log('[DASHBOARD] 캠페인 통계 계산 완료 - 총 매출:', campaignTotalRevenue, ', 총 지출:', campaignTotalCost);
         }
         
         // 실제 구매요청 및 발주 데이터 가져오기
