@@ -13,7 +13,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     budget: '',
     start_date: '',
     end_date: '',
-    status: 'DRAFT',
+    executionStatus: '대기',
     UserId: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +105,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         budget: campaign.budget ? formatNumberWithCommas(campaign.budget.toString()) : '',
         start_date: formatDateForEdit(campaign.start_date),
         end_date: formatDateForEdit(campaign.end_date),
-        status: campaign.status || 'DRAFT',
+        executionStatus: campaign.executionStatus || '대기',
         UserId: campaign.creator_id || ''
       };
       
@@ -165,7 +165,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         budget: formData.budget ? parseFloat(removeCommas(formData.budget)) : null,
         start_date: formatDateToISO(formData.start_date),
         end_date: formatDateToISO(formData.end_date),
-        status: formData.status,
+        executionStatus: formData.executionStatus,
         creator_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
@@ -379,20 +379,21 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
 
           {/* 상태 */}
           <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="executionStatus" className="block text-sm font-medium text-gray-700">
               📊 상태
             </label>
             <select
-              name="status"
-              id="status"
-              value={formData.status}
+              name="executionStatus"
+              id="executionStatus"
+              value={formData.executionStatus}
               onChange={handleInputChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             >
-              <option value="DRAFT">초안</option>
-              <option value="ACTIVE">진행중</option>
-              <option value="COMPLETED">완료</option>
-              <option value="CANCELLED">취소</option>
+              <option value="대기">대기</option>
+              <option value="진행중">진행중</option>
+              <option value="완료">완료</option>
+              <option value="보류">보류</option>
+              <option value="취소">취소</option>
             </select>
           </div>
           
