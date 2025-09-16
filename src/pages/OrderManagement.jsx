@@ -49,15 +49,18 @@ const OrderManagement = ({ loggedInUser }) => {
     const pendingOrders = orderRequests.filter(o => o.status === '대기').length;
     const approvedOrders = orderRequests.filter(o => o.status === '승인').length;
     const rejectedOrders = orderRequests.filter(o => o.status === '거부').length;
-    const totalAmount = orderRequests.reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
+    const totalAmount = orderRequests
+      .filter(order => order.status === '승인')
+      .reduce((sum, order) => sum + (Number(order.cost_price) || 0), 0);
 
     const thisMonth = new Date();
-    const thisMonthOrders = orderRequests.filter(order => {
+    const thisMonthApprovedOrders = orderRequests.filter(order => {
       const orderDate = new Date(order.created_at);
-      return orderDate.getMonth() === thisMonth.getMonth() &&
+      return order.status === '승인' &&
+             orderDate.getMonth() === thisMonth.getMonth() &&
              orderDate.getFullYear() === thisMonth.getFullYear();
     });
-    const thisMonthAmount = thisMonthOrders.reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
+    const thisMonthAmount = thisMonthApprovedOrders.reduce((sum, order) => sum + (Number(order.cost_price) || 0), 0);
     
     setStats({
       totalOrders,
