@@ -62,8 +62,22 @@ const OrderManagement = ({ loggedInUser }) => {
       }
     } catch (error) {
       console.error('요청자 목록 로딩 실패:', error);
-      // 실패 시 빈 배열
-      setRequesterList([]);
+      // 에러 발생 시 실제 orderRequests에서 requester_name 추출
+      if (orderRequests && orderRequests.length > 0) {
+        const uniqueRequesters = [...new Set(orderRequests
+          .filter(order => order.requester_name)
+          .map(order => order.requester_name)
+        )];
+        const fallbackList = uniqueRequesters.map(name => ({
+          user_name: name,
+          label: name,
+          user_id: name // fallback으로 이름을 ID로 사용
+        }));
+        setRequesterList(fallbackList);
+        console.log('OrderManagement: 요청자 목록 fallback 사용', fallbackList);
+      } else {
+        setRequesterList([]);
+      }
     }
   };
 
@@ -118,13 +132,28 @@ const OrderManagement = ({ loggedInUser }) => {
     loadOrderRequests();
   }, [loggedInUser]);
   
-  // orderRequests가 변경될 때마다 통계 재계산
+  // orderRequests가 변경될 때마다 통계 재계산 및 requesterList 재로드
   useEffect(() => {
     calculateStats();
+    // orderRequests 로드 후 requesterList 재시도
+    if (orderRequests.length > 0 && requesterList.length === 0) {
+      loadRequesterList();
+    }
   }, [orderRequests]);
 
   // 필터링된 발주요청 목록
   const filteredOrderRequests = orderRequests.filter(order => {
+    // 디버깅용 로그 (한번만 출력)
+    if (orderRequests.indexOf(order) === 0 && (filters.status || filters.requesterName || filters.resourceType)) {
+      console.log('FilterDebug: 필터 상태', filters);
+      console.log('FilterDebug: 요청자 목록', requesterList);
+      console.log('FilterDebug: 첫번째 발주요청 데이터', {
+        id: order.id,
+        status: order.status,
+        requester_name: order.requester_name,
+        resource_type: order.resource_type
+      });
+    }
     // 상태 필터
     if (filters.status && order.status !== filters.status) {
       return false;
@@ -132,6 +161,11 @@ const OrderManagement = ({ loggedInUser }) => {
 
     // 요청자 필터 (requester_name 기준)
     if (filters.requesterName && order.requester_name !== filters.requesterName) {
+      console.log('FilterDebug: 요청자 필터 미일치', {
+        filterValue: filters.requesterName,
+        orderRequesterName: order.requester_name,
+        orderId: order.id
+      });
       return false;
     }
 
