@@ -102,6 +102,8 @@ const OrderManagement = ({ loggedInUser }) => {
     try {
       const orderToApprove = orderRequests.find(o => o.id === orderId);
 
+      console.log('현재 로그인 사용자:', loggedInUser);
+
       // OrderContext를 통한 상태 업데이트 (JWT 기반 실제 API 호출)
       const success = await updateOrderStatus(orderId, '승인', '발주 승인 완료');
 

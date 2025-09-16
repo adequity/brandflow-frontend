@@ -106,7 +106,9 @@ export const OrderProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error('발주 상태 업데이트 실패:', error);
-      showError(error.response?.data?.detail || '발주 상태 업데이트에 실패했습니다.');
+      console.error('Error response:', error.response?.data);
+      const errorMessage = error.response?.data?.detail || '발주 상태 업데이트에 실패했습니다.';
+      showError(errorMessage);
       return false;
     }
   };
