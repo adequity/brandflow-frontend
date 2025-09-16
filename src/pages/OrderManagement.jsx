@@ -98,58 +98,21 @@ const OrderManagement = ({ loggedInUser }) => {
 
   const confirmApproveOrder = async () => {
     const orderId = approveConfirm.orderId;
-    
+
     try {
       const orderToApprove = orderRequests.find(o => o.id === orderId);
-      
-      // OrderContext를 통한 상태 업데이트
-      await updateOrderStatus(orderId, '승인', '발주 승인 완료');
-      
-      showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.cost_price ? Number(orderToApprove.cost_price).toLocaleString() : '0'}원`);
-      
-      setApproveConfirm({ isOpen: false, orderId: null });
-      
-      /* 실제 백엔드 연동용 코드 (현재 주석처리)
-      // 1. 발주요청 승인
-      await api.put(`/api/order-requests/${orderId}/approve`, {
-        status: '승인완료',
-        approvedBy: loggedInUser.id,
-        approvedAt: new Date().toISOString(),
-        approverComment: '발주 승인 완료'
-      }, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
 
-      // 2. 자동으로 본사 지출에 반영 (PurchaseRequest 생성)
-      const order = orderRequests.find(o => o.id === orderId);
-      await api.post('/api/order-requests/create-expense', {
-        orderRequestId: orderId,
-        title: `발주승인 지출 - ${order.title}`,
-        description: `발주요청 승인으로 인한 자동 지출 등록\n원본 발주: ${order.description}`,
-        amount: order.amount,
-        resourceType: '발주 승인 지출',
-        priority: order.priority,
-        dueDate: order.dueDate,
-        campaignId: order.campaignId,
-        postId: order.postId,
-        requesterId: loggedInUser.id, // 대행사 어드민이 지출 요청자가 됨
-        status: '승인됨', // 이미 발주에서 승인되었으므로 자동 승인
-        linkedOrderRequestId: orderId, // 연관된 발주요청 ID
-        autoCreatedFromOrder: true
-      }, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      */
-      
+      // OrderContext를 통한 상태 업데이트 (JWT 기반 실제 API 호출)
+      const success = await updateOrderStatus(orderId, '승인', '발주 승인 완료');
+
+      if (success) {
+        showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.cost_price ? Number(orderToApprove.cost_price).toLocaleString() : '0'}원`);
+        setApproveConfirm({ isOpen: false, orderId: null });
+      }
+
     } catch (error) {
       console.error('발주요청 승인 실패:', error);
-      showError(error.response?.data?.message || '승인 처리에 실패했습니다.');
+      showError('승인 처리에 실패했습니다.');
     }
   };
 
@@ -157,33 +120,20 @@ const OrderManagement = ({ loggedInUser }) => {
   const handleRejectOrder = async (orderId) => {
     const rejectReason = prompt('거절 사유를 입력하세요:');
     if (!rejectReason) return;
-    
+
     try {
       const orderToReject = orderRequests.find(o => o.id === orderId);
-      
-      // OrderContext를 통한 상태 업데이트
-      await updateOrderStatus(orderId, '거부', `거절 사유: ${rejectReason}`);
 
-      showInfo(`발주요청이 거절되었습니다!\n\n발주번호: ${orderToReject?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToReject?.title}\n거절 사유: ${rejectReason}`);
-      
-      /* 실제 백엔드 연동용 코드 (현재 주석처리)
-      await api.put(`/api/order-requests/${orderId}/reject`, {
-        status: '거절됨',
-        rejectedBy: loggedInUser.id,
-        rejectedAt: new Date().toISOString(),
-        rejectReason,
-        approverComment: `거절 사유: ${rejectReason}`
-      }, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      */
-      
+      // OrderContext를 통한 상태 업데이트 (JWT 기반 실제 API 호출)
+      const success = await updateOrderStatus(orderId, '거부', `거절 사유: ${rejectReason}`);
+
+      if (success) {
+        showInfo(`발주요청이 거절되었습니다!\n\n발주번호: ${orderToReject?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToReject?.title}\n거절 사유: ${rejectReason}`);
+      }
+
     } catch (error) {
       console.error('발주요청 거절 실패:', error);
-      showError(error.response?.data?.message || '거절 처리에 실패했습니다.');
+      showError('거절 처리에 실패했습니다.');
     }
   };
 

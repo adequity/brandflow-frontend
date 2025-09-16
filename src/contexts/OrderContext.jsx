@@ -77,22 +77,22 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // 발주 요청 상태 업데이트
+  // 발주 요청 상태 업데이트 (JWT 기반)
   const updateOrderStatus = async (orderId, status, comment = '') => {
     try {
-      // 서버에 상태 업데이트 요청
-      const updateData = { 
+      // 서버에 상태 업데이트 요청 (새로운 OrderRequest API)
+      const updateData = {
         status,
-        approverComment: comment
+        comment
       };
 
-      const response = await api.put(`/api/purchase-requests/${orderId}`, updateData);
-      const updatedOrder = response.data;
+      const response = await api.put(`/api/campaigns/order-requests/${orderId}/status`, updateData);
+      const result = response.data;
 
       // 로컬 상태 업데이트
-      setOrderRequests(prev => 
-        prev.map(order => 
-          order.id === orderId ? updatedOrder : order
+      setOrderRequests(prev =>
+        prev.map(order =>
+          order.id === orderId ? { ...order, status } : order
         )
       );
 
@@ -102,10 +102,11 @@ export const OrderProvider = ({ children }) => {
       });
       window.dispatchEvent(updateEvent);
 
+      console.log('발주 상태 업데이트 성공:', result.message);
       return true;
     } catch (error) {
       console.error('발주 상태 업데이트 실패:', error);
-      showError('발주 상태 업데이트에 실패했습니다.');
+      showError(error.response?.data?.detail || '발주 상태 업데이트에 실패했습니다.');
       return false;
     }
   };
