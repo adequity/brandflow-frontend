@@ -685,7 +685,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           <div className="text-center p-3 bg-purple-50 rounded-lg">
             <div className="text-2xl font-bold text-purple-600">{formatAmount(purchaseStats.totalAmount)}</div>
             <div className="text-sm text-purple-700 mt-1">총 금액</div>
-            <div className="text-xs text-gray-500 mt-1">승인된 발주 total_cost</div>
+            <div className="text-xs text-gray-500 mt-1">승인된 발주 cost_price</div>
           </div>
         </div>
       </div>
