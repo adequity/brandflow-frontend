@@ -417,76 +417,80 @@ const CampaignDetailPage = () => {
     // 발주 요청 확인 함수
     const confirmOrderRequest = async () => {
         if (!orderRequestConfirm.post) return;
-        
+
         const post = orderRequestConfirm.post;
         const costPrice = getProductCostByWorkType(post.workType);
-        
+
         try {
-            // OrderContext를 통해 발주 요청 생성
+            console.log('발주 요청 시작:', post.title);
+
+            // JWT 기반 백엔드 API 호출
             const orderData = {
                 title: `캠페인 업무 발주 - ${post.title}`,
-                description: `${post.workType} 콘텐츠 제작을 위한 발주요청입니다.\n상품관리 연동 원가: ${costPrice.toLocaleString()}원\n\n업무 세부내용:\n- 제목: ${post.title}\n- 시작일: ${post.startDate || '미정'}\n- 마감일: ${post.endDate || '미정'}`,
-                amount: costPrice,
-                resourceType: '캠페인 업무 발주',
-                priority: '보통',
-                requester: { 
-                    name: '직원1', // 실제로는 로그인한 사용자 정보
-                    email: 'staff1@agency.com'
-                },
-                linkedCampaignId: parseInt(campaignId),
-                linkedPostId: post.id,
-                workType: post.workType,
-                dueDate: post.endDate
+                description: `${post.workType} 콘텐츠 제작을 위한 발주요청입니다.\n상품관리 연동 원가: ${costPrice.toLocaleString()}원\n\n업무 세부내용:\n- 제목: ${post.title}\n- 시작일: ${post.startDate || '미정'}\n- 마감일: ${post.dueDate || '미정'}`,
+                cost_price: costPrice,
+                resource_type: '캠페인 업무 발주',
+                post_id: post.id
             };
-            
-            const newOrder = await createOrderRequest(orderData);
-            
-            // 포스트의 발주 상태 업데이트
-            setPosts(prevPosts => 
-                prevPosts.map(p => 
-                    p.id === post.id 
-                        ? { 
-                            ...p, 
-                            orderRequestStatus: '발주 대기', 
-                            orderRequestId: newOrder.id,
-                            orderNumber: newOrder.orderNumber
-                          }
-                        : p
-                )
-            );
-            
+
+            console.log('발주 요청 데이터:', orderData);
+
+            const response = await api.post(`/api/campaigns/${campaignId}/posts/${post.id}/order-request`, orderData);
+            const newOrderRequest = response.data;
+
+            console.log('발주 요청 성공:', newOrderRequest);
+
+            // 전체 데이터 다시 가져오기
+            await fetchCampaignDetail();
+
+            showSuccess(`발주 요청이 완료되었습니다!\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원`);
+
         } catch (error) {
             console.error('발주 요청 실패:', error);
-            showError('발주 요청에 실패했습니다.');
+            console.error('API 에러 상세:', error.response?.data);
+            showError(`발주 요청에 실패했습니다: ${error.response?.data?.detail || error.message}`);
         }
-        
+
         setOrderRequestConfirm({ isOpen: false, post: null });
     };
 
     // 발주 재요청 확인 함수
     const confirmReorderRequest = async () => {
         if (!reorderRequestConfirm.post) return;
-        
+
         const post = reorderRequestConfirm.post;
         const costPrice = getProductCostByWorkType(post.workType);
-        
+
         try {
-            // 더미로 재발주 요청 성공 처리
-            showSuccess(`발주 재요청이 완료되었습니다! (더미 모드)\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원`);
-            
-            // 더미 상태 업데이트 - 재요청 시 상태를 다시 "발주 대기"로 변경
-            setPosts(prevPosts => 
-                prevPosts.map(p => 
-                    p.id === post.id 
-                        ? { ...p, orderRequestStatus: '발주 대기', orderRequestId: Date.now() }
-                        : p
-                )
-            );
+            console.log('발주 재요청 시작:', post.title);
+
+            // JWT 기반 백엔드 API 호출 (새 발주요청 생성)
+            const orderData = {
+                title: `캠페인 업무 재발주 - ${post.title}`,
+                description: `${post.workType} 콘텐츠 제작을 위한 재발주요청입니다.\n상품관리 연동 원가: ${costPrice.toLocaleString()}원\n\n업무 세부내용:\n- 제목: ${post.title}\n- 시작일: ${post.startDate || '미정'}\n- 마감일: ${post.dueDate || '미정'}`,
+                cost_price: costPrice,
+                resource_type: '캠페인 업무 재발주',
+                post_id: post.id
+            };
+
+            console.log('발주 재요청 데이터:', orderData);
+
+            const response = await api.post(`/api/campaigns/${campaignId}/posts/${post.id}/order-request`, orderData);
+            const newOrderRequest = response.data;
+
+            console.log('발주 재요청 성공:', newOrderRequest);
+
+            // 전체 데이터 다시 가져오기
+            await fetchCampaignDetail();
+
+            showSuccess(`발주 재요청이 완료되었습니다!\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원`);
+
         } catch (error) {
             console.error('발주 재요청 실패:', error);
-            showError('발주 재요청에 실패했습니다.');
+            console.error('API 에러 상세:', error.response?.data);
+            showError(`발주 재요청에 실패했습니다: ${error.response?.data?.detail || error.message}`);
         }
-        
+
         setReorderRequestConfirm({ isOpen: false, post: null });
     };
 
