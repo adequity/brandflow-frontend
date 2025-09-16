@@ -122,9 +122,9 @@ export const OrderProvider = ({ children }) => {
       params.append('page', filters.page || 1);
       params.append('limit', filters.limit || 20);
 
-      // 🚨 HTTPS 강제 및 사용자 정보 추가
-      const response = await api.get(`/api/purchase-requests?${params.toString()}`);
-      const orders = response.data.requests || [];
+      // JWT 기반 발주요청 목록 조회 (새로운 OrderRequest 테이블)
+      const response = await api.get(`/api/campaigns/order-requests`);
+      const orders = response.data || [];
       
       setOrderRequests(orders);
       return orders;

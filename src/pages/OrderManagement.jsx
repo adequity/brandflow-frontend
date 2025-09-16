@@ -49,18 +49,18 @@ const OrderManagement = ({ loggedInUser }) => {
   // 통계 계산
   const calculateStats = () => {
     const totalOrders = orderRequests.length;
-    const pendingOrders = orderRequests.filter(o => o.status === '발주 대기').length;
-    const approvedOrders = orderRequests.filter(o => o.status === '승인완료').length;
-    const rejectedOrders = orderRequests.filter(o => o.status === '거절됨').length;
-    const totalAmount = orderRequests.reduce((sum, order) => sum + (order.amount || 0), 0);
-    
+    const pendingOrders = orderRequests.filter(o => o.status === '대기').length;
+    const approvedOrders = orderRequests.filter(o => o.status === '승인').length;
+    const rejectedOrders = orderRequests.filter(o => o.status === '거부').length;
+    const totalAmount = orderRequests.reduce((sum, order) => sum + (order.cost_price || 0), 0);
+
     const thisMonth = new Date();
     const thisMonthOrders = orderRequests.filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return orderDate.getMonth() === thisMonth.getMonth() && 
+      const orderDate = new Date(order.created_at);
+      return orderDate.getMonth() === thisMonth.getMonth() &&
              orderDate.getFullYear() === thisMonth.getFullYear();
     });
-    const thisMonthAmount = thisMonthOrders.reduce((sum, order) => sum + (order.amount || 0), 0);
+    const thisMonthAmount = thisMonthOrders.reduce((sum, order) => sum + (order.cost_price || 0), 0);
     
     setStats({
       totalOrders,
@@ -106,9 +106,9 @@ const OrderManagement = ({ loggedInUser }) => {
       const orderToApprove = orderRequests.find(o => o.id === orderId);
       
       // OrderContext를 통한 상태 업데이트
-      await updateOrderStatus(orderId, '승인완료', '발주 승인 완료');
+      await updateOrderStatus(orderId, '승인', '발주 승인 완료');
       
-      showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.amount?.toLocaleString()}원`);
+      showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.cost_price?.toLocaleString()}원`);
       
       setApproveConfirm({ isOpen: false, orderId: null });
       
@@ -165,7 +165,7 @@ const OrderManagement = ({ loggedInUser }) => {
       const orderToReject = orderRequests.find(o => o.id === orderId);
       
       // OrderContext를 통한 상태 업데이트
-      await updateOrderStatus(orderId, '거절됨', `거절 사유: ${rejectReason}`);
+      await updateOrderStatus(orderId, '거부', `거절 사유: ${rejectReason}`);
 
       showInfo(`발주요청이 거절되었습니다!\n\n발주번호: ${orderToReject?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToReject?.title}\n거절 사유: ${rejectReason}`);
       
@@ -199,13 +199,17 @@ const OrderManagement = ({ loggedInUser }) => {
   // 상태 배지 생성
   const getStatusBadge = (status) => {
     const statusConfig = {
+      '대기': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
       '발주 대기': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock },
+      '승인': { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
       '승인완료': { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle },
+      '거부': { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle },
       '거절됨': { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle },
+      '완료': { bg: 'bg-blue-100', text: 'text-blue-800', icon: Package },
       '처리완료': { bg: 'bg-blue-100', text: 'text-blue-800', icon: Package }
     };
 
-    const config = statusConfig[status] || statusConfig['발주 대기'];
+    const config = statusConfig[status] || statusConfig['대기'];
     const Icon = config.icon;
 
     return (
@@ -302,10 +306,10 @@ const OrderManagement = ({ loggedInUser }) => {
             className="border border-gray-300 rounded-lg px-3 py-2"
           >
             <option value="">전체 상태</option>
-            <option value="발주 대기">발주 대기</option>
-            <option value="승인완료">승인완료</option>
-            <option value="거절됨">거절됨</option>
-            <option value="처리완료">처리완료</option>
+            <option value="대기">대기</option>
+            <option value="승인">승인</option>
+            <option value="거부">거부</option>
+            <option value="완료">완료</option>
           </select>
 
           <select
@@ -356,26 +360,29 @@ const OrderManagement = ({ loggedInUser }) => {
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-medium text-blue-600">
-                          {order.requester?.name?.charAt(0)}
+                          {order.requester_name?.charAt(0) || '?'}
                         </span>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{order.requester?.name}</div>
-                        <div className="text-sm text-gray-500">{order.requester?.email}</div>
+                        <div className="text-sm font-medium text-gray-900">{order.requester_name || '알 수 없음'}</div>
+                        <div className="text-sm text-gray-500">{order.campaign_name}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.amount?.toLocaleString()}원
+                    {order.cost_price?.toLocaleString() || '0'}원
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.resourceType}
+                    <div>
+                      <div>{order.resource_type}</div>
+                      <div className="text-xs text-gray-400">{order.work_type}</div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(order.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(order.createdAt).toLocaleDateString()}
+                    {new Date(order.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
@@ -389,7 +396,7 @@ const OrderManagement = ({ loggedInUser }) => {
                       </button>
 
                       {/* 승인 버튼 */}
-                      {order.status === '발주 대기' && (
+                      {order.status === '대기' && (
                         <>
                           <button
                             onClick={() => handleApproveOrder(order.id)}
@@ -477,10 +484,10 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
                 <span className="font-medium">상태:</span> {order.status}
               </div>
               <div>
-                <span className="font-medium">요청자:</span> {order.requester?.name}
+                <span className="font-medium">요청자:</span> {order.requester_name}
               </div>
               <div>
-                <span className="font-medium">요청일:</span> {new Date(order.createdAt).toLocaleString()}
+                <span className="font-medium">요청일:</span> {new Date(order.created_at).toLocaleString()}
               </div>
             </div>
           </div>
@@ -497,47 +504,42 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
                 <p className="mt-1 text-gray-700">{order.description}</p>
               </div>
               <div>
-                <span className="font-medium">금액:</span> {order.amount?.toLocaleString()}원
+                <span className="font-medium">금액:</span> {order.cost_price?.toLocaleString()}원
               </div>
               <div>
-                <span className="font-medium">유형:</span> {order.resourceType}
+                <span className="font-medium">유형:</span> {order.resource_type}
               </div>
               {order.priority && (
                 <div>
                   <span className="font-medium">우선순위:</span> {order.priority}
                 </div>
               )}
-              {order.dueDate && (
+              {order.due_date && (
                 <div>
-                  <span className="font-medium">희망 완료일:</span> {new Date(order.dueDate).toLocaleDateString()}
+                  <span className="font-medium">희망 완료일:</span> {new Date(order.due_date).toLocaleDateString()}
                 </div>
               )}
             </div>
           </div>
 
           {/* 연관 정보 */}
-          {(order.linkedCampaignId || order.linkedSaleId || order.workType) && (
+          {(order.campaign_id || order.post_id || order.work_type) && (
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-medium mb-2">연관 정보</h3>
               <div className="text-sm space-y-1">
-                {order.linkedCampaignId && (
+                {order.campaign_id && (
                   <div>
-                    <span className="font-medium">연관 캠페인:</span> {order.campaign?.name || `캠페인 #${order.linkedCampaignId}`}
+                    <span className="font-medium">연관 캠페인:</span> {order.campaign_name || `캠페인 #${order.campaign_id}`}
                   </div>
                 )}
-                {order.linkedPostId && (
+                {order.post_id && (
                   <div>
-                    <span className="font-medium">연관 업무:</span> {order.linkedPostId && `업무 #${order.linkedPostId}`}
+                    <span className="font-medium">연관 업무:</span> {order.post_title || `업무 #${order.post_id}`}
                   </div>
                 )}
-                {order.workType && (
+                {order.work_type && (
                   <div>
-                    <span className="font-medium">업무 타입:</span> {order.workType}
-                  </div>
-                )}
-                {order.linkedSaleId && (
-                  <div>
-                    <span className="font-medium">연관 매출:</span> {order.sale?.saleNumber || `매출 #${order.linkedSaleId}`}
+                    <span className="font-medium">업무 타입:</span> {order.work_type}
                   </div>
                 )}
               </div>
@@ -568,7 +570,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
 
         {/* 액션 버튼 */}
         <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
-          {order.status === '발주 대기' && (
+          {order.status === '대기' && (
             <>
               <button
                 onClick={() => {
