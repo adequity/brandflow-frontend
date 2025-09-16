@@ -23,8 +23,7 @@ const OrderManagement = ({ loggedInUser }) => {
   });
   const [filters, setFilters] = useState({
     status: '',
-    requesterName: '',
-    resourceType: ''
+    requesterName: ''
   });
   const [statusList, setStatusList] = useState([]);
   const [requesterList, setRequesterList] = useState([]);
@@ -157,14 +156,13 @@ const OrderManagement = ({ loggedInUser }) => {
   // 필터링된 발주요청 목록
   const filteredOrderRequests = orderRequests.filter(order => {
     // 디버깅용 로그 (한번만 출력)
-    if (orderRequests.indexOf(order) === 0 && (filters.status || filters.requesterName || filters.resourceType)) {
+    if (orderRequests.indexOf(order) === 0 && (filters.status || filters.requesterName)) {
       console.log('FilterDebug: 필터 상태', filters);
       console.log('FilterDebug: 요청자 목록', requesterList);
       console.log('FilterDebug: 첫번째 발주요청 데이터', {
         id: order.id,
         status: order.status,
-        requester_name: order.requester_name,
-        resource_type: order.resource_type
+        requester_name: order.requester_name
       });
     }
     // 상태 필터
@@ -182,11 +180,6 @@ const OrderManagement = ({ loggedInUser }) => {
       return false;
     }
 
-    // 유형 필터
-    if (filters.resourceType && order.resource_type !== filters.resourceType) {
-      return false;
-    }
-
     return true;
   });
 
@@ -194,8 +187,7 @@ const OrderManagement = ({ loggedInUser }) => {
   const resetFilters = () => {
     setFilters({
       status: '',
-      requesterName: '',
-      resourceType: ''
+      requesterName: ''
     });
   };
 
@@ -400,23 +392,6 @@ const OrderManagement = ({ loggedInUser }) => {
             </select>
           </div>
 
-          {/* 유형 필터 */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">유형</label>
-            <select
-              value={filters.resourceType}
-              onChange={(e) => setFilters(prev => ({ ...prev, resourceType: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 min-w-[120px]"
-            >
-              <option value="">전체 유형</option>
-              <option value="매출 연동 발주">매출 연동 발주</option>
-              <option value="캠페인 업무 발주">캠페인 업무 발주</option>
-              <option value="광고비">광고비</option>
-              <option value="콘텐츠 제작비">콘텐츠 제작비</option>
-              <option value="도구 구독료">도구 구독료</option>
-              <option value="기타">기타</option>
-            </select>
-          </div>
 
           {/* 필터 초기화 버튼 */}
           <div className="flex flex-col justify-end">
