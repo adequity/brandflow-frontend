@@ -34,17 +34,11 @@ const OrderManagement = ({ loggedInUser }) => {
       const response = await api.get('/api/campaigns/order-status-list');
       if (response.data.success && response.data.status_list) {
         setStatusList(response.data.status_list);
-        console.log('OrderManagement: 상태 목록 로드 완료', response.data.status_list);
       } else {
         throw new Error('상태 목록 응답 오류');
       }
     } catch (error) {
       console.error('상태 목록 로딩 실패:', error);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      if (error.response?.data?.detail) {
-        console.error('Detailed error:', error.response.data.detail);
-      }
       // 실패 시 기본값 사용 (하드코딩 대신 안전한 fallback)
       setStatusList([
         { value: "대기", label: "대기", color: "yellow" },
@@ -57,17 +51,14 @@ const OrderManagement = ({ loggedInUser }) => {
   // 요청자 목록 조회 (안전한 구현)
   const loadRequesterList = async () => {
     try {
-      console.log('OrderManagement: 요청자 목록 로딩 시작...');
       const response = await api.get('/api/campaigns/order-requesters');
       if (response.data.success && response.data.requester_list) {
         setRequesterList(response.data.requester_list);
-        console.log('OrderManagement: 요청자 목록 로드 완료', response.data.requester_list);
       } else {
         throw new Error('요청자 목록 응답 오류');
       }
     } catch (error) {
       console.error('요청자 목록 로딩 실패:', error);
-      console.error('Error details:', error.response?.data, error.response?.status);
 
       // 에러 발생 시 실제 orderRequests에서 requester_name 추출 (fallback)
       if (orderRequests && orderRequests.length > 0) {
@@ -81,11 +72,8 @@ const OrderManagement = ({ loggedInUser }) => {
           user_id: name // fallback으로 이름을 ID로 사용
         }));
         setRequesterList(fallbackList);
-        console.log('OrderManagement: 요청자 목록 fallback 사용', fallbackList);
       } else {
-        // orderRequests가 없으면 빈 목록으로 설정
         setRequesterList([]);
-        console.log('OrderManagement: orderRequests 없음, 빈 요청자 목록 설정');
       }
     }
   };
@@ -98,7 +86,6 @@ const OrderManagement = ({ loggedInUser }) => {
     try {
       // 모든 발주요청 조회 (필터링 제거)
       await fetchOrderRequests();
-      console.log('OrderManagement: 발주 요청 목록 로드 완료');
     } catch (error) {
       console.error('발주요청 목록 로딩 실패:', error);
     } finally {
@@ -155,16 +142,6 @@ const OrderManagement = ({ loggedInUser }) => {
 
   // 필터링된 발주요청 목록
   const filteredOrderRequests = orderRequests.filter(order => {
-    // 디버깅용 로그 (한번만 출력)
-    if (orderRequests.indexOf(order) === 0 && (filters.status || filters.requesterName)) {
-      console.log('FilterDebug: 필터 상태', filters);
-      console.log('FilterDebug: 요청자 목록', requesterList);
-      console.log('FilterDebug: 첫번째 발주요청 데이터', {
-        id: order.id,
-        status: order.status,
-        requester_name: order.requester_name
-      });
-    }
     // 상태 필터
     if (filters.status && order.status !== filters.status) {
       return false;
@@ -172,11 +149,6 @@ const OrderManagement = ({ loggedInUser }) => {
 
     // 요청자 필터 (requester_name 기준)
     if (filters.requesterName && order.requester_name !== filters.requesterName) {
-      console.log('FilterDebug: 요청자 필터 미일치', {
-        filterValue: filters.requesterName,
-        orderRequesterName: order.requester_name,
-        orderId: order.id
-      });
       return false;
     }
 
