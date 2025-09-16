@@ -146,6 +146,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             totalRequests: approvedOrderData.total_requests,
             pendingRequests: approvedOrderData.pending_requests,
             approvedRequests: approvedOrderData.approved_requests,
+            rejectedRequests: approvedOrderData.rejected_requests,
             totalAmount: approvedOrderData.total_amount,
             thisMonthAmount: approvedOrderData.this_month_amount
           };
@@ -664,23 +665,27 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       {user?.role !== '직원' && (
       <div className="bg-white p-6 rounded-xl border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">💸 구매요청 및 발주승인 현황</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="text-center p-3 bg-blue-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">{purchaseStats.totalRequests}</div>
-            <div className="text-sm text-blue-700 mt-1">전체 요청</div>
+            <div className="text-sm text-blue-700 mt-1">총 발주</div>
           </div>
           <div className="text-center p-3 bg-yellow-50 rounded-lg">
             <div className="text-2xl font-bold text-yellow-600">{purchaseStats.pendingRequests}</div>
-            <div className="text-sm text-yellow-700 mt-1">승인 대기</div>
+            <div className="text-sm text-yellow-700 mt-1">대기중</div>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-lg">
             <div className="text-2xl font-bold text-green-600">{purchaseStats.approvedRequests}</div>
-            <div className="text-sm text-green-700 mt-1">승인 완료</div>
+            <div className="text-sm text-green-700 mt-1">승인됨</div>
           </div>
           <div className="text-center p-3 bg-red-50 rounded-lg">
-            <div className="text-2xl font-bold text-red-600">{formatAmount(purchaseStats.thisMonthAmount)}</div>
-            <div className="text-sm text-red-700 mt-1">이번 달 지출</div>
-            <div className="text-xs text-gray-500 mt-1">구매요청 + 발주승인</div>
+            <div className="text-2xl font-bold text-red-600">{purchaseStats.rejectedRequests || 0}</div>
+            <div className="text-sm text-red-700 mt-1">거절됨</div>
+          </div>
+          <div className="text-center p-3 bg-purple-50 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600">{formatAmount(purchaseStats.totalAmount)}</div>
+            <div className="text-sm text-purple-700 mt-1">총 금액</div>
+            <div className="text-xs text-gray-500 mt-1">승인된 발주 total_cost</div>
           </div>
         </div>
       </div>
