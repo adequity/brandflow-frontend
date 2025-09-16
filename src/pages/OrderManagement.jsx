@@ -23,14 +23,54 @@ const OrderManagement = ({ loggedInUser }) => {
   });
   const [filters, setFilters] = useState({
     status: '',
-    resourceType: '',
-    employeeId: ''
+    requesterName: '',
+    resourceType: ''
   });
+  const [statusList, setStatusList] = useState([]);
+  const [requesterList, setRequesterList] = useState([]);
+
+  // 상태 목록 조회 (안전한 구현)
+  const loadStatusList = async () => {
+    try {
+      const response = await api.get('/api/campaigns/order-status-list');
+      if (response.data.success && response.data.status_list) {
+        setStatusList(response.data.status_list);
+        console.log('OrderManagement: 상태 목록 로드 완료', response.data.status_list);
+      } else {
+        throw new Error('상태 목록 응답 오류');
+      }
+    } catch (error) {
+      console.error('상태 목록 로딩 실패:', error);
+      // 실패 시 기본값 사용 (하드코딩 대신 안전한 fallback)
+      setStatusList([
+        { value: "대기", label: "대기", color: "yellow" },
+        { value: "승인", label: "승인", color: "green" },
+        { value: "거부", label: "거부", color: "red" }
+      ]);
+    }
+  };
+
+  // 요청자 목록 조회 (안전한 구현)
+  const loadRequesterList = async () => {
+    try {
+      const response = await api.get('/api/campaigns/order-requesters');
+      if (response.data.success && response.data.requester_list) {
+        setRequesterList(response.data.requester_list);
+        console.log('OrderManagement: 요청자 목록 로드 완료', response.data.requester_list);
+      } else {
+        throw new Error('요청자 목록 응답 오류');
+      }
+    } catch (error) {
+      console.error('요청자 목록 로딩 실패:', error);
+      // 실패 시 빈 배열
+      setRequesterList([]);
+    }
+  };
 
   // 발주요청 목록 조회
   const loadOrderRequests = async () => {
     if (!loggedInUser?.id) return;
-    
+
     setIsLoading(true);
     try {
       // 모든 발주요청 조회 (필터링 제거)
@@ -73,6 +113,8 @@ const OrderManagement = ({ loggedInUser }) => {
   };
 
   useEffect(() => {
+    loadStatusList();
+    loadRequesterList();
     loadOrderRequests();
   }, [loggedInUser]);
   
@@ -80,6 +122,35 @@ const OrderManagement = ({ loggedInUser }) => {
   useEffect(() => {
     calculateStats();
   }, [orderRequests]);
+
+  // 필터링된 발주요청 목록
+  const filteredOrderRequests = orderRequests.filter(order => {
+    // 상태 필터
+    if (filters.status && order.status !== filters.status) {
+      return false;
+    }
+
+    // 요청자 필터 (requester_name 기준)
+    if (filters.requesterName && order.requester_name !== filters.requesterName) {
+      return false;
+    }
+
+    // 유형 필터
+    if (filters.resourceType && order.resource_type !== filters.resourceType) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // 필터 초기화
+  const resetFilters = () => {
+    setFilters({
+      status: '',
+      requesterName: '',
+      resourceType: ''
+    });
+  };
 
   // 실시간 업데이트를 위한 이벤트 리스너
   useEffect(() => {
@@ -251,32 +322,71 @@ const OrderManagement = ({ loggedInUser }) => {
 
       {/* 필터 */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex gap-4">
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-            className="border border-gray-300 rounded-lg px-3 py-2"
-          >
-            <option value="">전체 상태</option>
-            <option value="대기">대기</option>
-            <option value="승인">승인</option>
-            <option value="거부">거부</option>
-            <option value="완료">완료</option>
-          </select>
+        <div className="flex flex-wrap gap-4 items-center">
+          {/* 상태 필터 */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">상태</label>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              className="border border-gray-300 rounded-lg px-3 py-2 min-w-[120px]"
+            >
+              <option value="">전체 상태</option>
+              {statusList.map(status => (
+                <option key={status.value} value={status.value}>{status.label}</option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={filters.resourceType}
-            onChange={(e) => setFilters(prev => ({ ...prev, resourceType: e.target.value }))}
-            className="border border-gray-300 rounded-lg px-3 py-2"
-          >
-            <option value="">전체 유형</option>
-            <option value="매출 연동 발주">매출 연동 발주</option>
-            <option value="캠페인 업무 발주">캠페인 업무 발주</option>
-            <option value="광고비">광고비</option>
-            <option value="콘텐츠 제작비">콘텐츠 제작비</option>
-            <option value="도구 구독료">도구 구독료</option>
-            <option value="기타">기타</option>
-          </select>
+          {/* 요청자 필터 */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">요청자</label>
+            <select
+              value={filters.requesterName}
+              onChange={(e) => setFilters(prev => ({ ...prev, requesterName: e.target.value }))}
+              className="border border-gray-300 rounded-lg px-3 py-2 min-w-[120px]"
+            >
+              <option value="">전체 요청자</option>
+              {requesterList.map(requester => (
+                <option key={requester.user_id} value={requester.user_name}>{requester.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 유형 필터 */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">유형</label>
+            <select
+              value={filters.resourceType}
+              onChange={(e) => setFilters(prev => ({ ...prev, resourceType: e.target.value }))}
+              className="border border-gray-300 rounded-lg px-3 py-2 min-w-[120px]"
+            >
+              <option value="">전체 유형</option>
+              <option value="매출 연동 발주">매출 연동 발주</option>
+              <option value="캠페인 업무 발주">캠페인 업무 발주</option>
+              <option value="광고비">광고비</option>
+              <option value="콘텐츠 제작비">콘텐츠 제작비</option>
+              <option value="도구 구독료">도구 구독료</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+
+          {/* 필터 초기화 버튼 */}
+          <div className="flex flex-col justify-end">
+            <button
+              onClick={resetFilters}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
+            >
+              필터 초기화
+            </button>
+          </div>
+
+          {/* 필터 결과 표시 */}
+          <div className="flex flex-col justify-end ml-auto">
+            <span className="text-sm text-gray-600">
+              총 {orderRequests.length}건 중 {filteredOrderRequests.length}건 표시
+            </span>
+          </div>
         </div>
       </div>
 
@@ -297,7 +407,7 @@ const OrderManagement = ({ loggedInUser }) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {orderRequests.map((order) => (
+              {filteredOrderRequests.map((order) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {order.orderNumber || `ORD-${order.id.toString().padStart(6, '0')}`}
