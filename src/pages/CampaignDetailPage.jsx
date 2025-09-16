@@ -414,7 +414,7 @@ const CampaignDetailPage = () => {
         setReorderRequestConfirm({ isOpen: true, post });
     };
 
-    // 발주 요청 확인 함수
+    // 발주 요청 확인 함수 (JWT 기반)
     const confirmOrderRequest = async () => {
         if (!orderRequestConfirm.post) return;
 
@@ -443,7 +443,7 @@ const CampaignDetailPage = () => {
             // 전체 데이터 다시 가져오기
             await fetchCampaignDetail();
 
-            showSuccess(`발주 요청이 완료되었습니다!\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원`);
+            showSuccess(`발주 요청이 완료되었습니다!\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원\n\n발주 번호: ${newOrderRequest.id}`);
 
         } catch (error) {
             console.error('발주 요청 실패:', error);
@@ -454,7 +454,7 @@ const CampaignDetailPage = () => {
         setOrderRequestConfirm({ isOpen: false, post: null });
     };
 
-    // 발주 재요청 확인 함수
+    // 발주 재요청 확인 함수 (JWT 기반)
     const confirmReorderRequest = async () => {
         if (!reorderRequestConfirm.post) return;
 
@@ -483,7 +483,7 @@ const CampaignDetailPage = () => {
             // 전체 데이터 다시 가져오기
             await fetchCampaignDetail();
 
-            showSuccess(`발주 재요청이 완료되었습니다!\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원`);
+            showSuccess(`발주 재요청이 완료되었습니다!\n\n업무: ${post.title}\n업무타입: ${post.workType}\n예상 원가: ${costPrice.toLocaleString()}원\n\n발주 번호: ${newOrderRequest.id}`);
 
         } catch (error) {
             console.error('발주 재요청 실패:', error);
