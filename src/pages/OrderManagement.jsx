@@ -53,6 +53,7 @@ const OrderManagement = ({ loggedInUser }) => {
   // 요청자 목록 조회 (안전한 구현)
   const loadRequesterList = async () => {
     try {
+      console.log('OrderManagement: 요청자 목록 로딩 시작...');
       const response = await api.get('/api/campaigns/order-requesters');
       if (response.data.success && response.data.requester_list) {
         setRequesterList(response.data.requester_list);
@@ -62,7 +63,9 @@ const OrderManagement = ({ loggedInUser }) => {
       }
     } catch (error) {
       console.error('요청자 목록 로딩 실패:', error);
-      // 에러 발생 시 실제 orderRequests에서 requester_name 추출
+      console.error('Error details:', error.response?.data, error.response?.status);
+
+      // 에러 발생 시 실제 orderRequests에서 requester_name 추출 (fallback)
       if (orderRequests && orderRequests.length > 0) {
         const uniqueRequesters = [...new Set(orderRequests
           .filter(order => order.requester_name)
@@ -76,7 +79,9 @@ const OrderManagement = ({ loggedInUser }) => {
         setRequesterList(fallbackList);
         console.log('OrderManagement: 요청자 목록 fallback 사용', fallbackList);
       } else {
+        // orderRequests가 없으면 빈 목록으로 설정
         setRequesterList([]);
+        console.log('OrderManagement: orderRequests 없음, 빈 요청자 목록 설정');
       }
     }
   };
@@ -127,18 +132,21 @@ const OrderManagement = ({ loggedInUser }) => {
   };
 
   useEffect(() => {
-    loadStatusList();
-    loadRequesterList();
-    loadOrderRequests();
+    const loadData = async () => {
+      await loadStatusList();
+      await loadOrderRequests();
+      // orderRequests 로드 완료 후 requesterList 로드
+      await loadRequesterList();
+    };
+
+    if (loggedInUser?.id) {
+      loadData();
+    }
   }, [loggedInUser]);
   
-  // orderRequests가 변경될 때마다 통계 재계산 및 requesterList 재로드
+  // orderRequests가 변경될 때마다 통계 재계산
   useEffect(() => {
     calculateStats();
-    // orderRequests 로드 후 requesterList 재시도
-    if (orderRequests.length > 0 && requesterList.length === 0) {
-      loadRequesterList();
-    }
   }, [orderRequests]);
 
   // 필터링된 발주요청 목록
