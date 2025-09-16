@@ -49,7 +49,7 @@ const OrderManagement = ({ loggedInUser }) => {
     const pendingOrders = orderRequests.filter(o => o.status === '대기').length;
     const approvedOrders = orderRequests.filter(o => o.status === '승인').length;
     const rejectedOrders = orderRequests.filter(o => o.status === '거부').length;
-    const totalAmount = orderRequests.reduce((sum, order) => sum + (Number(order.cost_price) || 0), 0);
+    const totalAmount = orderRequests.reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
 
     const thisMonth = new Date();
     const thisMonthOrders = orderRequests.filter(order => {
@@ -57,7 +57,7 @@ const OrderManagement = ({ loggedInUser }) => {
       return orderDate.getMonth() === thisMonth.getMonth() &&
              orderDate.getFullYear() === thisMonth.getFullYear();
     });
-    const thisMonthAmount = thisMonthOrders.reduce((sum, order) => sum + (Number(order.cost_price) || 0), 0);
+    const thisMonthAmount = thisMonthOrders.reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
     
     setStats({
       totalOrders,
@@ -108,7 +108,7 @@ const OrderManagement = ({ loggedInUser }) => {
       const success = await updateOrderStatus(orderId, '승인', '발주 승인 완료');
 
       if (success) {
-        showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.cost_price ? Number(orderToApprove.cost_price).toLocaleString() : '0'}원`);
+        showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.total_cost ? Number(orderToApprove.total_cost).toLocaleString() : '0'}원`);
         setApproveConfirm({ isOpen: false, orderId: null });
       }
 
@@ -319,7 +319,12 @@ const OrderManagement = ({ loggedInUser }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.cost_price ? Number(order.cost_price).toLocaleString() : '0'}원
+                    {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
+                    {order.product_cost && order.quantity && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {Number(order.product_cost).toLocaleString()}원 × {order.quantity}개
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div>
@@ -453,7 +458,12 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
                 <p className="mt-1 text-gray-700">{order.description}</p>
               </div>
               <div>
-                <span className="font-medium">금액:</span> {order.cost_price ? Number(order.cost_price).toLocaleString() : '0'}원
+                <span className="font-medium">금액:</span> {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
+                {order.product_cost && order.quantity && (
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({Number(order.product_cost).toLocaleString()}원 × {order.quantity}개)
+                  </span>
+                )}
               </div>
               <div>
                 <span className="font-medium">유형:</span> {order.resource_type}

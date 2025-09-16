@@ -96,11 +96,7 @@ export const OrderProvider = ({ children }) => {
         )
       );
 
-      // 캠페인 상세 페이지 업데이트를 위한 이벤트 발생
-      const updateEvent = new CustomEvent('orderStatusUpdate', {
-        detail: { orderId, status, comment }
-      });
-      window.dispatchEvent(updateEvent);
+      // 상태 업데이트 성공 로그
 
       console.log('발주 상태 업데이트 성공:', result.message);
       return true;
@@ -135,13 +131,8 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // 실시간 업데이트를 위한 이벤트 리스너
+  // 새로운 발주요청 실시간 업데이트를 위한 이벤트 리스너
   useEffect(() => {
-    const handleOrderUpdate = (event) => {
-      const { orderId, status, comment } = event.detail;
-      updateOrderStatus(orderId, status, comment);
-    };
-
     const handleNewOrder = (event) => {
       const { order } = event.detail;
       setOrderRequests(prev => {
@@ -151,11 +142,9 @@ export const OrderProvider = ({ children }) => {
       });
     };
 
-    window.addEventListener('orderStatusUpdate', handleOrderUpdate);
     window.addEventListener('newOrderRequest', handleNewOrder);
 
     return () => {
-      window.removeEventListener('orderStatusUpdate', handleOrderUpdate);
       window.removeEventListener('newOrderRequest', handleNewOrder);
     };
   }, []);

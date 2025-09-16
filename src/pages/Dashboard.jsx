@@ -183,9 +183,23 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         };
         setSalesStats(realSalesStats);
 
+        // 먼저 인증 테스트
+        try {
+          console.log('[DEBUG] 인증 테스트 시작...');
+          const authTestResponse = await api.get('/api/campaigns/test-auth');
+          console.log('[DEBUG] 인증 테스트 성공:', authTestResponse.data);
+        } catch (authError) {
+          console.error('[DEBUG] 인증 테스트 실패:', authError);
+          console.error('[DEBUG] 인증 오류 세부사항:', {
+            status: authError.response?.status,
+            data: authError.response?.data
+          });
+        }
+
         // 발주 승인된 posts의 지출 계산 (product.cost * quantity)
         let approvedPostsExpense = 0;
         try {
+          console.log('[DEBUG] 발주 승인 지출 API 호출 시작...');
           const approvedExpenseResponse = await api.get('/api/campaigns/approved-posts-expense');
           approvedPostsExpense = approvedExpenseResponse.data.total_expense || 0;
           console.log('[DASHBOARD] 발주 승인 지출:', approvedPostsExpense, '원');
@@ -198,6 +212,11 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             message: error.message,
             url: error.config?.url
           });
+
+          // detail 배열 내용 확인
+          if (error.response?.data?.detail && Array.isArray(error.response.data.detail)) {
+            console.error('Validation errors:', error.response.data.detail);
+          }
         }
 
         // 종합 재무 현황 계산 (실제 데이터 기반 + 발주 승인 지출 포함)
