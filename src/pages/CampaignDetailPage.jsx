@@ -251,10 +251,48 @@ const CampaignDetailPage = () => {
             payload = { outline: updatedContent, outlineStatus: '대기' };
         }
         try {
-            showError('수정 기능이 현재 사용 불가능합니다. 관리자에게 문의하세요.');
-            fetchCampaignDetail();
-        } catch (error) { 
-            showError('수정 실패'); 
+            console.log('업무 수정 시작:', payload);
+
+            // 백엔드 API 호출
+            const response = await api.put(`/api/campaigns/${campaignId}/posts/${selectedPost.id}`, payload);
+            const updatedPost = response.data;
+
+            console.log('백엔드 수정 응답:', updatedPost);
+
+            // 프론트엔드 형식으로 변환
+            const updatedPostFrontend = {
+                id: updatedPost.id,
+                title: updatedPost.title,
+                workType: updatedPost.work_type,
+                topicStatus: updatedPost.topic_status,
+                outline: updatedPost.outline,
+                outlineStatus: updatedPost.outline_status,
+                images: updatedPost.images || [],
+                publishedUrl: updatedPost.published_url,
+                orderRequestStatus: updatedPost.order_request_status,
+                orderRequestId: updatedPost.order_request_id,
+                createdAt: updatedPost.created_at,
+                startDate: updatedPost.start_date,
+                dueDate: updatedPost.due_date,
+                productId: updatedPost.product_id,
+                productName: updatedPost.productName,
+                quantity: updatedPost.quantity,
+                campaignId: updatedPost.campaign_id
+            };
+
+            // 로컬 state 업데이트
+            setPosts(prevPosts =>
+                prevPosts.map(post =>
+                    post.id === selectedPost.id ? updatedPostFrontend : post
+                )
+            );
+
+            console.log('업무 수정 성공:', updatedPostFrontend);
+            showSuccess(`업무 "${updatedPost.title}"이(가) 수정되었습니다.`);
+        } catch (error) {
+            console.error('업무 수정 실패:', error);
+            console.error('API 에러 상세:', error.response?.data);
+            showError(`업무 수정 실패: ${error.response?.data?.detail || error.message}`);
         }
         setEditModalOpen(false); setSelectedPost(null);
     };
@@ -321,6 +359,7 @@ const CampaignDetailPage = () => {
                 startDate: savedPost.start_date,
                 dueDate: savedPost.due_date,
                 productId: savedPost.product_id,
+                productName: savedPost.productName, // 백엔드에서 조인으로 가져온 제품명
                 quantity: savedPost.quantity,
                 campaignId: savedPost.campaign_id
             };
