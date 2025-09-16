@@ -149,32 +149,22 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         };
         
         try {
-          // 구매요청 데이터 가져오기 (구매요청과 발주요청은 동일한 데이터)
-          const purchaseResponse = await apiEndpoints.purchaseRequests.list();
-          const purchaseRequests = purchaseResponse.data.requests || purchaseResponse.data || [];
-          
-          // 통계 계산
-          const pending = purchaseRequests.filter(p => p.status === '승인 대기').length;
-          const approved = purchaseRequests.filter(p => p.status === '승인됨' || p.status === '완료됨').length;
-          const totalAmount = purchaseRequests.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-          
-          // 이번 달 금액 계산
-          const thisMonth = new Date();
-          const thisMonthAmount = purchaseRequests
-            .filter(p => {
-              const createdDate = new Date(p.created_at || p.createdAt);
-              return createdDate.getFullYear() === thisMonth.getFullYear() && 
-                     createdDate.getMonth() === thisMonth.getMonth();
-            })
-            .reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-          
+          // 승인된 발주요청 기반 지출 데이터 가져오기 (products.cost × posts.quantity)
+          console.log('[DASHBOARD] 승인된 발주요청 지출 데이터 로딩 시작...');
+          const approvedOrderResponse = await api.get('/api/campaigns/approved-order-expenses');
+          const approvedOrderData = approvedOrderResponse.data;
+
+          console.log('[DASHBOARD] 승인된 발주요청 지출 데이터:', approvedOrderData);
+
           realPurchaseStats = {
-            totalRequests: purchaseRequests.length,
-            pendingRequests: pending,
-            approvedRequests: approved,
-            totalAmount: totalAmount,
-            thisMonthAmount: thisMonthAmount
+            totalRequests: approvedOrderData.total_requests,
+            pendingRequests: approvedOrderData.pending_requests,
+            approvedRequests: approvedOrderData.approved_requests,
+            totalAmount: approvedOrderData.total_amount,
+            thisMonthAmount: approvedOrderData.this_month_amount
           };
+
+          console.log('[DASHBOARD] 새로운 발주 관리 통계 (승인 기반):', realPurchaseStats);
           
         } catch (error) {
           console.error('구매요청/발주 데이터 로딩 실패:', error);
