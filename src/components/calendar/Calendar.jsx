@@ -35,13 +35,8 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                 return;
             }
 
-            // 실제 캠페인 데이터에서 일정 생성
-            const response = await api.get('/api/campaigns/', {
-                params: {
-                    viewerId: user.id,
-                    viewerRole: user.role
-                }
-            });
+            // 실제 캠페인 데이터에서 일정 생성 (JWT 기반)
+            const response = await api.get('/api/campaigns/');
 
             const campaigns = response.data.results || response.data || [];
             console.log('캘린더용 캠페인 데이터:', campaigns);
@@ -80,9 +75,10 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                         description: `클라이언트: ${campaign.client || '미정'}, 포스트 수: ${posts.length}개`
                     });
 
-                    // 송장 마감일 일정 추가
-                    if (campaign.invoiceDueDate) {
-                        const invoiceDate = new Date(campaign.invoiceDueDate);
+                    // 송장 마감일 일정 추가 (여러 필드명 시도)
+                    const invoiceDueDateValue = campaign.invoiceDueDate || campaign.invoice_due_date;
+                    if (invoiceDueDateValue) {
+                        const invoiceDate = new Date(invoiceDueDateValue);
                         if (!isNaN(invoiceDate.getTime())) {
                             calendarTasks.push({
                                 id: `invoice-${campaign.id}`,
@@ -100,9 +96,10 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                         }
                     }
 
-                    // 결제 마감일 일정 추가
-                    if (campaign.paymentDueDate) {
-                        const paymentDate = new Date(campaign.paymentDueDate);
+                    // 결제 마감일 일정 추가 (여러 필드명 시도)
+                    const paymentDueDateValue = campaign.paymentDueDate || campaign.payment_due_date;
+                    if (paymentDueDateValue) {
+                        const paymentDate = new Date(paymentDueDateValue);
                         if (!isNaN(paymentDate.getTime())) {
                             calendarTasks.push({
                                 id: `payment-${campaign.id}`,
