@@ -19,8 +19,8 @@ const TelegramSettings = ({ loggedInUser }) => {
   });
   const [hasChanges, setHasChanges] = useState(false);
 
-  // cstaff 역할만 텔레그램 알림 사용 가능
-  const canUseTelegram = loggedInUser?.role === '직원';
+  // 클라이언트를 제외한 모든 역할이 텔레그램 알림 사용 가능
+  const canUseTelegram = loggedInUser?.role && loggedInUser.role !== '클라이언트';
 
   useEffect(() => {
     if (canUseTelegram) {
