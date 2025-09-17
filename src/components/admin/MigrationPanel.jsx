@@ -12,10 +12,25 @@ const MigrationPanel = () => {
         try {
             const response = await api.get('/api/migration/migration-status');
             setMigrationInfo(response.data);
+            setStatus({ type: 'success', message: '마이그레이션 상태 확인 완료' });
             console.log('마이그레이션 상태:', response.data);
         } catch (error) {
             console.error('마이그레이션 상태 확인 실패:', error);
-            setStatus({ type: 'error', message: `상태 확인 실패: ${error.message}` });
+            // 500 오류일 때는 마이그레이션 기능 비활성화 안내
+            if (error.response?.status === 500) {
+                setStatus({
+                    type: 'warning',
+                    message: '마이그레이션 기능이 현재 비활성화되어 있습니다. 개발팀에 문의하세요.'
+                });
+                setMigrationInfo({
+                    alembic_available: false,
+                    current_version: 'unavailable',
+                    migration_needed: false,
+                    service_status: 'disabled'
+                });
+            } else {
+                setStatus({ type: 'error', message: `상태 확인 실패: ${error.message}` });
+            }
         } finally {
             setLoading(false);
         }
@@ -65,22 +80,31 @@ const MigrationPanel = () => {
             {migrationInfo && (
                 <div className="mb-4 p-4 bg-gray-50 rounded">
                     <h4 className="font-medium mb-2">현재 상태</h4>
-                    <div className="space-y-1 text-sm">
-                        <div>현재 버전: <code>{migrationInfo.current_version || 'unknown'}</code></div>
-                        <div>새 DateTime 필드:
-                            <span className={migrationInfo.new_datetime_columns_exist ? 'text-green-600' : 'text-red-600'}>
-                                {migrationInfo.new_datetime_columns_exist ? ' ✅ 존재' : ' ❌ 없음'}
-                            </span>
+                    {migrationInfo.service_status === 'disabled' ? (
+                        <div className="text-sm text-yellow-700">
+                            <div>서비스 상태: <span className="font-medium text-yellow-800">비활성화됨</span></div>
+                            <div className="mt-2 text-xs text-gray-600">
+                                마이그레이션 기능이 일시적으로 비활성화되어 있습니다.
+                            </div>
                         </div>
-                        <div>마이그레이션 필요:
-                            <span className={migrationInfo.migration_needed ? 'text-orange-600' : 'text-green-600'}>
-                                {migrationInfo.migration_needed ? ' ⚠️ 필요함' : ' ✅ 완료됨'}
-                            </span>
+                    ) : (
+                        <div className="space-y-1 text-sm">
+                            <div>현재 버전: <code>{migrationInfo.current_version || 'unknown'}</code></div>
+                            <div>새 DateTime 필드:
+                                <span className={migrationInfo.new_datetime_columns_exist ? 'text-green-600' : 'text-red-600'}>
+                                    {migrationInfo.new_datetime_columns_exist ? ' ✅ 존재' : ' ❌ 없음'}
+                                </span>
+                            </div>
+                            <div>마이그레이션 필요:
+                                <span className={migrationInfo.migration_needed ? 'text-orange-600' : 'text-green-600'}>
+                                    {migrationInfo.migration_needed ? ' ⚠️ 필요함' : ' ✅ 완료됨'}
+                                </span>
+                            </div>
+                            {migrationInfo.existing_columns?.length > 0 && (
+                                <div>기존 컬럼: {migrationInfo.existing_columns.join(', ')}</div>
+                            )}
                         </div>
-                        {migrationInfo.existing_columns?.length > 0 && (
-                            <div>기존 컬럼: {migrationInfo.existing_columns.join(', ')}</div>
-                        )}
-                    </div>
+                    )}
                 </div>
             )}
 
@@ -107,7 +131,7 @@ const MigrationPanel = () => {
 
                 <button
                     onClick={runMigration}
-                    disabled={loading || !migrationInfo?.migration_needed}
+                    disabled={loading || !migrationInfo?.migration_needed || migrationInfo?.service_status === 'disabled'}
                     className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
                 >
                     {loading ? '실행 중...' : '마이그레이션 실행'}
