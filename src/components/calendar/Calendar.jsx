@@ -120,41 +120,137 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                         }
                     }
 
-                    // 각 포스트별 일정 생성
+                    // 각 포스트별 일정 생성 - start_date와 due_date 기반
                     posts.forEach((post, index) => {
+                        // Post 시작일 일정 추가
+                        if (post.startDate || post.start_date) {
+                            const startDateStr = post.startDate || post.start_date;
+                            try {
+                                const startDate = new Date(startDateStr);
+                                if (!isNaN(startDate.getTime())) {
+                                    calendarTasks.push({
+                                        id: `post-start-${post.id}`,
+                                        title: `시작: ${post.title || post.workType}`,
+                                        date: startDate,
+                                        type: 'post-start',
+                                        workType: post.workType || '기타',
+                                        status: post.topicStatus || '대기',
+                                        priority: 'medium',
+                                        assignee: campaign.User?.name || campaign.manager_name || campaign.creator_name || '담당자 미정',
+                                        agency: campaign.client_company || campaign.client || '클라이언트 미정',
+                                        campaign: campaign,
+                                        post: post,
+                                        description: `${post.workType || '작업'} 시작 - ${post.title || '제목 없음'}`,
+                                        detail: {
+                                            outline: post.outline,
+                                            images: post.images,
+                                            publishedUrl: post.publishedUrl || post.published_url,
+                                            quantity: post.quantity,
+                                            productName: post.productName
+                                        }
+                                    });
+                                }
+                            } catch (error) {
+                                console.warn(`Post ${post.id} start_date 파싱 오류:`, startDateStr, error);
+                            }
+                        }
+
+                        // Post 마감일 일정 추가
+                        if (post.dueDate || post.due_date) {
+                            const dueDateStr = post.dueDate || post.due_date;
+                            try {
+                                const dueDate = new Date(dueDateStr);
+                                if (!isNaN(dueDate.getTime())) {
+                                    calendarTasks.push({
+                                        id: `post-due-${post.id}`,
+                                        title: `마감: ${post.title || post.workType}`,
+                                        date: dueDate,
+                                        type: 'post-deadline',
+                                        workType: post.workType || '기타',
+                                        status: post.topicStatus || '대기',
+                                        priority: 'high',
+                                        assignee: campaign.User?.name || campaign.manager_name || campaign.creator_name || '담당자 미정',
+                                        agency: campaign.client_company || campaign.client || '클라이언트 미정',
+                                        campaign: campaign,
+                                        post: post,
+                                        description: `${post.workType || '작업'} 마감 - ${post.title || '제목 없음'}`,
+                                        detail: {
+                                            outline: post.outline,
+                                            images: post.images,
+                                            publishedUrl: post.publishedUrl || post.published_url,
+                                            quantity: post.quantity,
+                                            productName: post.productName
+                                        }
+                                    });
+                                }
+                            } catch (error) {
+                                console.warn(`Post ${post.id} due_date 파싱 오류:`, dueDateStr, error);
+                            }
+                        }
+
+                        // 기존 호환성: scheduledDate가 있는 경우
                         if (post.scheduledDate) {
+                            try {
+                                const scheduledDate = new Date(post.scheduledDate);
+                                if (!isNaN(scheduledDate.getTime())) {
+                                    calendarTasks.push({
+                                        id: `post-scheduled-${post.id}`,
+                                        title: post.title || `${post.workType} 포스트`,
+                                        date: scheduledDate,
+                                        type: 'post',
+                                        workType: post.workType || '기타',
+                                        status: post.topicStatus || '대기',
+                                        priority: 'medium',
+                                        assignee: campaign.User?.name || campaign.manager_name || campaign.creator_name || '담당자 미정',
+                                        agency: campaign.client_company || campaign.client || '클라이언트 미정',
+                                        campaign: campaign,
+                                        post: post,
+                                        description: `${post.workType || '작업'} - ${post.title || '제목 없음'}`,
+                                        detail: {
+                                            outline: post.outline,
+                                            images: post.images,
+                                            publishedUrl: post.publishedUrl || post.published_url,
+                                            quantity: post.quantity,
+                                            productName: post.productName
+                                        }
+                                    });
+                                }
+                            } catch (error) {
+                                console.warn(`Post ${post.id} scheduledDate 파싱 오류:`, post.scheduledDate, error);
+                            }
+                        }
+
+                        // 날짜가 없는 포스트는 캠페인 시작일 기준으로 자동 배치
+                        if (!post.startDate && !post.start_date && !post.dueDate && !post.due_date && !post.scheduledDate) {
+                            let autoDate;
+                            if (campaign.start_date) {
+                                autoDate = new Date(campaign.start_date);
+                                autoDate.setDate(autoDate.getDate() + index + 1);
+                            } else {
+                                autoDate = new Date(campaign.createdAt || Date.now());
+                                autoDate.setDate(autoDate.getDate() + index + 1);
+                            }
+
                             calendarTasks.push({
-                                id: `post-${post.id}`,
-                                title: post.title || `${post.workType} 포스트`,
-                                date: new Date(post.scheduledDate),
-                                type: 'post',
+                                id: `post-auto-${post.id}`,
+                                title: `📝 ${post.title || post.workType}`,
+                                date: autoDate,
+                                type: 'post-auto',
                                 workType: post.workType || '기타',
-                                status: post.topicStatus || post.status || '대기',
-                                priority: 'medium',
-                                assignee: campaign.User?.name || campaign.manager_name || '담당자 미정',
-                                agency: campaign.client || '클라이언트 미정',
+                                status: post.topicStatus || '대기',
+                                priority: 'low',
+                                assignee: campaign.User?.name || campaign.manager_name || campaign.creator_name || '담당자 미정',
+                                agency: campaign.client_company || campaign.client || '클라이언트 미정',
                                 campaign: campaign,
                                 post: post,
-                                description: `${post.workType || '작업'} - ${post.title || '제목 없음'}`
-                            });
-                        } else {
-                            // 일정이 없는 포스트는 캠페인 생성일 + (인덱스+1)일 후로 설정
-                            const scheduledDate = new Date(campaign.createdAt || Date.now());
-                            scheduledDate.setDate(scheduledDate.getDate() + index + 1);
-                            
-                            calendarTasks.push({
-                                id: `post-${post.id}`,
-                                title: post.title || `${post.workType} 포스트`,
-                                date: scheduledDate,
-                                type: 'post',
-                                workType: post.workType || '기타',
-                                status: post.topicStatus || post.status || '대기',
-                                priority: 'medium',
-                                assignee: campaign.User?.name || campaign.manager_name || '담당자 미정',
-                                agency: campaign.client || '클라이언트 미정',
-                                campaign: campaign,
-                                post: post,
-                                description: `${post.workType || '작업'} - ${post.title || '제목 없음'}`
+                                description: `${post.workType || '작업'} (자동배치) - ${post.title || '제목 없음'}`,
+                                detail: {
+                                    outline: post.outline,
+                                    images: post.images,
+                                    publishedUrl: post.publishedUrl || post.published_url,
+                                    quantity: post.quantity,
+                                    productName: post.productName
+                                }
                             });
                         }
                     });
@@ -265,16 +361,20 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                     <div className="p-1">
                         <div className="text-sm font-medium text-gray-900 mb-1">{day}</div>
                         <div className="space-y-1 max-h-20 overflow-y-auto">
-                            {dayTasks.slice(0, 3).map(task => (
-                                <div 
-                                    key={task.id}
-                                    className={`text-xs px-2 py-1 rounded-md truncate cursor-pointer hover:opacity-80 transition-opacity ${getTaskColor(task.workType)} ${getStatusBorder(task.status)}`}
-                                    title={`${task.title} (${task.status}) - 클릭하여 캠페인 상세 보기`}
-                                    onClick={(e) => handleCampaignClick(task, e)}
-                                >
-                                    {task.title}
-                                </div>
-                            ))}
+                            {dayTasks.slice(0, 3).map(task => {
+                                const typeStyle = getTaskTypeStyle(task.type, task.priority);
+                                return (
+                                    <div
+                                        key={task.id}
+                                        className={`text-xs px-2 py-1 rounded-md truncate cursor-pointer hover:opacity-80 transition-opacity ${getTaskColor(task.workType)} ${typeStyle.border}`}
+                                        title={`${typeStyle.icon} ${task.title} (${task.status})\n담당자: ${task.assignee}\n${task.description}\n클릭하여 캠페인 상세 보기`}
+                                        onClick={(e) => handleCampaignClick(task, e)}
+                                    >
+                                        <span className="mr-1">{typeStyle.icon}</span>
+                                        {task.title}
+                                    </div>
+                                );
+                            })}
                             {dayTasks.length > 3 && (
                                 <div className="text-xs text-gray-500 px-2">
                                     +{dayTasks.length - 3}개 더
@@ -296,6 +396,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             '인스타그램': 'bg-pink-100 text-pink-800',
             '유튜브': 'bg-red-100 text-red-800',
             '페이스북': 'bg-indigo-100 text-indigo-800',
+            '리워드 광고': 'bg-yellow-100 text-yellow-800',
             '캠페인': 'bg-green-100 text-green-800',
             '송장': 'bg-orange-100 text-orange-800',
             '결제': 'bg-purple-100 text-purple-800',
@@ -303,6 +404,20 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             'default': 'bg-gray-100 text-gray-800'
         };
         return colors[workType] || colors.default;
+    };
+
+    // 일정 타입별 아이콘과 스타일
+    const getTaskTypeStyle = (type, priority) => {
+        const styles = {
+            'post-start': { icon: '🚀', border: 'border-l-4 border-green-400' },
+            'post-deadline': { icon: '⏰', border: 'border-l-4 border-red-400' },
+            'post': { icon: '📝', border: 'border-l-4 border-blue-400' },
+            'post-auto': { icon: '📝', border: 'border-l-4 border-gray-400' },
+            'campaign': { icon: '📋', border: 'border-l-4 border-green-400' },
+            'deadline': { icon: '📅', border: priority === 'high' ? 'border-l-4 border-red-400' : 'border-l-4 border-orange-400' },
+            'default': { icon: '📌', border: 'border-l-4 border-gray-400' }
+        };
+        return styles[type] || styles.default;
     };
 
     // 상태별 테두리
@@ -513,23 +628,54 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                        taskDate.getDate() === selectedDateObj.getDate();
                             })
                             .map(task => (
-                                <div 
-                                    key={task.id} 
-                                    className="flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                <div
+                                    key={task.id}
+                                    className={`flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${getTaskTypeStyle(task.type, task.priority).border}`}
                                     onClick={(e) => handleCampaignClick(task, e)}
                                     title="클릭하여 캠페인 상세 보기"
                                 >
                                     <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${getTaskColor(task.workType).split(' ')[0]}`}></div>
-                                        <div>
-                                            <div className="font-medium text-gray-900">{task.title}</div>
-                                            <div className="text-sm text-gray-600">
-                                                {task.campaign?.name || '캠페인 정보 없음'} • {task.assignee} • {task.status}
+                                        <div className="text-lg">{getTaskTypeStyle(task.type, task.priority).icon}</div>
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900 flex items-center">
+                                                {task.title}
+                                                {task.priority === 'high' && <span className="ml-2 text-red-500 text-xs">🔥</span>}
                                             </div>
+                                            <div className="text-sm text-gray-600">
+                                                📋 {task.campaign?.name || '캠페인 정보 없음'} • 👤 {task.assignee} • 📊 {task.status}
+                                            </div>
+                                            {task.detail && (
+                                                <div className="text-xs text-gray-500 mt-1 space-y-1">
+                                                    {task.detail.outline && (
+                                                        <div className="truncate">📝 {task.detail.outline}</div>
+                                                    )}
+                                                    {task.detail.publishedUrl && (
+                                                        <div className="truncate">🔗 결과물:
+                                                            <a
+                                                                href={task.detail.publishedUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-blue-500 hover:underline ml-1"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                링크 보기
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                    {task.detail.quantity && task.detail.productName && (
+                                                        <div>📦 {task.detail.productName} ({task.detail.quantity}개)</div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                    <div className="text-sm text-gray-500">
-                                        {task.date ? new Date(task.date).toLocaleDateString('ko-KR') : '날짜 없음'}
+                                    <div className="text-sm text-gray-500 text-right">
+                                        <div>{task.date ? new Date(task.date).toLocaleDateString('ko-KR') : '날짜 없음'}</div>
+                                        <div className="text-xs mt-1">
+                                            <span className={`px-2 py-1 rounded-full text-xs ${getTaskColor(task.workType)}`}>
+                                                {task.workType}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -550,15 +696,38 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             )}
 
             {/* 범례 */}
-            <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center space-x-2">
+            <div className="mt-6 space-y-3 text-sm">
+                <div className="flex flex-wrap items-center gap-4">
                     <span className="font-medium text-gray-700">업무타입:</span>
-                    {['블로그', '인스타그램', '유튜브', '페이스북', '캠페인'].map(type => (
+                    {['블로그', '인스타그램', '유튜브', '페이스북', '리워드 광고', '캠페인'].map(type => (
                         <div key={type} className="flex items-center space-x-1">
                             <div className={`w-3 h-3 rounded-full ${getTaskColor(type).split(' ')[0]}`}></div>
                             <span className="text-gray-600">{type}</span>
                         </div>
                     ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    <span className="font-medium text-gray-700">일정타입:</span>
+                    <div className="flex items-center space-x-1">
+                        <span>🚀</span>
+                        <span className="text-gray-600">시작일</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <span>⏰</span>
+                        <span className="text-gray-600">마감일</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <span>📝</span>
+                        <span className="text-gray-600">일반업무</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <span>📋</span>
+                        <span className="text-gray-600">캠페인</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                        <span>📅</span>
+                        <span className="text-gray-600">재무마감</span>
+                    </div>
                 </div>
             </div>
 
