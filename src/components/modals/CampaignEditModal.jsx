@@ -403,7 +403,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             </select>
           </div>
 
-          {/* 재무 상태 */}
+          {/* 재무 상태 - 데이터베이스 스키마 업데이트 후 활성화 예정 */}
+          {/*
           <div className="border-t pt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">💰 재무 상태</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -436,6 +437,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
               </div>
             </div>
           </div>
+          */}
 
           <div className="flex justify-end space-x-3 pt-4">
             <button 
