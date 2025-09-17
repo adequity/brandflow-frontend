@@ -15,6 +15,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     start_date: '',
     end_date: '',
     status: '초안',
+    invoice_issued: false,
+    payment_completed: false,
     UserId: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -107,6 +109,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         start_date: formatDateForEdit(campaign.start_date),
         end_date: formatDateForEdit(campaign.end_date),
         status: campaign.status || '초안',
+        invoice_issued: campaign.invoice_issued || false,
+        payment_completed: campaign.payment_completed || false,
         UserId: campaign.creator_id || ''
       };
       
@@ -167,6 +171,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         start_date: formatDateToISO(formData.start_date),
         end_date: formatDateToISO(formData.end_date),
         status: formData.status || '초안',
+        invoice_issued: formData.invoice_issued,
+        payment_completed: formData.payment_completed,
         creator_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
@@ -396,7 +402,41 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
               <option value="취소">취소</option>
             </select>
           </div>
-          
+
+          {/* 재무 상태 */}
+          <div className="border-t pt-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">💰 재무 상태</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="invoice_issued"
+                  name="invoice_issued"
+                  checked={formData.invoice_issued}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="invoice_issued" className="ml-2 text-sm text-gray-700">
+                  📄 계산서 발행 완료
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="payment_completed"
+                  name="payment_completed"
+                  checked={formData.payment_completed}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="payment_completed" className="ml-2 text-sm text-gray-700">
+                  💳 입금 완료
+                </label>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end space-x-3 pt-4">
             <button 
               type="button" 
