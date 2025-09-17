@@ -25,10 +25,11 @@ const SystemSettings = ({ loggedInUser }) => {
     { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
     { id: 'telegram', label: '텔레그램 알림', icon: <Settings size={16} /> },
     { id: 'database', label: '데이터베이스', icon: <Database size={16} /> },
-    { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
-    { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
-    { id: 'document', label: '문서', icon: <FileText size={16} /> },
-    { id: 'general', label: '일반', icon: <Settings size={16} /> }
+    // 사용하지 않는 탭들 (임시 주석처리)
+    // { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
+    // { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
+    // { id: 'document', label: '문서', icon: <FileText size={16} /> },
+    // { id: 'general', label: '일반', icon: <Settings size={16} /> }
   ];
 
   const fetchSettings = async () => {
