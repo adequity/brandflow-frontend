@@ -13,20 +13,20 @@ import {
 import api, { apiEndpoints } from '../api/client';
 
 const colorStyles = {
-  blue:   { bg: 'bg-blue-100',   text: 'text-blue-600'   },
-  red:    { bg: 'bg-red-100',    text: 'text-red-600'    },
-  yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600' },
-  green:  { bg: 'bg-green-100',  text: 'text-green-600'  },
-  gray:   { bg: 'bg-gray-100',   text: 'text-gray-600'   },
+  primary:   { bg: 'bg-primary-100',   text: 'text-primary-600'   },
+  success:   { bg: 'bg-green-100',     text: 'text-green-600'    },
+  warning:   { bg: 'bg-amber-100',     text: 'text-amber-600'    },
+  danger:    { bg: 'bg-red-100',       text: 'text-red-600'      },
+  neutral:   { bg: 'bg-neutral-100',   text: 'text-neutral-600'  },
 };
 
 export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
   // 안전한 데이터 확인
   if (!user) {
     return (
-      <div className="p-6 bg-gray-50">
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
-          <p>사용자 정보를 불러오는 중...</p>
+      <div className="p-6 bg-gradient-to-br from-neutral-50 via-white to-primary-50/30">
+        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
+          <p className="text-neutral-700">사용자 정보를 불러오는 중...</p>
         </div>
       </div>
     );
@@ -435,10 +435,10 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
   }, [campaigns]);
 
   const stats = [
-    { title: '진행 중인 캠페인', value: inProgressCount, Icon: FileText, color: 'blue', description: '전체 활성 캠페인' },
-    { title: '검토 대기 중', value: pendingReviewCount, Icon: Clock, color: 'yellow', description: '승인/반려 검토 필요' },
-    { title: '반려된 콘텐츠', value: rejectedCount, Icon: XCircle, color: 'red', description: '확인 및 수정 필요' },
-    { title: '이번 달 완료', value: publishedThisMonthCount, Icon: CheckCircle, color: 'green', description: `총 ${allPosts.length}건 중` },
+    { title: '진행 중인 캠페인', value: inProgressCount, Icon: FileText, color: 'primary', description: '전체 활성 캠페인' },
+    { title: '검토 대기 중', value: pendingReviewCount, Icon: Clock, color: 'warning', description: '승인/반려 검토 필요' },
+    { title: '반려된 콘텐츠', value: rejectedCount, Icon: XCircle, color: 'danger', description: '확인 및 수정 필요' },
+    { title: '이번 달 완료', value: publishedThisMonthCount, Icon: CheckCircle, color: 'success', description: `총 ${allPosts.length}건 중` },
   ];
 
   const formatAmount = (amount) => {
@@ -450,15 +450,15 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
   };
 
   const StatCard = ({ title, value, description, Icon, color }) => {
-    const c = colorStyles[color] || colorStyles.blue;
+    const c = colorStyles[color] || colorStyles.primary;
     return (
-      <div className="bg-white p-5 rounded-xl border border-gray-200 flex items-start justify-between">
+      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card hover:shadow-elegant transition-all duration-200 flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-3xl font-bold text-gray-800 mt-2">{value}</p>
-          <p className="text-xs text-gray-400 mt-1">{description}</p>
+          <p className="text-sm font-medium text-neutral-600">{title}</p>
+          <p className="text-3xl font-bold text-neutral-800 mt-2">{value}</p>
+          <p className="text-xs text-neutral-500 mt-1">{description}</p>
         </div>
-        <div className={`p-2 rounded-full ${c.bg}`}>
+        <div className={`p-3 rounded-xl ${c.bg} shadow-sm`}>
           <Icon size={20} className={c.text} />
         </div>
       </div>
@@ -470,16 +470,16 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
         <button
-          className="text-sm text-blue-600 hover:underline flex items-center"
+          className="text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 px-3 py-1 rounded-lg transition-all duration-200 flex items-center"
           onClick={onSeeAll || (() => {})}
           type="button"
         >
           전체보기 <ArrowRight size={14} className="ml-1" />
         </button>
       </div>
-      <div className="bg-white rounded-xl border border-gray-200">
-        <table className="w-full text-sm text-left text-gray-600">
-          <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+      <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-neutral-200 shadow-card">
+        <table className="w-full text-sm text-left text-neutral-600">
+          <thead className="bg-neutral-50/80 text-xs text-neutral-700 uppercase">
             <tr>
               <th className="px-4 py-3">주제</th>
               <th className="px-4 py-3">상태</th>
@@ -489,7 +489,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-center text-gray-400" colSpan={3}>
+                <td className="px-4 py-6 text-center text-neutral-500" colSpan={3}>
                   표시할 항목이 없습니다.
                 </td>
               </tr>
@@ -497,7 +497,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               const status = p.outlineStatus || p.topicStatus || '-';
               return (
                 <tr key={p.id} className="border-b">
-                  <td className="px-4 py-3 font-medium text-gray-900 truncate">{p.title}</td>
+                  <td className="px-4 py-3 font-medium text-neutral-800 truncate">{p.title}</td>
                   <td className="px-4 py-3">{status}</td>
                   <td className="px-4 py-3">
                     {new Date(p.updatedAt || p.createdAt).toLocaleString()}
@@ -514,31 +514,31 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
   const ActivityItem = ({ a }) => {
     // type별 아이콘/색상
     let Icon = MessageSquare;
-    let color = colorStyles.gray;
-    if (a.type === 'reject') { Icon = XCircle; color = colorStyles.red; }
-    else if (a.type === 'approve') { Icon = CheckCircle; color = colorStyles.green; }
-    else if (a.type === 'action') { Icon = AlertCircle; color = colorStyles.yellow; }
+    let color = colorStyles.neutral;
+    if (a.type === 'reject') { Icon = XCircle; color = colorStyles.danger; }
+    else if (a.type === 'approve') { Icon = CheckCircle; color = colorStyles.success; }
+    else if (a.type === 'action') { Icon = AlertCircle; color = colorStyles.warning; }
 
     return (
-      <li className="flex items-start space-x-3 py-3 border-b last:border-b-0">
-        <div className={`mt-0.5 p-1.5 rounded-full ${color.bg}`}>
+      <li className="flex items-start space-x-3 py-3 border-b border-neutral-100 last:border-b-0">
+        <div className={`mt-0.5 p-1.5 rounded-lg ${color.bg}`}>
           <Icon size={16} className={color.text} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-gray-800">
+          <p className="text-sm text-neutral-800">
             <span className="font-semibold">{a.user}</span>{' '}
-            <span className="text-gray-700">{a.action}</span>
+            <span className="text-neutral-700">{a.action}</span>
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">{a.time}</p>
+          <p className="text-xs text-neutral-500 mt-0.5">{a.time}</p>
         </div>
       </li>
     );
   };
 
   return (
-    <div className="p-6 bg-gray-50 space-y-6">
+    <div className="p-6 bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 space-y-6">
       {/* 환영 메시지 및 주요 알림 */}
-      <div className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6 rounded-xl">
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 rounded-2xl shadow-elegant">
         <h2 className="text-2xl font-bold">
           {user?.role === '직원' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
         </h2>
@@ -559,83 +559,83 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
       {/* 직원용 매출 데이터 또는 관리자용 재무 현황 */}
       {user?.role === '직원' ? (
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
+          <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
             📊 내 매출 데이터
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <div className="text-4xl font-bold text-blue-600">{formatAmount(employeeStats.thisMonthRevenue)}</div>
-              <div className="text-lg text-blue-700 mt-2">이번달 총 매출</div>
-              <div className="text-sm text-gray-500 mt-1">담당 캠페인 기준</div>
+            <div className="text-center p-6 bg-primary-50 rounded-xl border border-primary-200">
+              <div className="text-4xl font-bold text-primary-600">{formatAmount(employeeStats.thisMonthRevenue)}</div>
+              <div className="text-lg text-primary-700 mt-2">이번달 총 매출</div>
+              <div className="text-sm text-neutral-600 mt-1">담당 캠페인 기준</div>
             </div>
-            <div className="text-center p-6 bg-green-50 rounded-lg">
+            <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
               <div className="text-4xl font-bold text-green-600">{formatAmount(employeeStats.thisMonthIncentive)}</div>
               <div className="text-lg text-green-700 mt-2">이번달 인센티브 금액</div>
-              <div className="text-sm text-gray-500 mt-1">
+              <div className="text-sm text-neutral-600 mt-1">
                 {employeeStats.thisMonthIncentive > 0 ? '승인/지급 예정액' : '계산 대기 중'}
               </div>
             </div>
-            <div className="text-center p-6 bg-purple-50 rounded-lg border-2 border-dashed border-purple-300">
-              <div className="text-4xl font-bold text-purple-600">🗓️</div>
-              <div className="text-lg text-purple-700 mt-2">업무 캘린더</div>
-              <div className="text-sm text-gray-500 mt-1">추후 개발 예정</div>
+            <div className="text-center p-6 bg-neutral-50 rounded-xl border-2 border-dashed border-neutral-300">
+              <div className="text-4xl font-bold text-neutral-600">🗓️</div>
+              <div className="text-lg text-neutral-700 mt-2">업무 캘린더</div>
+              <div className="text-sm text-neutral-600 mt-1">추후 개발 예정</div>
             </div>
           </div>
           
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-red-50 rounded-lg">
+            <div className="text-center p-4 bg-red-50 rounded-xl border border-red-200">
               <div className="text-2xl font-bold text-red-600">{employeeStats.pendingInvoices}</div>
               <div className="text-sm text-red-700 mt-1">미발행 계산서</div>
-              <div className="text-xs text-gray-500 mt-1">발행 필요한 캠페인</div>
+              <div className="text-xs text-neutral-600 mt-1">발행 필요한 캠페인</div>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">{employeeStats.pendingPayments}</div>
-              <div className="text-sm text-orange-700 mt-1">미입금 캠페인</div>
-              <div className="text-xs text-gray-500 mt-1">입금 대기 중</div>
+            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="text-2xl font-bold text-amber-600">{employeeStats.pendingPayments}</div>
+              <div className="text-sm text-amber-700 mt-1">미입금 캠페인</div>
+              <div className="text-xs text-neutral-600 mt-1">입금 대기 중</div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
-          <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
+          <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
             💰 재무 현황 (원장 데이터)
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-3xl font-bold text-blue-600">{formatAmount(financialOverview.totalRevenue)}</div>
-              <div className="text-sm text-blue-700 mt-1">총 매출</div>
-              <div className="text-xs text-gray-500 mt-1">Sales + Campaigns</div>
+            <div className="text-center p-4 bg-primary-50 rounded-xl border border-primary-200">
+              <div className="text-3xl font-bold text-primary-600">{formatAmount(financialOverview.totalRevenue)}</div>
+              <div className="text-sm text-primary-700 mt-1">총 매출</div>
+              <div className="text-xs text-neutral-600 mt-1">Sales + Campaigns</div>
             </div>
-            <div className="text-center p-4 bg-red-50 rounded-lg">
+            <div className="text-center p-4 bg-red-50 rounded-xl border border-red-200">
               <div className="text-3xl font-bold text-red-600">{formatAmount(financialOverview.totalExpenses)}</div>
               <div className="text-sm text-red-700 mt-1">총 매입/지출</div>
-              <div className="text-xs text-gray-500 mt-1">Purchase + Cost</div>
+              <div className="text-xs text-neutral-600 mt-1">Purchase + Cost</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
               <div className="text-3xl font-bold text-green-600">{formatAmount(financialOverview.netProfit)}</div>
               <div className="text-sm text-green-700 mt-1">순이익</div>
-              <div className="text-xs text-gray-500 mt-1">Revenue - Expenses</div>
+              <div className="text-xs text-neutral-600 mt-1">Revenue - Expenses</div>
             </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-3xl font-bold text-orange-600">{formatAmount(financialOverview.totalIncentives)}</div>
-              <div className="text-sm text-orange-700 mt-1">인센티브 지출</div>
-              <div className="text-xs text-gray-500 mt-1">Staff Incentives</div>
+            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="text-3xl font-bold text-amber-600">{formatAmount(financialOverview.totalIncentives)}</div>
+              <div className="text-sm text-amber-700 mt-1">인센티브 지출</div>
+              <div className="text-xs text-neutral-600 mt-1">Staff Incentives</div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className={`text-3xl font-bold ${financialOverview.finalNetProfit >= 0 ? 'text-purple-600' : 'text-red-600'}`}>
+            <div className="text-center p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+              <div className={`text-3xl font-bold ${financialOverview.finalNetProfit >= 0 ? 'text-primary-600' : 'text-red-600'}`}>
                 {formatAmount(financialOverview.finalNetProfit)}
               </div>
-              <div className="text-sm text-purple-700 mt-1">최종 순이익</div>
-              <div className="text-xs text-gray-500 mt-1">Final Net Profit</div>
+              <div className="text-sm text-neutral-700 mt-1">최종 순이익</div>
+              <div className="text-xs text-neutral-600 mt-1">Final Net Profit</div>
             </div>
           </div>
           
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600">
+          <div className="mt-4 p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+            <div className="text-sm text-neutral-700">
               <span className="font-medium">공식:</span> 순이익 = 매출 - 매입 | 최종 순이익 = 순이익 - 인센티브 지출
             </div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-neutral-600 mt-1">
               인센티브는 승인완료/지급완료 상태의 금액만 포함됩니다
             </div>
             {financialOverview.totalIncentives > financialOverview.netProfit && financialOverview.totalIncentives > 0 && (
@@ -644,7 +644,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               </div>
             )}
             {financialOverview.totalIncentives > 0 && financialOverview.netProfit > 0 && (
-              <div className="mt-2 text-xs text-blue-600">
+              <div className="mt-2 text-xs text-primary-600">
                 💡 인센티브 비율: {((financialOverview.totalIncentives / financialOverview.netProfit) * 100).toFixed(1)}% (순이익 대비)
               </div>
             )}
@@ -661,15 +661,15 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
       {/* 긴급 업무 섹션 - 관리자만 */}
       {user?.role !== '직원' && urgentTasks.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+        <div className="bg-red-50/80 backdrop-blur-md border border-red-200 rounded-2xl p-6 shadow-card">
           <h3 className="text-lg font-semibold text-red-800 mb-4">🚨 긴급 처리 필요 (3일 이상 대기)</h3>
           <div className="space-y-3">
             {urgentTasks.slice(0, 5).map(task => (
-              <div key={task.id} className="bg-white p-3 rounded-lg border border-red-200">
+              <div key={task.id} className="bg-white/80 backdrop-blur-md p-3 rounded-xl border border-red-200 shadow-sm">
                 <div className="flex justify-between items-start">
                   <div>
-                    <div className="font-medium text-gray-900">{task.title}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-medium text-neutral-800">{task.title}</div>
+                    <div className="text-sm text-neutral-600">
                       상태: {task.topicStatus || task.outlineStatus}
                     </div>
                   </div>
@@ -685,64 +685,64 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
       {/* 매입/지출 상세 현황 - 관리자만 */}
       {user?.role !== '직원' && (
-      <div className="bg-white p-6 rounded-xl border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">💸 구매요청 및 발주승인 현황</h3>
+      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
+        <h3 className="text-lg font-semibold text-neutral-800 mb-4">💸 구매요청 및 발주승인 현황</h3>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">{purchaseStats.totalRequests}</div>
-            <div className="text-sm text-blue-700 mt-1">총 발주</div>
+          <div className="text-center p-3 bg-primary-50 rounded-xl border border-primary-200">
+            <div className="text-2xl font-bold text-primary-600">{purchaseStats.totalRequests}</div>
+            <div className="text-sm text-primary-700 mt-1">총 발주</div>
           </div>
-          <div className="text-center p-3 bg-yellow-50 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{purchaseStats.pendingRequests}</div>
-            <div className="text-sm text-yellow-700 mt-1">대기중</div>
+          <div className="text-center p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="text-2xl font-bold text-amber-600">{purchaseStats.pendingRequests}</div>
+            <div className="text-sm text-amber-700 mt-1">대기중</div>
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
+          <div className="text-center p-3 bg-green-50 rounded-xl border border-green-200">
             <div className="text-2xl font-bold text-green-600">{purchaseStats.approvedRequests}</div>
             <div className="text-sm text-green-700 mt-1">승인됨</div>
           </div>
-          <div className="text-center p-3 bg-red-50 rounded-lg">
+          <div className="text-center p-3 bg-red-50 rounded-xl border border-red-200">
             <div className="text-2xl font-bold text-red-600">{purchaseStats.rejectedRequests || 0}</div>
             <div className="text-sm text-red-700 mt-1">거절됨</div>
           </div>
-          <div className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{formatAmount(purchaseStats.totalAmount)}</div>
-            <div className="text-sm text-purple-700 mt-1">총 금액</div>
-            <div className="text-xs text-gray-500 mt-1">승인된 발주 cost_price</div>
+          <div className="text-center p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+            <div className="text-2xl font-bold text-neutral-700">{formatAmount(purchaseStats.totalAmount)}</div>
+            <div className="text-sm text-neutral-600 mt-1">총 금액</div>
+            <div className="text-xs text-neutral-500 mt-1">승인된 발주 cost_price</div>
           </div>
         </div>
       </div>
       )}
 
       {/* 캠페인 성과 분석 */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">📈 캠페인 성과 분석</h3>
+      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
+        <h3 className="text-lg font-semibold text-neutral-800 mb-4">📈 캠페인 성과 분석</h3>
         {campaignPerformance.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {campaignPerformance.slice(0, 8).map((campaign, index) => (
-              <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={campaign.id} className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-200">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    index === 0 ? 'bg-yellow-400 text-white' :
-                    index === 1 ? 'bg-gray-400 text-white' :
-                    index === 2 ? 'bg-orange-400 text-white' :
-                    'bg-gray-200 text-gray-600'
+                    index === 0 ? 'bg-primary-500 text-white' :
+                    index === 1 ? 'bg-primary-400 text-white' :
+                    index === 2 ? 'bg-primary-300 text-white' :
+                    'bg-neutral-300 text-neutral-600'
                   }`}>
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">{campaign.name}</div>
-                    <div className="text-sm text-gray-600">{campaign.clientName}</div>
+                    <div className="font-medium text-neutral-800">{campaign.name}</div>
+                    <div className="text-sm text-neutral-600">{campaign.clientName}</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-gray-900">{campaign.completionRate}%</div>
-                  <div className="text-xs text-gray-500">{campaign.completed}/{campaign.total} 완료</div>
+                  <div className="font-bold text-neutral-800">{campaign.completionRate}%</div>
+                  <div className="text-xs text-neutral-600">{campaign.completed}/{campaign.total} 완료</div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-neutral-500">
             <div className="text-4xl mb-3">📊</div>
             <p>분석할 캠페인 데이터가 없습니다.</p>
           </div>
@@ -757,9 +757,9 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       </div>
 
       {/* 최신 활동 */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200">
+      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">📋 최신 활동</h3>
+          <h3 className="text-lg font-semibold text-neutral-800">📋 최신 활동</h3>
         </div>
         {activities && activities.length > 0 ? (
           <ul>
@@ -768,7 +768,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             ))}
           </ul>
         ) : (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-neutral-500">
             <div className="text-4xl mb-3">📝</div>
             <p>최근 활동이 없습니다.</p>
           </div>
