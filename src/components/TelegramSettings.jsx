@@ -205,7 +205,7 @@ const TelegramSettings = ({ loggedInUser }) => {
                 <div className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold mt-0.5">1</div>
                 <div>
                   <p className="text-blue-800 text-sm font-medium">텔레그램에서 봇 찾기</p>
-                  <p className="text-blue-700 text-xs mt-1">텔레그램 검색창에 <code className="bg-white px-1 rounded">@BrandFlowBot</code> 입력</p>
+                  <p className="text-blue-700 text-xs mt-1">텔레그램 검색창에 <code className="bg-white px-1 rounded">@BrandflowmanagerBot</code> 입력</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
