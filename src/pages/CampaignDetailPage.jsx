@@ -247,14 +247,31 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     quantity: updatedContent.quantity,
                     startDate: updatedContent.startDate,
                     dueDate: updatedContent.dueDate,
-                    topicStatus: '대기' // 수정 시 재승인 필요
+                    topicStatus: '대기', // 수정 시 재승인 필요
+                    // 업무 수정 시 발주 요청 상태 초기화
+                    orderRequestStatus: null,
+                    orderRequestId: null
                 };
             } else {
                 // 기존 방식 호환성
-                payload = { title: updatedContent, topicStatus: '대기', outline: null, outlineStatus: null };
+                payload = {
+                    title: updatedContent,
+                    topicStatus: '대기',
+                    outline: null,
+                    outlineStatus: null,
+                    // 업무 수정 시 발주 요청 상태 초기화
+                    orderRequestStatus: null,
+                    orderRequestId: null
+                };
             }
         } else {
-            payload = { outline: updatedContent, outlineStatus: '대기' };
+            payload = {
+                outline: updatedContent,
+                outlineStatus: '대기',
+                // 세부사항 수정 시에도 발주 요청 상태 초기화
+                orderRequestStatus: null,
+                orderRequestId: null
+            };
         }
         try {
             console.log('업무 수정 시작:', payload);
@@ -290,7 +307,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             await fetchCampaignDetail();
 
             console.log('업무 수정 성공:', updatedPostFrontend);
-            showSuccess(`업무 "${updatedPost.title}"이(가) 수정되었습니다.`);
+            showSuccess(`업무 "${updatedPost.title}"이(가) 수정되었고, 발주 요청이 초기화되었습니다. 필요시 발주 요청을 다시 해주세요.`);
         } catch (error) {
             console.error('업무 수정 실패:', error);
             console.error('API 에러 상세:', error.response?.data);
@@ -575,10 +592,36 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
 
     const handleCampaignSave = async () => {
         try {
+            // 캠페인 정보 수정
             const response = await api.put(`/api/campaigns/${campaignId}`, campaignEditData);
             setCampaign(prev => ({ ...prev, ...response.data }));
+
+            // 캠페인 수정 시 모든 posts의 발주 요청 상태 초기화
+            try {
+                console.log('캠페인 수정으로 인한 발주 요청 상태 초기화 시작...');
+                await api.put(`/api/campaigns/${campaignId}/reset-order-requests`);
+                console.log('발주 요청 상태 초기화 완료');
+
+                // 로컬 상태도 업데이트
+                setPosts(prevPosts =>
+                    prevPosts.map(post => ({
+                        ...post,
+                        orderRequestStatus: null,
+                        orderRequestId: null
+                    }))
+                );
+
+                showSuccess('캠페인 정보가 수정되었고, 모든 발주 요청이 초기화되었습니다. 필요시 발주 요청을 다시 해주세요.');
+            } catch (resetError) {
+                console.error('발주 요청 상태 초기화 실패:', resetError);
+                showSuccess('캠페인 정보는 수정되었으나 발주 요청 초기화에 실패했습니다.');
+            }
+
             setIsCampaignEditing(false);
-            showSuccess('캠페인 정보가 성공적으로 수정되었습니다!');
+
+            // 전체 데이터 다시 로드하여 최신 상태 반영
+            await fetchCampaignDetail();
+
         } catch (error) {
             console.error('캠페인 수정 실패:', error);
             showError('캠페인 수정에 실패했습니다.');
