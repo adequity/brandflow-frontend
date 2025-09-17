@@ -16,7 +16,7 @@ import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
 import TopicRegisterModal from '../components/modals/TopicRegisterModal';
 import LinkRegisterModal from '../components/modals/LinkRegisterModal';
 
-const CampaignDetailPage = () => {
+const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const { campaignId } = useParams();
     const navigate = useNavigate();
     const { showSuccess, showError, showInfo } = useToast();
@@ -391,7 +391,22 @@ const CampaignDetailPage = () => {
             });
             console.log('링크 등록 응답:', response.data);
             showSuccess('링크가 등록되었습니다!');
-            fetchCampaignDetail();
+            await fetchCampaignDetail();
+
+            // 상위 campaigns 상태 업데이트
+            if (setCampaigns && campaigns) {
+                setCampaigns(prevCampaigns =>
+                    prevCampaigns.map(c =>
+                        c.id === parseInt(campaignId) ? {
+                            ...c,
+                            posts: c.posts?.map(p =>
+                                p.id === postId ? { ...p, publishedUrl: url } : p
+                            ) || []
+                        } : c
+                    )
+                );
+                console.log('캠페인 목록 상태 업데이트 완료');
+            }
         } catch(error) {
             console.error('링크 등록 실패:', error);
             console.error('Error details:', error.response?.data);
