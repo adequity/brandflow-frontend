@@ -72,31 +72,19 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   // 초기값 설정
   useEffect(() => {
     if (campaign) {
-      console.log('[CAMPAIGN-EDIT] ===== DETAILED CAMPAIGN DATA ANALYSIS =====');
-      console.log('[CAMPAIGN-EDIT] Full campaign object:', JSON.stringify(campaign, null, 2));
-      console.log('[CAMPAIGN-EDIT] Campaign keys:', Object.keys(campaign));
-      console.log('[CAMPAIGN-EDIT] Budget value:', campaign.budget, 'Type:', typeof campaign.budget);
-      console.log('[CAMPAIGN-EDIT] Start Date value:', campaign.start_date, 'Type:', typeof campaign.start_date);
-      console.log('[CAMPAIGN-EDIT] End Date value:', campaign.end_date, 'Type:', typeof campaign.end_date);
-      console.log('[CAMPAIGN-EDIT] ==============================================');
-      
       // Helper function to format date - ONLY use actual data, no defaults
       const formatDateForEdit = (dateValue) => {
-        console.log('[CAMPAIGN-EDIT] Processing date value:', dateValue, 'Type:', typeof dateValue);
-        
         if (!dateValue || dateValue === 'null' || dateValue === null) {
-          console.log('[CAMPAIGN-EDIT] Date is null/empty, returning empty string');
           return '';
         }
-        
+
         try {
           // Handle both string and Date object formats
           const dateStr = dateValue instanceof Date ? dateValue.toISOString() : dateValue.toString();
           const formattedDate = dateStr.split('T')[0];
-          console.log('[CAMPAIGN-EDIT] Formatted date result:', formattedDate);
           return formattedDate;
         } catch (error) {
-          console.warn('[CAMPAIGN-EDIT] Date parsing error:', error);
+          console.warn('Date parsing error:', error);
           return '';
         }
       };
@@ -113,11 +101,6 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         payment_completed: campaign.payment_completed || false,
         UserId: campaign.creator_id || ''
       };
-      
-      console.log('[CAMPAIGN-EDIT] Formatted form data:', formattedData);
-      console.log('[CAMPAIGN-EDIT] Budget after formatting:', formattedData.budget);
-      console.log('[CAMPAIGN-EDIT] Start date after formatting:', formattedData.start_date);
-      console.log('[CAMPAIGN-EDIT] End date after formatting:', formattedData.end_date);
       setFormData(formattedData);
     }
   }, [campaign]);
@@ -176,7 +159,6 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         creator_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
-      console.log('[CAMPAIGN-UPDATE] Sending data:', updateData);
 
       await api.put(`/api/campaigns/${campaign.id}`, updateData, {
         params: {
@@ -403,8 +385,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             </select>
           </div>
 
-          {/* 재무 상태 - 데이터베이스 스키마 업데이트 후 활성화 예정 */}
-          {/*
+          {/* 재무 상태 */}
           <div className="border-t pt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">💰 재무 상태</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -437,7 +418,6 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
               </div>
             </div>
           </div>
-          */}
 
           <div className="flex justify-end space-x-3 pt-4">
             <button 
