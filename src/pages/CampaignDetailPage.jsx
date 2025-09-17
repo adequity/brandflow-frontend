@@ -384,15 +384,16 @@ const CampaignDetailPage = () => {
     const handleRegisterLink = async (url) => {
         const postId = selectedRows[0];
         try {
-            // Django API로 링크 등록
-            await api.put(`/api/posts/${postId}`, {
+            // FastAPI로 링크 등록 (올바른 엔드포인트 사용)
+            await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, {
                 published_url: url
             });
             showSuccess('링크가 등록되었습니다!');
             fetchCampaignDetail();
-        } catch(error) { 
+        } catch(error) {
             console.error('링크 등록 실패:', error);
-            showError('링크 등록 실패'); 
+            console.error('Error details:', error.response?.data);
+            showError(`링크 등록 실패: ${error.response?.data?.detail || error.message}`);
         }
         setLinkModalOpen(false); setSelectedRows([]);
     };
