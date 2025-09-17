@@ -5,33 +5,63 @@ import NotificationBell from './common/NotificationBell';
 const Header = ({ title, onLogout, user }) => {
     const [isProfileOpen, setProfileOpen] = useState(false);
     return (
-        <div className="h-16 bg-white border-b flex items-center justify-between px-6 shrink-0">
-            <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
-            <div className="flex items-center space-x-4">
-                {/* 검색 기능은 별도 페이지에서 구현 */}
-                <div className="hidden md:block">
-                    <Search className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
+        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-neutral-200 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40">
+            <div className="flex items-center space-x-6">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+                    {title}
+                </h1>
+            </div>
+
+            <div className="flex items-center space-x-6">
+                {/* 검색 기능 */}
+                <div className="hidden md:flex items-center bg-neutral-100 hover:bg-neutral-200 rounded-full px-4 py-2 transition-colors cursor-pointer group">
+                    <Search className="text-neutral-500 group-hover:text-primary-600 transition-colors" size={18} />
+                    <span className="ml-2 text-sm text-neutral-600 group-hover:text-primary-600">검색</span>
                 </div>
+
+                {/* 알림 */}
                 <NotificationBell />
+
+                {/* 프로필 영역 */}
                 <div className="relative">
-                <div onClick={() => setProfileOpen(!isProfileOpen)} className="flex items-center space-x-2 cursor-pointer">
-                    <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">{user?.name?.charAt(0)}</div>
-                    <div>
-                        <p className="text-sm font-semibold text-gray-800">{user?.name}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
+                    <div
+                        onClick={() => setProfileOpen(!isProfileOpen)}
+                        className="flex items-center space-x-3 cursor-pointer p-2 rounded-xl hover:bg-neutral-100 transition-colors group"
+                    >
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center font-bold text-white shadow-elegant">
+                            {user?.name?.charAt(0)}
+                        </div>
+                        <div className="hidden sm:block text-left">
+                            <p className="text-sm font-semibold text-neutral-800">{user?.name}</p>
+                            <p className="text-xs text-neutral-500">{user?.role}</p>
+                        </div>
+                        <ChevronDown
+                            className={`text-neutral-500 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''} group-hover:text-primary-600`}
+                            size={18}
+                        />
                     </div>
-                    <button className="text-gray-500 hover:text-gray-700"><ChevronDown size={20} /></button>
-                </div>
-                {isProfileOpen && (
-                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                        <button onClick={onLogout} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
-                            <LogOut size={16} className="mr-2"/> 로그아웃
-                        </button>
-                    </div>
-                )}
+
+                    {isProfileOpen && (
+                        <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-elegant border border-neutral-200 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                            <div className="px-4 py-3 border-b border-neutral-100">
+                                <p className="text-sm font-semibold text-neutral-800">{user?.name}</p>
+                                <p className="text-xs text-neutral-500">{user?.email}</p>
+                                <span className="inline-block mt-2 px-2 py-1 bg-primary-100 text-primary-700 text-xs rounded-md font-medium">
+                                    {user?.role}
+                                </span>
+                            </div>
+                            <button
+                                onClick={onLogout}
+                                className="w-full text-left px-4 py-3 text-sm text-neutral-700 hover:bg-red-50 hover:text-red-600 flex items-center transition-colors group"
+                            >
+                                <LogOut size={16} className="mr-3 group-hover:scale-110 transition-transform"/>
+                                로그아웃
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>
+        </header>
     );
 };
 
