@@ -4,6 +4,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 import { canEditCampaign } from '../../utils/permissions';
 
+
 const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
@@ -13,7 +14,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
     budget: '',
     start_date: '',
     end_date: '',
-    executionStatus: '대기',
+    status: '초안',
     UserId: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -105,7 +106,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         budget: campaign.budget ? formatNumberWithCommas(campaign.budget.toString()) : '',
         start_date: formatDateForEdit(campaign.start_date),
         end_date: formatDateForEdit(campaign.end_date),
-        executionStatus: campaign.executionStatus || '대기',
+        status: campaign.status || '초안',
         UserId: campaign.creator_id || ''
       };
       
@@ -165,7 +166,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         budget: formData.budget ? parseFloat(removeCommas(formData.budget)) : null,
         start_date: formatDateToISO(formData.start_date),
         end_date: formatDateToISO(formData.end_date),
-        executionStatus: formData.executionStatus,
+        status: formData.status || '초안',
         creator_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
@@ -377,22 +378,21 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             </div>
           </div>
 
-          {/* 상태 */}
+          {/* 캠페인 상태 */}
           <div>
-            <label htmlFor="executionStatus" className="block text-sm font-medium text-gray-700">
-              📊 상태
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              📊 캠페인 상태
             </label>
             <select
-              name="executionStatus"
-              id="executionStatus"
-              value={formData.executionStatus}
+              name="status"
+              id="status"
+              value={formData.status}
               onChange={handleInputChange}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
             >
-              <option value="대기">대기</option>
+              <option value="초안">초안</option>
               <option value="진행중">진행중</option>
               <option value="완료">완료</option>
-              <option value="보류">보류</option>
               <option value="취소">취소</option>
             </select>
           </div>

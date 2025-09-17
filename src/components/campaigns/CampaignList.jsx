@@ -11,6 +11,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { ensureArray, safeFormatCurrency } from '../../utils/dataUtils';
 import { canEditCampaign } from '../../utils/permissions';
 
+
 const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSelectCampaign, currentUser, pagination, onPageChange }) => {
   const { showSuccess, showError } = useToast();
   const [isModalOpen, setModalOpen] = useState(false);
@@ -171,17 +172,24 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
   const handleSaveEditedCampaign = async () => {
     try {
-      // 캠페인 목록 새로고침 (JWT 인증)
-      console.log('[CAMPAIGN-REFRESH] Calling API: /api/campaigns/');
-      const response = await api.get('/api/campaigns/');
+      // 캠페인 목록 새로고침 (현재 페이지네이션 정보 유지)
+      const currentPage = pagination?.page || 1;
+      const pageSize = pagination?.size || 10;
+
+      console.log('[CAMPAIGN-REFRESH] Calling API with pagination:', { page: currentPage, size: pageSize });
+      const response = await api.get('/api/campaigns/', {
+        params: {
+          page: currentPage,
+          size: pageSize
+        }
+      });
       console.log('[CAMPAIGN-REFRESH] API Response:', response.data);
-      console.log('[CAMPAIGN-REFRESH] Response status:', response.status);
 
       // 백엔드 응답 구조: { data: [...], pagination: {...} }
       const campaignsData = response.data?.data || response.data || [];
-      console.log('[CAMPAIGN-REFRESH] Extracted campaigns:', campaignsData);
-      console.log('[CAMPAIGN-REFRESH] First campaign structure:', campaignsData[0]);
+      console.log('[CAMPAIGN-REFRESH] Extracted campaigns:', campaignsData.length, 'campaigns');
 
+      // AdminUI의 캠페인 상태 업데이트 (페이지네이션 정보 유지)
       setCampaigns(campaignsData);
       setEditModalOpen(false);
       setEditingCampaign(null);
@@ -189,7 +197,9 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       showSuccess('캠페인이 성공적으로 수정되었습니다.');
     } catch (error) {
       console.error('캠페인 목록 새로고침 실패:', error);
-      showError('캠페인 목록 새로고침에 실패했습니다.');
+      setEditModalOpen(false);
+      setEditingCampaign(null);
+      showSuccess('캠페인이 수정되었습니다. (새로고침하여 최신 상태를 확인하세요)');
     }
   };
 
@@ -298,7 +308,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               <th className="px-6 py-3">진행률 (완료/총)</th>
               <th className="px-6 py-3">매출 현황</th>
               <th className="px-6 py-3">재무 상태</th>
-              <th className="px-6 py-3">집행 상태</th>
+              <th className="px-6 py-3">종료일</th>
               <th className="px-6 py-3">최근 업데이트</th>
               <th className="px-6 py-3">카톡 관리</th>
               {(currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민' || currentUser?.role === '직원') && (
@@ -431,31 +441,40 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     </div>
                   </td>
                   
-                  {/* 집행 상태 */}
-                  <td 
+                  {/* 종료일 */}
+                  <td
                     className="px-6 py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        campaign.executionStatus === '완료' 
-                          ? 'bg-green-100 text-green-800'
-                          : campaign.executionStatus === '승인'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {campaign.executionStatus || '대기'}
-                      </span>
-                      {campaign.executionStatus === '승인' && campaign.executionApprovedAt && (
-                        <span className="text-xs text-gray-500">
-                          {new Date(campaign.executionApprovedAt).toLocaleDateString()}
-                        </span>
-                      )}
-                      {campaign.executionStatus === '완료' && campaign.executionCompletedAt && (
-                        <span className="text-xs text-gray-500">
-                          {new Date(campaign.executionCompletedAt).toLocaleDateString()}
-                        </span>
-                      )}
+                      {(() => {
+                        if (!campaign.end_date) {
+                          return <span className="text-gray-400">미설정</span>;
+                        }
+
+                        const endDate = new Date(campaign.end_date);
+                        const today = new Date();
+                        const isOverdue = endDate < today;
+                        const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+                        return (
+                          <div className="text-sm">
+                            <div className={`font-medium ${isOverdue ? 'text-red-600' : daysLeft <= 7 ? 'text-amber-600' : 'text-gray-900'}`}>
+                              {endDate.toLocaleDateString('ko-KR')}
+                            </div>
+                            {!isOverdue && daysLeft <= 30 && (
+                              <div className={`text-xs ${daysLeft <= 7 ? 'text-amber-500' : 'text-gray-500'}`}>
+                                {daysLeft}일 남음
+                              </div>
+                            )}
+                            {isOverdue && (
+                              <div className="text-xs text-red-500">
+                                {Math.abs(daysLeft)}일 경과
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </td>
                   
