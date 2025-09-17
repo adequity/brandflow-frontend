@@ -6,6 +6,7 @@ import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import LogoUpload from '../components/LogoUpload';
 import MigrationPanel from '../components/admin/MigrationPanel';
+import TelegramSettings from '../components/TelegramSettings';
 import useLogo from '../hooks/useLogo';
 
 const SystemSettings = ({ loggedInUser }) => {
@@ -22,6 +23,7 @@ const SystemSettings = ({ loggedInUser }) => {
   const categories = [
     { id: 'all', label: '전체', icon: <Settings size={16} /> },
     { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
+    { id: 'telegram', label: '텔레그램 알림', icon: <Settings size={16} /> },
     { id: 'database', label: '데이터베이스', icon: <Database size={16} /> },
     { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
     { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
@@ -289,8 +291,8 @@ const SystemSettings = ({ loggedInUser }) => {
       {/* 브랜딩 섹션 */}
       {(selectedCategory === 'all' || selectedCategory === 'branding') && (
         <div className="mb-6">
-          <LogoUpload 
-            currentLogo={logo} 
+          <LogoUpload
+            currentLogo={logo}
             onLogoUpdate={(newLogo) => {
               updateLogo(newLogo);
               showSuccess(newLogo ? '로고가 업데이트되었습니다!' : '로고가 제거되었습니다!');
@@ -299,6 +301,12 @@ const SystemSettings = ({ loggedInUser }) => {
         </div>
       )}
 
+      {/* 텔레그램 알림 섹션 */}
+      {(selectedCategory === 'all' || selectedCategory === 'telegram') && (
+        <div className="mb-6">
+          <TelegramSettings loggedInUser={loggedInUser} />
+        </div>
+      )}
 
       {/* 데이터베이스 마이그레이션 섹션 */}
       {(selectedCategory === 'all' || selectedCategory === 'database') && loggedInUser?.role === '슈퍼 어드민' && (
