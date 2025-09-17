@@ -1,11 +1,11 @@
 // src/pages/SystemSettings.jsx
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, DollarSign, FileText, ToggleLeft, ToggleRight, Save, RefreshCw, Image, List } from 'lucide-react';
+import { Settings, Shield, DollarSign, FileText, ToggleLeft, ToggleRight, Save, RefreshCw, Image, List, Database } from 'lucide-react';
 import api from '../api/client';
 import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
 import LogoUpload from '../components/LogoUpload';
-import WorkTypeManagement from '../components/WorkTypeManagement';
+import MigrationPanel from '../components/admin/MigrationPanel';
 import useLogo from '../hooks/useLogo';
 
 const SystemSettings = ({ loggedInUser }) => {
@@ -22,7 +22,7 @@ const SystemSettings = ({ loggedInUser }) => {
   const categories = [
     { id: 'all', label: '전체', icon: <Settings size={16} /> },
     { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
-    { id: 'worktype', label: '업무타입', icon: <List size={16} /> },
+    { id: 'database', label: '데이터베이스', icon: <Database size={16} /> },
     { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
     { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
     { id: 'document', label: '문서', icon: <FileText size={16} /> },
@@ -31,24 +31,34 @@ const SystemSettings = ({ loggedInUser }) => {
 
   const fetchSettings = async () => {
     if (!loggedInUser?.id) return;
-    
+
     setIsLoading(true);
     try {
-      // API에서 시스템 설정 데이터 로드 (현재는 빈 배열)
-      const settingsData = [];
-      
-      // 카테고리 필터 적용
-      let filteredSettings = settingsData;
+      // API에서 시스템 설정 데이터 로드
+      const params = new URLSearchParams({
+        page: '1',
+        size: '100'
+      });
+
       if (selectedCategory !== 'all') {
-        filteredSettings = settingsData.filter(s => s.category === selectedCategory);
+        params.append('category', selectedCategory);
       }
-      
-      setSettings(filteredSettings);
+
+      const response = await api.get(`/admin/system-settings/?${params.toString()}`);
+      const settingsData = response.data.settings || [];
+
+      setSettings(settingsData);
       setModifiedSettings({});
       setHasChanges(false);
     } catch (error) {
       console.error('시스템 설정 로딩 실패:', error);
-      setSettings([]);
+      if (error.response?.status === 404) {
+        // 시스템 설정 API가 아직 없는 경우
+        setSettings([]);
+      } else {
+        showError('시스템 설정을 불러오는데 실패했습니다.');
+        setSettings([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -87,10 +97,10 @@ const SystemSettings = ({ loggedInUser }) => {
   };
 
   const getDisplayValue = (setting) => {
-    if (modifiedSettings.hasOwnProperty(setting.settingKey)) {
-      return modifiedSettings[setting.settingKey];
+    if (modifiedSettings.hasOwnProperty(setting.setting_key)) {
+      return modifiedSettings[setting.setting_key];
     }
-    return setting.settingValue;
+    return setting.current_value || setting.default_value;
   };
 
   const saveSettings = async () => {
@@ -98,13 +108,26 @@ const SystemSettings = ({ loggedInUser }) => {
 
     setIsSaving(true);
     try {
-      // 저장 성공 처리
-      await new Promise(resolve => setTimeout(resolve, 500)); // 저장 중 효과
-      showSuccess('설정이 저장되었습니다!');
-      fetchSettings();
+      // 벌크 업데이트 API 호출
+      const response = await api.post('/admin/system-settings/bulk-update', {
+        settings: modifiedSettings
+      });
+
+      if (response.data.success) {
+        showSuccess(`${response.data.total_updated}개 설정이 저장되었습니다!`);
+
+        if (response.data.errors?.length > 0) {
+          showWarning(`${response.data.total_errors}개 설정 저장 중 오류가 발생했습니다.`);
+          console.error('설정 저장 오류:', response.data.errors);
+        }
+
+        fetchSettings();
+      } else {
+        throw new Error('설정 저장에 실패했습니다.');
+      }
     } catch (error) {
       console.error('설정 저장 실패:', error);
-      showError('설정 저장에 실패했습니다.');
+      showError(error.response?.data?.detail || '설정 저장에 실패했습니다.');
     } finally {
       setIsSaving(false);
     }
@@ -113,15 +136,15 @@ const SystemSettings = ({ loggedInUser }) => {
   const renderSettingInput = (setting) => {
     const currentValue = getDisplayValue(setting);
     
-    switch (setting.settingType) {
+    switch (setting.setting_type) {
       case 'boolean':
         const boolValue = String(currentValue).toLowerCase() === 'true';
         return (
           <button
-            onClick={() => handleSettingChange(setting.settingKey, !boolValue)}
+            onClick={() => handleSettingChange(setting.setting_key, !boolValue)}
             className={`flex items-center p-2 rounded-lg transition-colors ${
-              boolValue 
-                ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+              boolValue
+                ? 'bg-green-100 text-green-800 hover:bg-green-200'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -131,35 +154,35 @@ const SystemSettings = ({ loggedInUser }) => {
             </span>
           </button>
         );
-        
+
       case 'number':
         return (
           <input
             type="number"
             value={currentValue}
-            onChange={(e) => handleSettingChange(setting.settingKey, e.target.value)}
+            onChange={(e) => handleSettingChange(setting.setting_key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             step="0.1"
           />
         );
-        
+
       case 'json':
         return (
           <textarea
             value={currentValue}
-            onChange={(e) => handleSettingChange(setting.settingKey, e.target.value)}
+            onChange={(e) => handleSettingChange(setting.setting_key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             rows={3}
             placeholder="JSON 형식으로 입력..."
           />
         );
-        
+
       default:
         return (
           <input
             type="text"
             value={currentValue}
-            onChange={(e) => handleSettingChange(setting.settingKey, e.target.value)}
+            onChange={(e) => handleSettingChange(setting.setting_key, e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         );
@@ -276,10 +299,11 @@ const SystemSettings = ({ loggedInUser }) => {
         </div>
       )}
 
-      {/* 업무타입 관리 섹션 */}
-      {(selectedCategory === 'all' || selectedCategory === 'worktype') && (
+
+      {/* 데이터베이스 마이그레이션 섹션 */}
+      {(selectedCategory === 'all' || selectedCategory === 'database') && loggedInUser?.role === '슈퍼 어드민' && (
         <div className="mb-6">
-          <WorkTypeManagement loggedInUser={loggedInUser} />
+          <MigrationPanel />
         </div>
       )}
 
@@ -293,9 +317,9 @@ const SystemSettings = ({ loggedInUser }) => {
                   <div className="flex items-center gap-3 mb-2">
                     {getCategoryIcon(setting.category)}
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {setting.settingKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {setting.display_name}
                     </h3>
-                    {getAccessLevelBadge(setting.accessLevel)}
+                    {getAccessLevelBadge(setting.access_level)}
                   </div>
                   
                   {setting.description && (
@@ -303,11 +327,11 @@ const SystemSettings = ({ loggedInUser }) => {
                   )}
                   
                   <div className="text-sm text-gray-500 mb-4">
-                    <span className="font-medium">기본값:</span> {setting.defaultValue || '없음'}
+                    <span className="font-medium">기본값:</span> {setting.default_value || '없음'}
                     {setting.modifier && (
                       <span className="ml-4">
-                        <span className="font-medium">마지막 수정:</span> {setting.modifier.name} 
-                        ({new Date(setting.updatedAt).toLocaleString('ko-KR')})
+                        <span className="font-medium">마지막 수정:</span> {setting.modifier.name}
+                        ({new Date(setting.updated_at).toLocaleString('ko-KR')})
                       </span>
                     )}
                   </div>
@@ -322,7 +346,7 @@ const SystemSettings = ({ loggedInUser }) => {
                   {renderSettingInput(setting)}
                 </div>
                 
-                {modifiedSettings.hasOwnProperty(setting.settingKey) && (
+                {modifiedSettings.hasOwnProperty(setting.setting_key) && (
                   <div className="text-sm text-orange-600 font-medium">
                     변경됨
                   </div>

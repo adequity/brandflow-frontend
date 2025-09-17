@@ -122,15 +122,15 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
                     // 각 포스트별 일정 생성 - start_date와 due_date 기반
                     posts.forEach((post, index) => {
-                        // Post 시작일 일정 추가
-                        if (post.startDate || post.start_date) {
-                            const startDateStr = post.startDate || post.start_date;
+                        // Post 시작일 일정 추가 (기존 필드 사용)
+                        const startDateValue = post.startDate || post.start_date;
+                        if (startDateValue) {
                             try {
-                                const startDate = new Date(startDateStr);
+                                const startDate = new Date(startDateValue);
                                 if (!isNaN(startDate.getTime())) {
                                     calendarTasks.push({
                                         id: `post-start-${post.id}`,
-                                        title: `시작: ${post.title || post.workType}`,
+                                        title: `🚀 시작: ${post.title || post.workType}`,
                                         date: startDate,
                                         type: 'post-start',
                                         workType: post.workType || '기타',
@@ -151,19 +151,19 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     });
                                 }
                             } catch (error) {
-                                console.warn(`Post ${post.id} start_date 파싱 오류:`, startDateStr, error);
+                                console.warn(`Post ${post.id} start_date 파싱 오류:`, startDateValue, error);
                             }
                         }
 
-                        // Post 마감일 일정 추가
-                        if (post.dueDate || post.due_date) {
-                            const dueDateStr = post.dueDate || post.due_date;
+                        // Post 마감일 일정 추가 (기존 필드 사용)
+                        const dueDateValue = post.dueDate || post.due_date;
+                        if (dueDateValue) {
                             try {
-                                const dueDate = new Date(dueDateStr);
+                                const dueDate = new Date(dueDateValue);
                                 if (!isNaN(dueDate.getTime())) {
                                     calendarTasks.push({
                                         id: `post-due-${post.id}`,
-                                        title: `마감: ${post.title || post.workType}`,
+                                        title: `⏰ 마감: ${post.title || post.workType}`,
                                         date: dueDate,
                                         type: 'post-deadline',
                                         workType: post.workType || '기타',
@@ -184,44 +184,13 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     });
                                 }
                             } catch (error) {
-                                console.warn(`Post ${post.id} due_date 파싱 오류:`, dueDateStr, error);
+                                console.warn(`Post ${post.id} due_date 파싱 오류:`, dueDateValue, error);
                             }
                         }
 
-                        // 기존 호환성: scheduledDate가 있는 경우
-                        if (post.scheduledDate) {
-                            try {
-                                const scheduledDate = new Date(post.scheduledDate);
-                                if (!isNaN(scheduledDate.getTime())) {
-                                    calendarTasks.push({
-                                        id: `post-scheduled-${post.id}`,
-                                        title: post.title || `${post.workType} 포스트`,
-                                        date: scheduledDate,
-                                        type: 'post',
-                                        workType: post.workType || '기타',
-                                        status: post.topicStatus || '대기',
-                                        priority: 'medium',
-                                        assignee: campaign.User?.name || campaign.manager_name || campaign.creator_name || '담당자 미정',
-                                        agency: campaign.client_company || campaign.client || '클라이언트 미정',
-                                        campaign: campaign,
-                                        post: post,
-                                        description: `${post.workType || '작업'} - ${post.title || '제목 없음'}`,
-                                        detail: {
-                                            outline: post.outline,
-                                            images: post.images,
-                                            publishedUrl: post.publishedUrl || post.published_url,
-                                            quantity: post.quantity,
-                                            productName: post.productName
-                                        }
-                                    });
-                                }
-                            } catch (error) {
-                                console.warn(`Post ${post.id} scheduledDate 파싱 오류:`, post.scheduledDate, error);
-                            }
-                        }
 
                         // 날짜가 없는 포스트는 캠페인 시작일 기준으로 자동 배치
-                        if (!post.startDate && !post.start_date && !post.dueDate && !post.due_date && !post.scheduledDate) {
+                        if (!post.startDate && !post.start_date && !post.dueDate && !post.due_date) {
                             let autoDate;
                             if (campaign.start_date) {
                                 autoDate = new Date(campaign.start_date);
