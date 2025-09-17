@@ -47,7 +47,7 @@ const SystemSettings = ({ loggedInUser }) => {
         params.append('category', selectedCategory);
       }
 
-      const response = await api.get(`/admin/system-settings/?${params.toString()}`);
+      const response = await api.get(`/api/admin/system-settings/?${params.toString()}`);
       const settingsData = response.data.settings || [];
 
       setSettings(settingsData);
@@ -112,7 +112,7 @@ const SystemSettings = ({ loggedInUser }) => {
     setIsSaving(true);
     try {
       // 벌크 업데이트 API 호출
-      const response = await api.post('/admin/system-settings/bulk-update', {
+      const response = await api.post('/api/admin/system-settings/bulk-update', {
         settings: modifiedSettings
       });
 

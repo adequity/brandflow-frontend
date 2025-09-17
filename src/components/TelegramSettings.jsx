@@ -33,7 +33,7 @@ const TelegramSettings = ({ loggedInUser }) => {
   const fetchTelegramSetting = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/telegram/my-setting');
+      const response = await api.get('/api/telegram/my-setting');
 
       if (response.data) {
         setTelegramSetting(response.data);
@@ -72,10 +72,10 @@ const TelegramSettings = ({ loggedInUser }) => {
 
       if (telegramSetting) {
         // 업데이트
-        response = await api.put('/telegram/my-setting', formData);
+        response = await api.put('/api/telegram/my-setting', formData);
       } else {
         // 생성
-        response = await api.post('/telegram/my-setting', formData);
+        response = await api.post('/api/telegram/my-setting', formData);
       }
 
       setTelegramSetting(response.data);
@@ -97,7 +97,7 @@ const TelegramSettings = ({ loggedInUser }) => {
 
     setIsTesting(true);
     try {
-      const response = await api.post('/telegram/test', {
+      const response = await api.post('/api/telegram/test', {
         message: "테스트 메시지입니다."
       });
 
@@ -116,7 +116,7 @@ const TelegramSettings = ({ loggedInUser }) => {
     if (!telegramSetting) return;
 
     try {
-      await api.delete('/telegram/my-setting');
+      await api.delete('/api/telegram/my-setting');
       setTelegramSetting(null);
       setFormData({
         telegram_chat_id: '',
@@ -205,7 +205,7 @@ const TelegramSettings = ({ loggedInUser }) => {
                 <div className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold mt-0.5">1</div>
                 <div>
                   <p className="text-blue-800 text-sm font-medium">텔레그램에서 봇 찾기</p>
-                  <p className="text-blue-700 text-xs mt-1">텔레그램 검색창에 <code className="bg-white px-1 rounded">@BrandflowmanagerBot</code> 입력</p>
+                  <p className="text-blue-700 text-xs mt-1">텔레그램 검색창에 <code className="bg-white px-1 rounded">@Brandflowmanager_bot</code> 입력</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
