@@ -73,6 +73,7 @@ const CampaignDetailPage = () => {
                     console.log('CampaignDetailPage: 실제 API 데이터 로드 성공');
                     console.log('캠페인:', campaignData.name);
                     console.log('포스트:', (postsData || []).length, '개');
+                    console.log('포스트 publishedUrl 확인:', (postsData || []).map(p => ({ id: p.id, title: p.title, publishedUrl: p.publishedUrl })));
                 } catch (apiError) {
                     console.error('CampaignDetailPage: API 호출 실패', apiError);
                     setError(`캠페인 데이터를 불러올 수 없습니다: ${apiError.message}`);
@@ -385,9 +386,10 @@ const CampaignDetailPage = () => {
         const postId = selectedRows[0];
         try {
             // FastAPI로 링크 등록 (올바른 엔드포인트 사용)
-            await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, {
+            const response = await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, {
                 published_url: url
             });
+            console.log('링크 등록 응답:', response.data);
             showSuccess('링크가 등록되었습니다!');
             fetchCampaignDetail();
         } catch(error) {
@@ -835,7 +837,15 @@ const CampaignDetailPage = () => {
                                     <td className="p-2">{post.outline ? <div className="flex items-center justify-between"><span className="text-xs truncate max-w-xs">{post.outline}</span><button onClick={() => openEditModal(post, 'outline')} className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"><Edit size={14} /></button></div> : '-'}</td>
                                     <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
                                     <td className="p-2"><ImagePreview images={post.images} /></td>
-                                    <td className="p-2">{post.publishedUrl ? <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline"><LinkIcon size={14} className="inline"/></a> : '-'}</td>
+                                    <td className="p-2">
+                                        {post.publishedUrl ? (
+                                            <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                                <LinkIcon size={14} className="inline"/>
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-400">-</span>
+                                        )}
+                                    </td>
                                     <td className="p-2">
                                         {post.orderRequestStatus ? (
                                             <div className="flex items-center space-x-2">
