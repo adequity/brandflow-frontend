@@ -173,27 +173,65 @@ const TelegramSettings = ({ loggedInUser }) => {
           </div>
         </div>
 
-        {hasChanges && (
+        <div className="flex items-center gap-3">
+          {hasChanges && (
+            <div className="flex items-center gap-2 text-orange-600 text-sm">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+              변경사항이 있습니다
+            </div>
+          )}
+
           <button
             onClick={saveTelegramSetting}
-            disabled={isSaving}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+            disabled={isSaving || !hasChanges}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Settings size={16} />
-            {isSaving ? '저장 중...' : '설정 저장'}
+            {isSaving ? '저장 중...' : hasChanges ? '변경사항 저장' : '저장됨'}
           </button>
-        )}
+        </div>
       </div>
 
       {/* 텔레그램 봇 안내 */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h4 className="font-medium text-blue-900 mb-2">📱 텔레그램 봇 설정 방법</h4>
-        <ol className="text-blue-800 text-sm space-y-1">
-          <li>1. 텔레그램에서 <strong>@BrandFlowBot</strong> 검색</li>
-          <li>2. <strong>/start</strong> 명령어 입력</li>
-          <li>3. 봇이 알려주는 <strong>채팅 ID</strong>를 아래에 입력</li>
-          <li>4. 설정 저장 후 테스트 메시지 전송</li>
-        </ol>
+        <div className="flex items-start gap-3">
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <MessageSquare className="text-blue-600" size={20} />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-medium text-blue-900 mb-3">📱 텔레그램 봇 설정 가이드</h4>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold mt-0.5">1</div>
+                <div>
+                  <p className="text-blue-800 text-sm font-medium">텔레그램에서 봇 찾기</p>
+                  <p className="text-blue-700 text-xs mt-1">텔레그램 검색창에 <code className="bg-white px-1 rounded">@BrandFlowBot</code> 입력</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold mt-0.5">2</div>
+                <div>
+                  <p className="text-blue-800 text-sm font-medium">봇과 대화 시작</p>
+                  <p className="text-blue-700 text-xs mt-1"><code className="bg-white px-1 rounded">/start</code> 명령어를 입력하세요</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold mt-0.5">3</div>
+                <div>
+                  <p className="text-blue-800 text-sm font-medium">채팅 ID 확인</p>
+                  <p className="text-blue-700 text-xs mt-1">봇이 알려주는 <strong>채팅 ID</strong>를 복사하여 아래에 입력하세요</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold mt-0.5">4</div>
+                <div>
+                  <p className="text-blue-800 text-sm font-medium">설정 완료</p>
+                  <p className="text-blue-700 text-xs mt-1">설정 저장 후 테스트 메시지로 연동을 확인하세요</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -202,17 +240,48 @@ const TelegramSettings = ({ loggedInUser }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             텔레그램 채팅 ID *
           </label>
-          <input
-            type="text"
-            value={formData.telegram_chat_id}
-            onChange={(e) => handleInputChange('telegram_chat_id', e.target.value)}
-            placeholder="예: 123456789 또는 @username"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-          <p className="text-gray-500 text-xs mt-1">
-            텔레그램 봇과 대화 시작 후 /start 명령어로 확인할 수 있습니다.
-          </p>
+          <div className="relative">
+            <input
+              type="text"
+              value={formData.telegram_chat_id}
+              onChange={(e) => handleInputChange('telegram_chat_id', e.target.value)}
+              placeholder="예: 123456789 또는 @username"
+              className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                formData.telegram_chat_id && formData.telegram_chat_id.length > 0
+                  ? formData.telegram_chat_id.match(/^(-?\d{8,}|@\w+)$/)
+                    ? 'border-green-300 bg-green-50'
+                    : 'border-red-300 bg-red-50'
+                  : 'border-gray-300'
+              }`}
+              required
+            />
+            {formData.telegram_chat_id && formData.telegram_chat_id.length > 0 && (
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                {formData.telegram_chat_id.match(/^(-?\d{8,}|@\w+)$/) ? (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-500" />
+                )}
+              </div>
+            )}
+          </div>
+          <div className="mt-1 space-y-1">
+            <p className="text-gray-500 text-xs">
+              텔레그램 봇과 대화 시작 후 /start 명령어로 확인할 수 있습니다.
+            </p>
+            {formData.telegram_chat_id && formData.telegram_chat_id.length > 0 && !formData.telegram_chat_id.match(/^(-?\d{8,}|@\w+)$/) && (
+              <p className="text-red-600 text-xs flex items-center gap-1">
+                <AlertCircle size={12} />
+                올바른 형식이 아닙니다. 숫자 ID(예: 123456789) 또는 사용자명(예: @username)을 입력하세요.
+              </p>
+            )}
+            {formData.telegram_chat_id && formData.telegram_chat_id.match(/^(-?\d{8,}|@\w+)$/) && (
+              <p className="text-green-600 text-xs flex items-center gap-1">
+                <CheckCircle size={12} />
+                올바른 형식입니다!
+              </p>
+            )}
+          </div>
         </div>
 
         {/* 사용자명 입력 */}
@@ -292,25 +361,36 @@ const TelegramSettings = ({ loggedInUser }) => {
         )}
 
         {/* 액션 버튼들 */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           {telegramSetting && (
-            <button
-              onClick={sendTestMessage}
-              disabled={isTesting || !formData.is_enabled}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 disabled:opacity-50"
-            >
-              <Send size={16} />
-              {isTesting ? '전송 중...' : '테스트 메시지'}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={sendTestMessage}
+                disabled={isTesting || !formData.is_enabled || hasChanges}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title={hasChanges ? "변경사항을 먼저 저장하세요" : !formData.is_enabled ? "알림이 비활성화되어 있습니다" : ""}
+              >
+                <Send size={16} />
+                {isTesting ? '전송 중...' : '테스트 메시지'}
+              </button>
+
+              <button
+                onClick={deleteTelegramSetting}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2"
+              >
+                <AlertCircle size={16} />
+                설정 삭제
+              </button>
+            </div>
           )}
 
-          {telegramSetting && (
-            <button
-              onClick={deleteTelegramSetting}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-            >
-              설정 삭제
-            </button>
+          {hasChanges && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+              <p className="text-orange-800 text-sm flex items-center gap-2">
+                <AlertCircle size={16} />
+                설정을 변경했습니다. 상단의 "변경사항 저장" 버튼을 클릭하여 저장하세요.
+              </p>
+            </div>
           )}
         </div>
 
