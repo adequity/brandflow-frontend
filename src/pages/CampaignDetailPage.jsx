@@ -665,7 +665,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-neutral-50">
             {/* Header Section */}
             <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50">
-                <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="max-w-[95%] mx-auto px-4 py-6">
                     <button
                         onClick={() => navigate('/admin/campaigns')}
                         className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-6 group transition-colors duration-200"
@@ -735,7 +735,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 </div>
             </div>
             {/* Main Content Section */}
-            <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="max-w-[95%] mx-auto px-4 py-6">
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl">
                     <div className="p-8">
                         <div className="flex justify-between items-center mb-8">
