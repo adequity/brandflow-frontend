@@ -122,13 +122,14 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
     console.log('Approved Posts:', approvedPosts);
     if (approvedPosts.length > 0) {
         console.log('Sample approved post:', approvedPosts[0]);
+        console.log('Sample post cost:', approvedPosts[0].cost);
+        console.log('Sample post quantity:', approvedPosts[0].quantity);
     }
 
     const items = approvedPosts.map(post => {
-        // 기본 단가 계산 (업무 타입별 기본 가격)
-        const basePrice = getBasePriceByWorkType(post.workType);
+        // 원가 사용 (post.cost가 있으면 사용하고, 없으면 업무 타입별 기본 가격 사용)
+        const unitPrice = post.cost || getBasePriceByWorkType(post.workType);
         const quantity = post.quantity || 1;
-        const unitPrice = basePrice;
         const supplyAmount = unitPrice * quantity;
         const taxAmount = Math.floor(supplyAmount * 0.1); // 10% 부가세
 
@@ -140,7 +141,7 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
             startDate: post.startDate || '-',
             dueDate: post.dueDate || '-',
             itemName: itemDescription,
-            unit: '식',
+            cost: unitPrice,
             quantity: quantity,
             unitPrice: unitPrice,
             supplyAmount: supplyAmount,
@@ -361,7 +362,7 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
                 <th>시작일</th>
                 <th>마감일</th>
                 <th>품목 및 규격</th>
-                <th>단위</th>
+                <th>원가</th>
                 <th>수량</th>
                 <th>단가</th>
                 <th>공급가액</th>
@@ -374,7 +375,7 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
                     <td>${item.startDate}</td>
                     <td>${item.dueDate}</td>
                     <td class="text-left">${item.itemName}</td>
-                    <td>${item.unit}</td>
+                    <td class="text-right">${formatCurrency(item.cost)}</td>
                     <td>${item.quantity}</td>
                     <td class="text-right">${formatCurrency(item.unitPrice)}</td>
                     <td class="text-right">${formatCurrency(item.supplyAmount)}</td>

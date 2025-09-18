@@ -973,6 +973,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">업무 타입</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">제품명</th>
                                         <th className="p-4 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">수량</th>
+                                        <th className="p-4 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">원가</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">업무 내용</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">시작일</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">마감일</th>
@@ -1035,6 +1036,38 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                     </span>
                                                 )}
                                             </td>
+
+                                            {/* 원가 셀 */}
+                                            <td className="p-4 text-center">
+                                                {editingCell?.postId === post.id && editingCell?.field === 'cost' ? (
+                                                    <div className="flex items-center justify-center space-x-1">
+                                                        <input
+                                                            type="number"
+                                                            value={editingValue}
+                                                            onChange={(e) => setEditingValue(e.target.value)}
+                                                            className="text-sm border border-blue-300 rounded px-2 py-1 w-20 text-center"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') handleCellSave(post.id, 'cost');
+                                                                if (e.key === 'Escape') handleCellCancel();
+                                                            }}
+                                                            min="0"
+                                                            step="1000"
+                                                            autoFocus
+                                                        />
+                                                        <button onClick={() => handleCellSave(post.id, 'cost')} className="text-green-600 hover:text-green-800">✓</button>
+                                                        <button onClick={handleCellCancel} className="text-red-600 hover:text-red-800">✗</button>
+                                                    </div>
+                                                ) : (
+                                                    <span
+                                                        className="text-sm text-neutral-700 font-medium cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                                                        onClick={() => handleCellEdit(post.id, 'cost', post.cost || 0)}
+                                                        title="클릭하여 편집"
+                                                    >
+                                                        {post.cost ? `${post.cost.toLocaleString()}원` : '미설정'}
+                                                    </span>
+                                                )}
+                                            </td>
+
                                     <td className="p-2">
                                         {editingCell?.postId === post.id && editingCell?.field === 'title' ? (
                                             <div className="flex items-center space-x-1">

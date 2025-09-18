@@ -159,7 +159,7 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null }) => {
                         <th className="border border-black p-2">시작일</th>
                         <th className="border border-black p-2">마감일</th>
                         <th className="border border-black p-2">품목 및 규격</th>
-                        <th className="border border-black p-2">단위</th>
+                        <th className="border border-black p-2">원가</th>
                         <th className="border border-black p-2">수량</th>
                         <th className="border border-black p-2">단가</th>
                         <th className="border border-black p-2">공급가액</th>
@@ -173,7 +173,7 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null }) => {
                         <td className="border border-black p-2">2025-09-15</td>
                         <td className="border border-black p-2">2025-09-30</td>
                         <td className="border border-black p-2">0915 블로그배포 오더</td>
-                        <td className="border border-black p-2">식</td>
+                        <td className="border border-black p-2">300,000</td>
                         <td className="border border-black p-2">1</td>
                         <td className="border border-black p-2">382,500</td>
                         <td className="border border-black p-2">382,500</td>
