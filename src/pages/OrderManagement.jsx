@@ -461,17 +461,19 @@ const OrderManagement = ({ loggedInUser }) => {
                         <>
                           <button
                             onClick={() => handleApproveOrder(order.id)}
-                            className="text-green-600 hover:text-green-900"
+                            className="px-2 py-1 text-xs font-medium bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-1"
                             title="승인"
                           >
-                            <CheckCircle size={16} />
+                            <CheckCircle size={12} />
+                            승인
                           </button>
                           <button
                             onClick={() => handleRejectOrder(order.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="px-2 py-1 text-xs font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-1"
                             title="거절"
                           >
-                            <XCircle size={16} />
+                            <XCircle size={12} />
+                            거절
                           </button>
                         </>
                       )}

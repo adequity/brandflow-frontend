@@ -156,7 +156,8 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null }) => {
             <table className="w-full border-collapse border border-black mb-6">
                 <thead>
                     <tr className="bg-gray-100">
-                        <th className="border border-black p-2">일자</th>
+                        <th className="border border-black p-2">시작일</th>
+                        <th className="border border-black p-2">마감일</th>
                         <th className="border border-black p-2">품목 및 규격</th>
                         <th className="border border-black p-2">단위</th>
                         <th className="border border-black p-2">수량</th>
@@ -170,6 +171,7 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null }) => {
                 <tbody>
                     <tr>
                         <td className="border border-black p-2">2025-09-15</td>
+                        <td className="border border-black p-2">2025-09-30</td>
                         <td className="border border-black p-2">0915 블로그배포 오더</td>
                         <td className="border border-black p-2">식</td>
                         <td className="border border-black p-2">1</td>

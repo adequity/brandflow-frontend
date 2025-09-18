@@ -115,9 +115,14 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
         const supplyAmount = unitPrice * quantity;
         const taxAmount = Math.floor(supplyAmount * 0.1); // 10% 부가세
 
+        // 제품명과 업무 타입을 모두 포함하는 품목명 생성
+        const productInfo = post.productName ? `${post.productName} - ` : '';
+        const itemDescription = `${productInfo}${post.title} (${post.workType})`;
+
         return {
-            date: post.startDate || new Date().toLocaleDateString('ko-KR'),
-            itemName: `${post.title} (${post.workType})`,
+            startDate: post.startDate || '-',
+            dueDate: post.dueDate || '-',
+            itemName: itemDescription,
             unit: '식',
             quantity: quantity,
             unitPrice: unitPrice,
@@ -336,7 +341,8 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
     <table class="items-table">
         <thead>
             <tr>
-                <th>일자</th>
+                <th>시작일</th>
+                <th>마감일</th>
                 <th>품목 및 규격</th>
                 <th>단위</th>
                 <th>수량</th>
@@ -348,7 +354,8 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
         <tbody>
             ${documentData.items.map(item => `
                 <tr>
-                    <td>${item.date}</td>
+                    <td>${item.startDate}</td>
+                    <td>${item.dueDate}</td>
                     <td class="text-left">${item.itemName}</td>
                     <td>${item.unit}</td>
                     <td>${item.quantity}</td>
@@ -358,7 +365,7 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
                 </tr>
             `).join('')}
             <tr style="font-weight: bold; background-color: #f9f9f9;">
-                <td colspan="5">합계</td>
+                <td colspan="6">합계</td>
                 <td class="text-right">${formatCurrency(documentData.summary.totalSupplyAmount)}</td>
                 <td class="text-right">${formatCurrency(documentData.summary.totalTaxAmount)}</td>
             </tr>
