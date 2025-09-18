@@ -7,6 +7,7 @@ import ConfirmModal from '../components/ui/ConfirmModal';
 import LogoUpload from '../components/LogoUpload';
 import MigrationPanel from '../components/admin/MigrationPanel';
 import TelegramSettings from '../components/TelegramSettings';
+import DocumentTemplateBuilder from '../components/DocumentTemplateBuilder';
 import useLogo from '../hooks/useLogo';
 
 const SystemSettings = ({ loggedInUser }) => {
@@ -23,12 +24,12 @@ const SystemSettings = ({ loggedInUser }) => {
   const categories = [
     { id: 'all', label: '전체', icon: <Settings size={16} /> },
     { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
+    { id: 'document', label: '문서 템플릿', icon: <FileText size={16} /> },
     { id: 'telegram', label: '텔레그램 알림', icon: <Settings size={16} /> },
     { id: 'database', label: '데이터베이스', icon: <Database size={16} /> },
     // 사용하지 않는 탭들 (임시 주석처리)
     // { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
     // { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
-    // { id: 'document', label: '문서', icon: <FileText size={16} /> },
     // { id: 'general', label: '일반', icon: <Settings size={16} /> }
   ];
 
@@ -297,6 +298,17 @@ const SystemSettings = ({ loggedInUser }) => {
             onLogoUpdate={(newLogo) => {
               updateLogo(newLogo);
               showSuccess(newLogo ? '로고가 업데이트되었습니다!' : '로고가 제거되었습니다!');
+            }}
+          />
+        </div>
+      )}
+
+      {/* 문서 템플릿 섹션 */}
+      {(selectedCategory === 'all' || selectedCategory === 'document') && (
+        <div className="mb-6">
+          <DocumentTemplateBuilder
+            onSave={(template) => {
+              showSuccess('문서 템플릿이 저장되었습니다!');
             }}
           />
         </div>

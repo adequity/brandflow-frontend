@@ -668,23 +668,50 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
 
     const handleGenerateDocuments = async (campaignId, type = 'transaction', selectedPostIds = null) => {
         try {
-            // 더미로 문서 생성 성공 처리
-            await new Promise(resolve => setTimeout(resolve, 1000)); // 생성 중 효과
-            
+            showInfo('문서를 생성하고 있습니다...');
+
+            // 동적 import로 문서 생성 유틸리티 로드
+            const { fetchCompanyInfo, transformCampaignToDocument, generateDocumentHTML } = await import('../utils/documentGenerator');
+
+            // 회사 정보 가져오기
+            const companyInfo = await fetchCompanyInfo();
+
+            // 캠페인 데이터를 문서 데이터로 변환
+            const documentData = transformCampaignToDocument(campaign, posts, selectedPostIds, type);
+
+            // 승인된 업무가 없는 경우
+            if (documentData.items.length === 0) {
+                showError('승인된 업무가 없어 문서를 생성할 수 없습니다. 업무를 승인한 후 다시 시도해주세요.');
+                return;
+            }
+
+            // HTML 문서 생성
+            const documentHTML = generateDocumentHTML(documentData, companyInfo);
+
+            // 새 창에서 문서 열기
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(documentHTML);
+            printWindow.document.close();
+
+            // 인쇄 대화상자 열기
+            printWindow.onload = () => {
+                printWindow.print();
+            };
+
             let message = '';
             if (selectedPostIds && selectedPostIds.length > 0) {
                 const selectedPosts = posts.filter(post => selectedPostIds.includes(post.id));
                 const workTypes = selectedPosts.map(post => post.workType).join(', ');
-                message = `📄 선택한 업무들 (${workTypes})의 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`;
+                message = `📄 선택한 업무들 (${workTypes})의 ${type === 'quote' ? '견적서' : '거래명세서'}가 생성되었습니다!\n새 창에서 열렸으며 인쇄할 수 있습니다. 🚀`;
             } else {
-                message = `📄 전체 캠페인의 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`;
+                message = `📄 전체 캠페인의 ${type === 'quote' ? '견적서' : '거래명세서'}가 생성되었습니다!\n새 창에서 열렸으며 인쇄할 수 있습니다. 🚀`;
             }
-            
-            showInfo(message);
-            
+
+            showSuccess(message);
+
         } catch (error) {
             console.error('문서 생성 실패:', error);
-            showError('문서 생성에 실패했습니다.');
+            showError(`문서 생성에 실패했습니다: ${error.message}`);
         }
     };
 
@@ -945,6 +972,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         </th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">업무 타입</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">제품명</th>
+                                        <th className="p-4 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">수량</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">업무 내용</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">시작일</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">마감일</th>
@@ -977,8 +1005,36 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             <td className="p-4">
                                                 <span className="text-sm text-neutral-700 font-medium">
                                                     {post.productName || '-'}
-                                        </span>
-                                    </td>
+                                                </span>
+                                            </td>
+                                            <td className="p-4 text-center">
+                                                {editingCell?.postId === post.id && editingCell?.field === 'quantity' ? (
+                                                    <div className="flex items-center justify-center space-x-1">
+                                                        <input
+                                                            type="number"
+                                                            value={editingValue}
+                                                            onChange={(e) => setEditingValue(e.target.value)}
+                                                            className="text-sm border border-blue-300 rounded px-2 py-1 w-16 text-center"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') handleCellSave(post.id, 'quantity');
+                                                                if (e.key === 'Escape') handleCellCancel();
+                                                            }}
+                                                            min="1"
+                                                            autoFocus
+                                                        />
+                                                        <button onClick={() => handleCellSave(post.id, 'quantity')} className="text-green-600 hover:text-green-800">✓</button>
+                                                        <button onClick={handleCellCancel} className="text-red-600 hover:text-red-800">✗</button>
+                                                    </div>
+                                                ) : (
+                                                    <span
+                                                        className="text-sm text-neutral-700 font-medium cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
+                                                        onClick={() => handleCellEdit(post.id, 'quantity', post.quantity || 1)}
+                                                        title="클릭하여 편집"
+                                                    >
+                                                        {post.quantity || 1}
+                                                    </span>
+                                                )}
+                                            </td>
                                     <td className="p-2">
                                         {editingCell?.postId === post.id && editingCell?.field === 'title' ? (
                                             <div className="flex items-center space-x-1">

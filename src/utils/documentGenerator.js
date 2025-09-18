@@ -1,0 +1,381 @@
+import api from '../api/client';
+
+/**
+ * 문서 생성을 위한 유틸리티 함수들
+ */
+
+// 회사 정보 가져오기
+export const fetchCompanyInfo = async () => {
+    try {
+        const response = await api.get('/api/admin/system-settings/?category=company_info');
+        const settings = response.data.settings || [];
+
+        const companyData = {};
+        settings.forEach(setting => {
+            const key = setting.setting_key.replace('company_info_', '');
+            companyData[key] = setting.current_value || setting.default_value;
+        });
+
+        return companyData;
+    } catch (error) {
+        console.error('회사 정보 로딩 실패:', error);
+        // 기본값 반환
+        return {
+            businessNumber: "119-86-25255",
+            name: "성현시스템 주식회사",
+            ceo: "임선준",
+            address: "서울시 금천구 가산디지털2로 108, 뉴티캐슬 1101호, 1102호",
+            businessType: "제조, 도소매외",
+            businessItem: "전자제품,정보통신공사외"
+        };
+    }
+};
+
+// 문서 번호 생성
+export const generateDocumentNumber = () => {
+    const today = new Date();
+    const dateString = today.getFullYear().toString() +
+                      (today.getMonth() + 1).toString().padStart(2, '0') +
+                      today.getDate().toString().padStart(2, '0');
+
+    // 시간을 이용한 고유 번호 생성
+    const timeString = today.getHours().toString().padStart(2, '0') +
+                      today.getMinutes().toString().padStart(2, '0');
+
+    return `${dateString}-${timeString}`;
+};
+
+// 숫자에 천 단위 콤마 추가
+export const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('ko-KR').format(amount);
+};
+
+// 숫자를 한글로 변환
+export const numberToKorean = (num) => {
+    const units = ['', '만', '억', '조'];
+    const digits = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const teens = ['', '십', '백', '천'];
+
+    if (num === 0) return '영원';
+
+    let result = '';
+    let unitIndex = 0;
+
+    while (num > 0) {
+        const segment = num % 10000;
+
+        if (segment > 0) {
+            let segmentStr = '';
+
+            const thousands = Math.floor(segment / 1000);
+            const hundreds = Math.floor((segment % 1000) / 100);
+            const tens = Math.floor((segment % 100) / 10);
+            const ones = segment % 10;
+
+            if (thousands > 0) {
+                if (thousands > 1) segmentStr += digits[thousands];
+                segmentStr += '천';
+            }
+            if (hundreds > 0) {
+                if (hundreds > 1) segmentStr += digits[hundreds];
+                segmentStr += '백';
+            }
+            if (tens > 0) {
+                if (tens > 1) segmentStr += digits[tens];
+                segmentStr += '십';
+            }
+            if (ones > 0) {
+                segmentStr += digits[ones];
+            }
+
+            result = segmentStr + units[unitIndex] + result;
+        }
+
+        num = Math.floor(num / 10000);
+        unitIndex++;
+    }
+
+    return result + '원정';
+};
+
+// 캠페인 데이터를 문서 데이터로 변환
+export const transformCampaignToDocument = (campaign, posts, selectedPostIds = null, type = 'transaction') => {
+    const filteredPosts = selectedPostIds && selectedPostIds.length > 0
+        ? posts.filter(post => selectedPostIds.includes(post.id))
+        : posts;
+
+    // 승인된 포스트만 필터링
+    const approvedPosts = filteredPosts.filter(post => post.topicStatus === '승인');
+
+    const items = approvedPosts.map(post => {
+        // 기본 단가 계산 (업무 타입별 기본 가격)
+        const basePrice = getBasePriceByWorkType(post.workType);
+        const quantity = post.quantity || 1;
+        const unitPrice = basePrice;
+        const supplyAmount = unitPrice * quantity;
+        const taxAmount = Math.floor(supplyAmount * 0.1); // 10% 부가세
+
+        return {
+            date: post.startDate || new Date().toLocaleDateString('ko-KR'),
+            itemName: `${post.title} (${post.workType})`,
+            unit: '식',
+            quantity: quantity,
+            unitPrice: unitPrice,
+            supplyAmount: supplyAmount,
+            taxAmount: taxAmount
+        };
+    });
+
+    const totalSupplyAmount = items.reduce((sum, item) => sum + item.supplyAmount, 0);
+    const totalTaxAmount = items.reduce((sum, item) => sum + item.taxAmount, 0);
+    const totalAmount = totalSupplyAmount + totalTaxAmount;
+
+    return {
+        header: {
+            title: type === 'quote' ? '견적서' : '거래명세표',
+            documentNumber: generateDocumentNumber(),
+            issueDate: new Date().toLocaleDateString('ko-KR')
+        },
+        recipient: {
+            name: campaign.clientName || '고객사',
+            businessNumber: campaign.clientBusinessNumber || ''
+        },
+        items: items,
+        summary: {
+            totalSupplyAmount: totalSupplyAmount,
+            totalTaxAmount: totalTaxAmount,
+            totalAmount: totalAmount,
+            totalAmountInKorean: numberToKorean(totalAmount)
+        }
+    };
+};
+
+// 업무 타입별 기본 가격 (실제로는 DB에서 가져와야 함)
+const getBasePriceByWorkType = (workType) => {
+    const priceMap = {
+        '블로그': 300000,
+        '카페': 250000,
+        '인스타그램': 400000,
+        '유튜브': 500000,
+        '틱톡': 350000,
+        '페이스북': 200000,
+        '네이버포스트': 150000,
+        '기타': 200000
+    };
+
+    return priceMap[workType] || 200000;
+};
+
+// 문서 HTML 생성
+export const generateDocumentHTML = (documentData, companyInfo, template = {}) => {
+    const styles = {
+        primaryColor: template.styles?.primaryColor || '#000000',
+        headerFontSize: template.styles?.headerFontSize || '24px',
+        bodyFontSize: template.styles?.bodyFontSize || '12px'
+    };
+
+    return `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${documentData.header.title}</title>
+    <style>
+        @media print {
+            @page { margin: 20mm; }
+            body { margin: 0; }
+        }
+
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-size: ${styles.bodyFontSize};
+            line-height: 1.4;
+            color: ${styles.primaryColor};
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+
+        .document-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid ${styles.primaryColor};
+            padding-bottom: 20px;
+        }
+
+        .document-title {
+            font-size: ${styles.headerFontSize};
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .document-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .parties-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            border: 1px solid ${styles.primaryColor};
+            padding: 20px;
+        }
+
+        .party-section h3 {
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .party-section div {
+            margin-bottom: 5px;
+        }
+
+        .total-amount {
+            text-align: center;
+            margin-bottom: 30px;
+            border: 2px solid ${styles.primaryColor};
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .total-amount-text {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .items-table th,
+        .items-table td {
+            border: 1px solid ${styles.primaryColor};
+            padding: 8px;
+            text-align: center;
+        }
+
+        .items-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .items-table td.text-left {
+            text-align: left;
+        }
+
+        .items-table td.text-right {
+            text-align: right;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 40px;
+        }
+
+        .account-info {
+            flex: 1;
+        }
+
+        .signature-area {
+            text-align: center;
+        }
+
+        .signature-box {
+            width: 80px;
+            height: 80px;
+            border: 1px solid ${styles.primaryColor};
+            margin-top: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="document-header">
+        <div class="document-title">${documentData.header.title}</div>
+        <div class="document-info">
+            <div>문서번호: ${documentData.header.documentNumber}</div>
+            <div>발행일: ${documentData.header.issueDate}</div>
+        </div>
+    </div>
+
+    <div class="parties-info">
+        <div class="party-section">
+            <h3>수신</h3>
+            <div>${documentData.recipient.name} 귀하</div>
+            ${documentData.recipient.businessNumber ? `<div>사업자번호: ${documentData.recipient.businessNumber}</div>` : ''}
+        </div>
+        <div class="party-section">
+            <h3>공급자</h3>
+            <div>사업자번호: ${companyInfo.businessNumber}</div>
+            <div>상호: ${companyInfo.name}</div>
+            <div>대표자: ${companyInfo.ceo}</div>
+            <div>소재지: ${companyInfo.address}</div>
+            <div>업태: ${companyInfo.businessType}</div>
+            <div>종목: ${companyInfo.businessItem}</div>
+        </div>
+    </div>
+
+    <div class="total-amount">
+        <div class="total-amount-text">
+            합계금액: ${formatCurrency(documentData.summary.totalAmount)}원 (${documentData.summary.totalAmountInKorean})
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>일자</th>
+                <th>품목 및 규격</th>
+                <th>단위</th>
+                <th>수량</th>
+                <th>단가</th>
+                <th>공급가액</th>
+                <th>세액</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${documentData.items.map(item => `
+                <tr>
+                    <td>${item.date}</td>
+                    <td class="text-left">${item.itemName}</td>
+                    <td>${item.unit}</td>
+                    <td>${item.quantity}</td>
+                    <td class="text-right">${formatCurrency(item.unitPrice)}</td>
+                    <td class="text-right">${formatCurrency(item.supplyAmount)}</td>
+                    <td class="text-right">${formatCurrency(item.taxAmount)}</td>
+                </tr>
+            `).join('')}
+            <tr style="font-weight: bold; background-color: #f9f9f9;">
+                <td colspan="5">합계</td>
+                <td class="text-right">${formatCurrency(documentData.summary.totalSupplyAmount)}</td>
+                <td class="text-right">${formatCurrency(documentData.summary.totalTaxAmount)}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer-info">
+        <div class="account-info">
+            <h4>계좌정보</h4>
+            <div>입금계좌: [계좌정보 입력]</div>
+        </div>
+        <div class="signature-area">
+            <div>공급자 (인)</div>
+            <div class="signature-box"></div>
+        </div>
+    </div>
+</body>
+</html>
+    `;
+};
