@@ -100,12 +100,29 @@ export const numberToKorean = (num) => {
 
 // 캠페인 데이터를 문서 데이터로 변환
 export const transformCampaignToDocument = (campaign, posts, selectedPostIds = null, type = 'transaction') => {
+    console.log('🔍 Document Generation Debug:');
+    console.log('Campaign:', campaign);
+    console.log('Posts:', posts);
+    console.log('Selected Post IDs:', selectedPostIds);
+
     const filteredPosts = selectedPostIds && selectedPostIds.length > 0
         ? posts.filter(post => selectedPostIds.includes(post.id))
         : posts;
 
-    // 승인된 포스트만 필터링
-    const approvedPosts = filteredPosts.filter(post => post.topicStatus === '승인');
+    console.log('Filtered Posts:', filteredPosts);
+
+    // 승인된 포스트만 필터링 (주제 승인 또는 목차 승인된 포스트)
+    const approvedPosts = filteredPosts.filter(post =>
+        post.topicStatus === '승인' ||
+        post.topicStatus === '주제 승인' ||
+        post.outlineStatus === '승인' ||
+        post.outlineStatus === '목차 승인'
+    );
+
+    console.log('Approved Posts:', approvedPosts);
+    if (approvedPosts.length > 0) {
+        console.log('Sample approved post:', approvedPosts[0]);
+    }
 
     const items = approvedPosts.map(post => {
         // 기본 단가 계산 (업무 타입별 기본 가격)
