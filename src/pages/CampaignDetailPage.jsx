@@ -5,6 +5,8 @@ import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, FileText, Fi
 import { useToast } from '../contexts/ToastContext';
 import { useOrder } from '../contexts/OrderContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
+import { getCurrentUser, canApprovePost, ROLES } from '../utils/permissions';
+import { approvalAPI } from '../api/client';
 
 // 필요한 컴포넌트들을 import 합니다.
 import StatusBadge from '../components/common/StatusBadge';
@@ -21,8 +23,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const navigate = useNavigate();
     const { showSuccess, showError, showInfo } = useToast();
     const { createOrderRequest } = useOrder();
-    
-    
+
+    const [loggedInUser, setLoggedInUser] = useState(null);
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -95,6 +97,10 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     }, [campaignId]);
 
     useEffect(() => {
+        // 사용자 정보 로드
+        const user = getCurrentUser();
+        setLoggedInUser(user);
+
         fetchCampaignDetail();
     }, [fetchCampaignDetail]);
 
@@ -432,13 +438,24 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         setLinkModalOpen(false); setSelectedRows([]);
     };
 
-    const handleConfirmDelete = async () => { 
+    const handleConfirmDelete = async () => {
         try {
-            // 더미로 삭제 성공 처리
-            showSuccess('컨텐츠가 삭제되었습니다! (더미 모드)');
-            fetchCampaignDetail();
-        } catch (error) { showError('삭제 실패'); }
-        setDeleteModalOpen(false); setSelectedPost(null); 
+            console.log('업무 삭제 시작:', selectedPost?.id);
+
+            // 실제 API 호출로 삭제
+            await api.delete(`/api/campaigns/${campaignId}/posts/${selectedPost.id}`);
+
+            console.log('업무 삭제 성공');
+            showSuccess(`"${selectedPost?.title}" 업무가 삭제되었습니다.`);
+
+            // 데이터 새로고침
+            await fetchCampaignDetail();
+        } catch (error) {
+            console.error('업무 삭제 실패:', error);
+            showError(`삭제에 실패했습니다: ${error.response?.data?.detail || error.message}`);
+        }
+        setDeleteModalOpen(false);
+        setSelectedPost(null);
     };
 
     const handleOrderRequest = async (post) => {
@@ -529,27 +546,117 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         setReorderRequestConfirm({ isOpen: false, post: null });
     };
 
+    // 발주 승인 처리
+    const handleApproveOrder = async (post) => {
+        try {
+            console.log('발주 승인 처리:', post.title);
+
+            const response = await api.put(`/api/campaigns/${campaignId}/posts/${post.id}/order-status`, {
+                status: '승인완료',
+                approverComment: '발주 승인 완료'
+            });
+
+            // 전체 데이터 다시 가져오기
+            await fetchCampaignDetail();
+
+            showSuccess(`"${post.title}" 업무의 발주가 승인되었습니다.`);
+        } catch (error) {
+            console.error('발주 승인 실패:', error);
+            showError(`발주 승인에 실패했습니다: ${error.response?.data?.detail || error.message}`);
+        }
+    };
+
+    // 발주 거절 처리
+    const handleRejectOrder = async (post) => {
+        const rejectReason = prompt('거절 사유를 입력하세요:');
+        if (!rejectReason) return;
+
+        try {
+            console.log('발주 거절 처리:', post.title);
+
+            const response = await api.put(`/api/campaigns/${campaignId}/posts/${post.id}/order-status`, {
+                status: '거절됨',
+                rejectReason: rejectReason
+            });
+
+            // 전체 데이터 다시 가져오기
+            await fetchCampaignDetail();
+
+            showInfo(`"${post.title}" 업무의 발주가 거절되었습니다.\n거절 사유: ${rejectReason}`);
+        } catch (error) {
+            console.error('발주 거절 실패:', error);
+            showError(`발주 거절에 실패했습니다: ${error.response?.data?.detail || error.message}`);
+        }
+    };
+
+    // 승인 상태 편집 권한 체크
+    const canEditApprovalStatus = (post) => {
+        if (!loggedInUser || !post || !campaign) return false;
+
+        // 슈퍼 어드민은 모든 승인 상태 편집 가능
+        if (loggedInUser.role === ROLES.SUPER_ADMIN) {
+            return true;
+        }
+
+        // 에이전시 어드민은 본인 company의 캠페인만 승인 상태 편집 가능
+        if (loggedInUser.role === ROLES.AGENCY_ADMIN) {
+            return campaign.companyId === loggedInUser.companyId;
+        }
+
+        // 클라이언트는 자신의 캠페인 업무만 승인 가능
+        if (loggedInUser.role === ROLES.CLIENT) {
+            return campaign.userId === loggedInUser.id;
+        }
+
+        // 직원은 승인 상태 편집 불가
+        return false;
+    };
+
     // 인라인 편집 기능
     const handleCellEdit = (postId, field, currentValue) => {
+        // 승인 상태 관련 필드는 권한 체크
+        if ((field === 'topicStatus' || field === 'outlineStatus')) {
+            const post = posts.find(p => p.id === postId);
+            if (!canEditApprovalStatus(post)) {
+                showError('승인 상태를 편집할 권한이 없습니다.');
+                return;
+            }
+        }
+
         setEditingCell({ postId, field });
         setEditingValue(currentValue || '');
     };
 
     const handleCellSave = async (postId, field) => {
         try {
-            // 더미로 업데이트 성공 처리
-            setPosts(prevPosts => 
-                prevPosts.map(post => 
-                    post.id === postId 
+            console.log(`${field} 상태 업데이트 시작:`, { postId, field, newValue: editingValue });
+
+            // 모든 필드에 대해 기존 업무 수정 API 사용
+            const updateData = { [field]: editingValue };
+            const response = await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, updateData);
+            console.log('업무 수정 API 호출 성공:', response.data);
+
+            // 로컬 상태 즉시 업데이트
+            setPosts(prevPosts =>
+                prevPosts.map(post =>
+                    post.id === postId
                         ? { ...post, [field]: editingValue }
                         : post
                 )
             );
-            showSuccess('수정이 완료되었습니다! (더미 모드)');
+
+            const fieldName = field === 'topicStatus' ? '승인 상태' : field === 'outlineStatus' ? '세부사항 승인 상태' : field;
+            showSuccess(`${fieldName}이(가) "${editingValue}"(으)로 수정되었습니다.`);
+
+            // 서버 데이터와 동기화를 위해 캠페인 데이터 새로고침
+            await fetchCampaignDetail();
+
         } catch (error) {
-            console.error('업데이트 실패:', error);
-            showError('수정에 실패했습니다.');
+            console.error('상태 업데이트 실패:', error);
+            console.error('API 에러 상세:', error.response?.data);
+            showError(`상태 수정에 실패했습니다: ${error.response?.data?.detail || error.message}`);
         }
+
         setEditingCell(null);
         setEditingValue('');
     };
@@ -568,9 +675,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             if (selectedPostIds && selectedPostIds.length > 0) {
                 const selectedPosts = posts.filter(post => selectedPostIds.includes(post.id));
                 const workTypes = selectedPosts.map(post => post.workType).join(', ');
-                message = `📄 선택한 업무들 (${workTypes})의 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다! (더미 모드)\n드래그해서 카카오톡으로 전송하세요! 🚀`;
+                message = `📄 선택한 업무들 (${workTypes})의 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`;
             } else {
-                message = `📄 전체 캠페인의 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다! (더미 모드)\n드래그해서 카카오톡으로 전송하세요! 🚀`;
+                message = `📄 전체 캠페인의 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`;
             }
             
             showInfo(message);
@@ -974,17 +1081,56 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                 <button onClick={handleCellCancel} className="text-red-600 hover:text-red-800">✗</button>
                                             </div>
                                         ) : (
-                                            <div 
-                                                className="cursor-pointer hover:bg-gray-100 px-1 py-0.5 rounded"
-                                                onClick={() => handleCellEdit(post.id, 'topicStatus', post.topicStatus)}
-                                                title="클릭하여 편집"
+                                            <div
+                                                className={`px-1 py-0.5 rounded ${
+                                                    canEditApprovalStatus(post)
+                                                        ? 'cursor-pointer hover:bg-gray-100'
+                                                        : 'cursor-not-allowed opacity-75'
+                                                }`}
+                                                onClick={() => canEditApprovalStatus(post) && handleCellEdit(post.id, 'topicStatus', post.topicStatus)}
+                                                title={canEditApprovalStatus(post) ? '클릭하여 편집' : '편집 권한이 없습니다'}
                                             >
                                                 <StatusBadge status={post.topicStatus} />
                                             </div>
                                         )}
                                     </td>
                                     <td className="p-2">{post.outline ? <div className="flex items-center justify-between"><span className="text-xs truncate max-w-xs">{post.outline}</span><button onClick={() => openEditModal(post, 'outline')} className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"><Edit size={14} /></button></div> : '-'}</td>
-                                    <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
+                                    <td className="p-2">
+                                        {post.outlineStatus ? (
+                                            editingCell?.postId === post.id && editingCell?.field === 'outlineStatus' ? (
+                                                <div className="flex items-center space-x-1">
+                                                    <select
+                                                        value={editingValue}
+                                                        onChange={(e) => setEditingValue(e.target.value)}
+                                                        className="text-sm border border-blue-300 rounded px-2 py-1"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleCellSave(post.id, 'outlineStatus');
+                                                            if (e.key === 'Escape') handleCellCancel();
+                                                        }}
+                                                        autoFocus
+                                                    >
+                                                        <option value="대기">대기</option>
+                                                        <option value="승인">승인</option>
+                                                        <option value="거절">거절</option>
+                                                    </select>
+                                                    <button onClick={() => handleCellSave(post.id, 'outlineStatus')} className="text-green-600 hover:text-green-800">✓</button>
+                                                    <button onClick={handleCellCancel} className="text-red-600 hover:text-red-800">✗</button>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className={`px-1 py-0.5 rounded ${
+                                                        canEditApprovalStatus(post)
+                                                            ? 'cursor-pointer hover:bg-gray-100'
+                                                            : 'cursor-not-allowed opacity-75'
+                                                    }`}
+                                                    onClick={() => canEditApprovalStatus(post) && handleCellEdit(post.id, 'outlineStatus', post.outlineStatus)}
+                                                    title={canEditApprovalStatus(post) ? '클릭하여 편집' : '편집 권한이 없습니다'}
+                                                >
+                                                    <StatusBadge status={post.outlineStatus} />
+                                                </div>
+                                            )
+                                        ) : '-'}
+                                    </td>
                                     <td className="p-2"><ImagePreview images={post.images} /></td>
                                     <td className="p-2">
                                         {post.publishedUrl ? (
@@ -998,27 +1144,49 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                     <td className="p-2">
                                         {post.orderRequestStatus ? (
                                             <div className="flex items-center space-x-2">
-                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                    post.orderRequestStatus === '승인완료' ? 'bg-green-100 text-green-800' :
-                                                    post.orderRequestStatus === '거절됨' ? 'bg-red-100 text-red-800' :
-                                                    'bg-yellow-100 text-yellow-800'
+                                                <span className={`px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm border transition-all duration-200 ${
+                                                    post.orderRequestStatus === '승인완료' || post.orderRequestStatus === '발주 승인' ?
+                                                        'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200' :
+                                                    post.orderRequestStatus === '거절됨' || post.orderRequestStatus === '발주 거절' ?
+                                                        'bg-gradient-to-r from-red-50 to-red-100 text-red-700 border-red-200' :
+                                                    post.orderRequestStatus === '대기' || post.orderRequestStatus === '발주 대기' ?
+                                                        'bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-700 border-yellow-200' :
+                                                        'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200'
                                                 }`}>
                                                     {post.orderRequestStatus}
                                                 </span>
                                                 {post.orderRequestStatus === '거절됨' && (
                                                     <button
                                                         onClick={() => handleReorderRequest(post)}
-                                                        className="px-2 py-1 text-xs font-medium bg-orange-600 text-white rounded hover:bg-orange-700"
+                                                        className="px-3 py-1.5 text-xs font-medium bg-orange-500 text-white rounded-lg hover:bg-orange-600 shadow-sm hover:shadow-md transition-all duration-200"
                                                         title="재요청"
                                                     >
                                                         재요청
                                                     </button>
                                                 )}
+                                                {post.orderRequestStatus === '대기' && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleApproveOrder(post)}
+                                                            className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 shadow-sm hover:shadow-md transition-all duration-200"
+                                                            title="발주 승인"
+                                                        >
+                                                            승인
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleRejectOrder(post)}
+                                                            className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-sm hover:shadow-md transition-all duration-200"
+                                                            title="발주 거절"
+                                                        >
+                                                            거절
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         ) : (
                                             <button
                                                 onClick={() => handleOrderRequest(post)}
-                                                className="px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded hover:bg-blue-700"
+                                                className="px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 shadow-sm hover:shadow-md transition-all duration-200"
                                             >
                                                 발주 요청
                                             </button>
