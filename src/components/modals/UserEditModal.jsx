@@ -10,6 +10,13 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         company: user?.company || '',
         role: user?.role || '클라이언트',
         incentiveRate: user?.incentiveRate || 0,
+        // 클라이언트 실제 회사 정보
+        clientCompanyName: user?.clientCompanyName || '',
+        clientBusinessNumber: user?.clientBusinessNumber || '',
+        clientCeoName: user?.clientCeoName || '',
+        clientCompanyAddress: user?.clientCompanyAddress || '',
+        clientBusinessType: user?.clientBusinessType || '',
+        clientBusinessItem: user?.clientBusinessItem || '',
     });
     
     // 사용자 정보가 변경되면 formData 업데이트
@@ -24,6 +31,13 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 company: user.company || '',
                 role: user.role || '클라이언트',
                 incentiveRate: user.incentiveRate || 0,
+                // 클라이언트 실제 회사 정보
+                clientCompanyName: user.clientCompanyName || '',
+                clientBusinessNumber: user.clientBusinessNumber || '',
+                clientCeoName: user.clientCeoName || '',
+                clientCompanyAddress: user.clientCompanyAddress || '',
+                clientBusinessType: user.clientBusinessType || '',
+                clientBusinessItem: user.clientBusinessItem || '',
             });
         } else {
             console.log('UserEditModal - setting formData for new user');
@@ -43,6 +57,13 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 company: (loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : '',
                 role: defaultRole,
                 incentiveRate: 0,
+                // 클라이언트 실제 회사 정보 초기값
+                clientCompanyName: '',
+                clientBusinessNumber: '',
+                clientCeoName: '',
+                clientCompanyAddress: '',
+                clientBusinessType: '',
+                clientBusinessItem: '',
             });
         }
     }, [user]);
@@ -96,8 +117,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     const isStaffRole = formData.role === '대행사 어드민' || formData.role === '직원';
     
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+            <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-2xl font-bold text-gray-800">
@@ -112,8 +133,13 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                     </div>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* 기본 정보 섹션 */}
-                    <div className="space-y-4">
+                    {/* 메인 컨텐츠를 2컬럼으로 구성 */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* 왼쪽: 기본 정보 섹션 */}
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                                👤 기본 정보
+                            </h3>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
@@ -338,6 +364,109 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 </div>
                             ))}
                         </div>
+                        </div>
+
+                        {/* 오른쪽: 클라이언트 실제 회사 정보 - 클라이언트 역할일 때만 표시 */}
+                        {formData.role === '클라이언트' ? (
+                            <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                                🏢 실제 거래 회사 정보
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-4">
+                                계산서/견적서 발급 시 사용될 클라이언트의 실제 회사 정보입니다.
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        실제 회사명
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientCompanyName}
+                                        onChange={(e) => setFormData({...formData, clientCompanyName: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="예: (주)클라이언트회사"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        사업자등록번호
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientBusinessNumber}
+                                        onChange={(e) => setFormData({...formData, clientBusinessNumber: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="예: 123-45-67890"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        대표자명
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientCeoName}
+                                        onChange={(e) => setFormData({...formData, clientCeoName: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="예: 홍길동"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        업태
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientBusinessType}
+                                        onChange={(e) => setFormData({...formData, clientBusinessType: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="예: 제조업, 도소매업"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        회사 주소
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientCompanyAddress}
+                                        onChange={(e) => setFormData({...formData, clientCompanyAddress: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="예: 서울특별시 강남구 테헤란로 123"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        종목
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientBusinessItem}
+                                        onChange={(e) => setFormData({...formData, clientBusinessItem: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="예: 소프트웨어 개발, 컨설팅"
+                                    />
+                                </div>
+                            </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-400 border-b border-gray-200 pb-2">
+                                    🏢 회사 정보
+                                </h3>
+                                <div className="text-center py-8 text-gray-500">
+                                    <div className="text-4xl mb-2">📝</div>
+                                    <p>클라이언트 역할일 때 회사 정보를 입력할 수 있습니다.</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* 액션 버튼 */}

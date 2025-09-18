@@ -1,5 +1,5 @@
 // API Client - Railway Production Backend
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
+const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://brandflow-backend-production-99ae.up.railway.app'
   : 'https://brandflow-backend-production-99ae.up.railway.app';
 const API_TIMEOUT = 30000;

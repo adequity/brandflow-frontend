@@ -47,6 +47,14 @@ const UserManagement = ({ loggedInUser }) => {
         isActive: user.isActive !== undefined ? user.isActive : user.is_active !== undefined ? user.is_active : true,
         agencyAdminId: user.agencyAdminId || user.agency_admin,
         createdAt: user.createdAt || user.created_at,
+
+        // 클라이언트 실제 회사 정보 (snake_case → camelCase 변환)
+        clientCompanyName: user.client_company_name || '',
+        clientBusinessNumber: user.client_business_number || '',
+        clientCeoName: user.client_ceo_name || '',
+        clientCompanyAddress: user.client_company_address || '',
+        clientBusinessType: user.client_business_type || '',
+        clientBusinessItem: user.client_business_item || '',
         updatedAt: user.updatedAt || user.updated_at,
         lastLogin: user.lastLogin || user.last_login
       }));
@@ -101,19 +109,28 @@ const UserManagement = ({ loggedInUser }) => {
   };
 
   const handleSaveUser = async (userData) => {
+    console.log('handleSaveUser called with userData:', userData);
+    console.log('loggedInUser:', loggedInUser);
+
+    // 프론트엔드 데이터를 백엔드 형식으로 변환
+    const apiData = {
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      company: userData.company || ((loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : ''),
+      contact: userData.contact,
+      incentive_rate: userData.incentiveRate || 0,
+
+      // 클라이언트 실제 회사 정보 (camelCase → snake_case 변환)
+      client_company_name: userData.clientCompanyName,
+      client_business_number: userData.clientBusinessNumber,
+      client_ceo_name: userData.clientCeoName,
+      client_company_address: userData.clientCompanyAddress,
+      client_business_type: userData.clientBusinessType,
+      client_business_item: userData.clientBusinessItem
+    };
+
     try {
-      console.log('handleSaveUser called with userData:', userData);
-      console.log('loggedInUser:', loggedInUser);
-      
-      // 프론트엔드 데이터를 백엔드 형식으로 변환
-      const apiData = {
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        company: userData.company || ((loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : ''),
-        contact: userData.contact,
-        incentive_rate: userData.incentiveRate || 0
-      };
       
       // password는 사용자 생성 시 필수
       if (!currentUser) {

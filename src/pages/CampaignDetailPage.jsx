@@ -39,6 +39,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const [modalType, setModalType] = useState('topic');
     const [selectedPost, setSelectedPost] = useState(null);
     const [users, setUsers] = useState([]);
+    const [products, setProducts] = useState([]); // 상품 목록
     const [editingCell, setEditingCell] = useState(null); // { postId, field }
     const [editingValue, setEditingValue] = useState('');
     const [orderRequestConfirm, setOrderRequestConfirm] = useState({ isOpen: false, post: null });
@@ -76,6 +77,20 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     console.log('캠페인:', campaignData.name);
                     console.log('포스트:', (postsData || []).length, '개');
                     console.log('포스트 publishedUrl 확인:', (postsData || []).map(p => ({ id: p.id, title: p.title, publishedUrl: p.publishedUrl })));
+
+                    // 첫 번째 포스트의 구조 확인 (원가 정보 디버깅)
+                    if (postsData && postsData.length > 0) {
+                        console.log('📊 첫 번째 포스트 전체 구조:', postsData[0]);
+                        console.log('💰 원가 관련 필드들:', {
+                            cost: postsData[0].cost,
+                            product_cost: postsData[0].product_cost,
+                            productCost: postsData[0].productCost,
+                            price: postsData[0].price,
+                            productId: postsData[0].productId,
+                            product_id: postsData[0].product_id,
+                            productName: postsData[0].productName
+                        });
+                    }
                 } catch (apiError) {
                     console.error('CampaignDetailPage: API 호출 실패', apiError);
                     setError(`캠페인 데이터를 불러올 수 없습니다: ${apiError.message}`);
@@ -128,7 +143,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         };
     }, [campaignId]);
 
-    // 더미 사용자 목록 및 상품 정보
+    // 사용자 목록 및 상품 정보 로드
     useEffect(() => {
         const dummyUsers = [
             { id: 1, name: '슈퍼 관리자' },
@@ -137,7 +152,96 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             { id: 4, name: '직원2' }
         ];
         setUsers(dummyUsers);
+
+        // 상품 목록 가져오기
+        const fetchProducts = async () => {
+            try {
+                const response = await api.get('/api/products');
+                setProducts(response.data || []);
+                console.log('🛍️ 상품 목록:', response.data);
+                console.log('🔍 상품 목록 상세 분석:');
+                if (response.data && response.data.length > 0) {
+                    response.data.forEach((product, index) => {
+                        console.log(`상품 ${index + 1}:`, {
+                            id: product.id,
+                            name: product.name,
+                            cost: product.cost,
+                            전체_구조: product
+                        });
+                    });
+                } else {
+                    console.log('❌ 상품 목록이 비어있습니다');
+                }
+            } catch (error) {
+                console.error('상품 목록 로딩 실패:', error);
+            }
+        };
+
+        fetchProducts();
     }, []);
+
+    // post의 productId나 productName으로 상품의 원가 찾기
+    const getPostProductCost = (post) => {
+        console.log(`🔍 원가 찾기 시작 - 포스트 ID: ${post.id}, 제목: ${post.title}`);
+        console.log('📋 포스트 정보:', {
+            productId: post.productId,
+            productName: post.productName,
+            cost: post.cost,
+            product_cost: post.product_cost,
+            productCost: post.productCost
+        });
+        console.log('🛍️ 현재 상품 목록 개수:', products.length);
+
+        if (post.cost) {
+            console.log('✅ 개별 설정된 원가 사용:', post.cost);
+            return post.cost; // 이미 개별 설정된 원가가 있으면 사용
+        }
+
+        // productId로 찾기
+        if (post.productId) {
+            console.log('🔍 productId로 상품 찾기:', post.productId);
+            const product = products.find(p => {
+                console.log(`상품 비교: ${p.id} === ${post.productId}?`, p.id === post.productId);
+                return p.id === post.productId;
+            });
+
+            if (product) {
+                console.log('✅ 상품 찾음:', product);
+                if (product.cost) {
+                    console.log('💰 상품 원가(cost) 반환:', product.cost);
+                    return product.cost;
+                } else if (product.price) {
+                    console.log('💰 상품 가격(price) 반환:', product.price);
+                    return product.price;
+                } else {
+                    console.log('⚠️ 상품은 있지만 원가(cost)나 가격(price)이 없음');
+                }
+            } else {
+                console.log('❌ productId로 상품을 찾을 수 없음');
+            }
+        }
+
+        // productName으로 찾기 (fallback)
+        if (post.productName) {
+            console.log('🔍 productName으로 상품 찾기:', post.productName);
+            const product = products.find(p => p.name === post.productName);
+            if (product) {
+                console.log('✅ 이름으로 상품 찾음:', product);
+                if (product.cost) {
+                    console.log('💰 상품 원가(cost) 반환:', product.cost);
+                    return product.cost;
+                } else if (product.price) {
+                    console.log('💰 상품 가격(price) 반환:', product.price);
+                    return product.price;
+                }
+            } else {
+                console.log('❌ productName으로 상품을 찾을 수 없음');
+            }
+        }
+
+        console.log('❌ 원가를 찾을 수 없음 - null 반환');
+        return null;
+    };
 
     // 업무타입별 원가 정보 조회 함수 (상품관리에서 가져옴)
     const getProductCostByWorkType = (workType) => {
@@ -676,8 +780,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             // 회사 정보 가져오기
             const companyInfo = await fetchCompanyInfo();
 
-            // 캠페인 데이터를 문서 데이터로 변환
-            const documentData = transformCampaignToDocument(campaign, posts, selectedPostIds, type);
+            // 캠페인 데이터를 문서 데이터로 변환 (상품 목록도 전달)
+            const documentData = transformCampaignToDocument(campaign, posts, selectedPostIds, type, products);
 
             // 승인된 업무가 없는 경우
             if (documentData.items.length === 0) {
@@ -1060,10 +1164,10 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                 ) : (
                                                     <span
                                                         className="text-sm text-neutral-700 font-medium cursor-pointer hover:bg-blue-50 px-2 py-1 rounded"
-                                                        onClick={() => handleCellEdit(post.id, 'cost', post.cost || 0)}
+                                                        onClick={() => handleCellEdit(post.id, 'cost', getPostProductCost(post) || 0)}
                                                         title="클릭하여 편집"
                                                     >
-                                                        {post.cost ? `${post.cost.toLocaleString()}원` : '미설정'}
+                                                        {getPostProductCost(post) ? `${getPostProductCost(post).toLocaleString()}원` : '미설정'}
                                                     </span>
                                                 )}
                                             </td>

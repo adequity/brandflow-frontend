@@ -99,11 +99,69 @@ export const numberToKorean = (num) => {
 };
 
 // 캠페인 데이터를 문서 데이터로 변환
-export const transformCampaignToDocument = (campaign, posts, selectedPostIds = null, type = 'transaction') => {
+export const transformCampaignToDocument = (campaign, posts, selectedPostIds = null, type = 'transaction', products = []) => {
     console.log('🔍 Document Generation Debug:');
     console.log('Campaign:', campaign);
     console.log('Posts:', posts);
     console.log('Selected Post IDs:', selectedPostIds);
+    console.log('Products:', products);
+
+    // 포스트의 productId나 productName으로 상품의 원가 찾기 함수
+    const getProductCost = (post) => {
+        console.log(`🔍 문서생성용 원가 찾기 - 포스트 ID: ${post.id}, 제목: ${post.title}`);
+
+        // 1. 포스트에 직접 설정된 원가가 있으면 사용
+        if (post.cost) {
+            console.log('✅ 포스트에 직접 설정된 원가 사용:', post.cost);
+            return post.cost;
+        }
+
+        if (post.productCost) {
+            console.log('✅ 포스트의 productCost 사용:', post.productCost);
+            return post.productCost;
+        }
+
+        // 2. productId로 상품에서 찾기
+        if (post.productId && products.length > 0) {
+            console.log('🔍 productId로 상품 찾기:', post.productId);
+            const product = products.find(p => p.id === post.productId);
+            if (product) {
+                console.log('✅ 상품 찾음:', product);
+                if (product.cost) {
+                    console.log('💰 상품 원가(cost) 반환:', product.cost);
+                    return product.cost;
+                } else if (product.price) {
+                    console.log('💰 상품 가격(price) 반환:', product.price);
+                    return product.price;
+                }
+            } else {
+                console.log('❌ productId로 상품을 찾을 수 없음');
+            }
+        }
+
+        // 3. productName으로 상품에서 찾기
+        if (post.productName && products.length > 0) {
+            console.log('🔍 productName으로 상품 찾기:', post.productName);
+            const product = products.find(p => p.name === post.productName);
+            if (product) {
+                console.log('✅ 이름으로 상품 찾음:', product);
+                if (product.cost) {
+                    console.log('💰 상품 원가(cost) 반환:', product.cost);
+                    return product.cost;
+                } else if (product.price) {
+                    console.log('💰 상품 가격(price) 반환:', product.price);
+                    return product.price;
+                }
+            } else {
+                console.log('❌ productName으로 상품을 찾을 수 없음');
+            }
+        }
+
+        // 4. 업무 타입별 기본 가격 사용
+        const defaultPrice = getBasePriceByWorkType(post.workType);
+        console.log('🏷️ 업무 타입별 기본 가격 사용:', defaultPrice);
+        return defaultPrice;
+    };
 
     const filteredPosts = selectedPostIds && selectedPostIds.length > 0
         ? posts.filter(post => selectedPostIds.includes(post.id))
@@ -123,12 +181,13 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
     if (approvedPosts.length > 0) {
         console.log('Sample approved post:', approvedPosts[0]);
         console.log('Sample post cost:', approvedPosts[0].cost);
+        console.log('Sample post productCost:', approvedPosts[0].productCost);
         console.log('Sample post quantity:', approvedPosts[0].quantity);
     }
 
     const items = approvedPosts.map(post => {
-        // 원가 사용 (post.cost가 있으면 사용하고, 없으면 업무 타입별 기본 가격 사용)
-        const unitPrice = post.cost || getBasePriceByWorkType(post.workType);
+        // 새로운 getProductCost 함수 사용
+        const unitPrice = getProductCost(post);
         const quantity = post.quantity || 1;
         const supplyAmount = unitPrice * quantity;
         const taxAmount = Math.floor(supplyAmount * 0.1); // 10% 부가세
@@ -160,8 +219,13 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
             issueDate: new Date().toLocaleDateString('ko-KR')
         },
         recipient: {
-            name: campaign.clientName || '고객사',
-            businessNumber: campaign.clientBusinessNumber || ''
+            name: campaign.client_user?.client_company_name || campaign.client_user?.name || campaign.clientName || '고객사',
+            businessNumber: campaign.client_user?.client_business_number || campaign.client_user?.business_number || campaign.clientBusinessNumber || '',
+            contact: campaign.client_user?.contact || '',
+            ceoName: campaign.client_user?.client_ceo_name || '',
+            address: campaign.client_user?.client_company_address || '',
+            businessType: campaign.client_user?.client_business_type || '',
+            businessItem: campaign.client_user?.client_business_item || ''
         },
         items: items,
         summary: {
@@ -338,6 +402,11 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
             <h3>수신</h3>
             <div>${documentData.recipient.name} 귀하</div>
             ${documentData.recipient.businessNumber ? `<div>사업자번호: ${documentData.recipient.businessNumber}</div>` : ''}
+            ${documentData.recipient.ceoName ? `<div>대표자: ${documentData.recipient.ceoName}</div>` : ''}
+            ${documentData.recipient.address ? `<div>소재지: ${documentData.recipient.address}</div>` : ''}
+            ${documentData.recipient.businessType ? `<div>업태: ${documentData.recipient.businessType}</div>` : ''}
+            ${documentData.recipient.businessItem ? `<div>종목: ${documentData.recipient.businessItem}</div>` : ''}
+            ${documentData.recipient.contact ? `<div>연락처: ${documentData.recipient.contact}</div>` : ''}
         </div>
         <div class="party-section">
             <h3>공급자</h3>
