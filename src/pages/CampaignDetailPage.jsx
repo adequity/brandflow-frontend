@@ -662,123 +662,214 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     }
 
     return (
-        <div className="p-6 h-full flex flex-col">
-            <div className="flex-shrink-0">
-                <button onClick={() => navigate('/admin/campaigns')} className="text-sm text-blue-600 hover:underline mb-2">&larr; 전체 캠페인 목록으로</button>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
-                        <p className="text-gray-600 mt-1">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
-                    </div>
-                    <button 
-                        onClick={handleCampaignEdit}
-                        className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 flex items-center space-x-1"
+        <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-neutral-50">
+            {/* Header Section */}
+            <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50">
+                <div className="max-w-7xl mx-auto px-6 py-6">
+                    <button
+                        onClick={() => navigate('/admin/campaigns')}
+                        className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-6 group transition-colors duration-200"
                     >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span>캠페인 편집</span>
+                        <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform duration-200" />
+                        전체 캠페인 목록으로
                     </button>
+
+                    <div className="flex justify-between items-start mb-6">
+                        <div>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-700 to-primary-900 bg-clip-text text-transparent">
+                                {campaign.name}
+                            </h1>
+                            <p className="text-neutral-600 mt-2 text-lg">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
+                        </div>
+                        <button
+                            onClick={handleCampaignEdit}
+                            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                        >
+                            <Edit className="w-4 h-4" />
+                            <span>캠페인 편집</span>
+                        </button>
+                    </div>
+
+                    {/* Campaign Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-blue-100 rounded-lg">
+                                    <FileText className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-neutral-500">총 업무</p>
+                                    <p className="text-2xl font-bold text-neutral-900">{posts.length}개</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-green-100 rounded-lg">
+                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-neutral-500">완료된 업무</p>
+                                    <p className="text-2xl font-bold text-neutral-900">{posts.filter(p => p.status === 'approved').length}개</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-yellow-100 rounded-lg">
+                                    <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-neutral-500">진행 중</p>
+                                    <p className="text-2xl font-bold text-neutral-900">{posts.filter(p => p.status === 'pending').length}개</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div className="flex-grow bg-white p-6 rounded-xl border border-gray-200 flex flex-col mt-4">
-                <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                    <div className="flex items-center space-x-4">
-                        <h3 className="text-lg font-semibold text-gray-800">콘텐츠 기획 및 승인</h3>
-                        <AdvancedFilter 
-                            onFilterChange={handleFilterChange}
-                            users={users}
-                        />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <div className="space-x-2">
-                            <button onClick={() => setTopicModalOpen(true)} className="px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700">업무 등록</button>
-                            <button onClick={() => setOutlineModalOpen(true)} disabled={!canRegisterOutline} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700">세부사항 등록</button>
-                            <button onClick={() => setLinkModalOpen(true)} disabled={!canRegisterLink} className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700">{(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl ? '결과물 수정' : '결과물 등록'}</button>
-                        </div>
-                        <div className="border-l border-gray-300 h-8 mx-2"></div>
-                        <div className="flex items-center space-x-2">
-                            <div className="text-xs text-gray-600">📄 문서생성:</div>
-                            
-                            {/* 전체 캠페인 문서생성 */}
-                            <div className="flex items-center space-x-1 border-r border-gray-200 pr-2">
-                                <span className="text-xs text-gray-500">전체</span>
-                                <button
-                                    onClick={() => handleGenerateDocuments(campaign.id, 'transaction')}
-                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group"
-                                    title="전체 캠페인 거래명세서 생성 (PDF + JPG)"
-                                >
-                                    <FileText size={16} />
-                                </button>
-                                <button
-                                    onClick={() => handleGenerateDocuments(campaign.id, 'quote')}
-                                    className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors group"
-                                    title="전체 캠페인 견적서 생성 (PDF + JPG)"
-                                >
-                                    <FileImage size={16} />
-                                </button>
+            {/* Main Content Section */}
+            <div className="max-w-7xl mx-auto px-6 py-8">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl">
+                    <div className="p-8">
+                        <div className="flex justify-between items-center mb-8">
+                            <div className="flex items-center space-x-6">
+                                <h2 className="text-2xl font-bold text-neutral-800">콘텐츠 기획 및 승인</h2>
+                                <AdvancedFilter
+                                    onFilterChange={handleFilterChange}
+                                    users={users}
+                                />
                             </div>
-                            
-                            {/* 선택한 업무들 문서생성 */}
-                            <div className="flex items-center space-x-1">
-                                <span className="text-xs text-gray-500">선택</span>
-                                <button
-                                    onClick={() => handleGenerateDocuments(campaign.id, 'transaction', selectedRows)}
-                                    disabled={selectedRows.length === 0}
-                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group disabled:text-gray-300 disabled:hover:text-gray-300 disabled:hover:bg-transparent"
-                                    title={selectedRows.length > 0 ? `선택한 ${selectedRows.length}개 업무 거래명세서 생성` : "업무를 선택해주세요"}
-                                >
-                                    <FileText size={16} />
-                                </button>
-                                <button
-                                    onClick={() => handleGenerateDocuments(campaign.id, 'quote', selectedRows)}
-                                    disabled={selectedRows.length === 0}
-                                    className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors group disabled:text-gray-300 disabled:hover:text-gray-300 disabled:hover:bg-transparent"
-                                    title={selectedRows.length > 0 ? `선택한 ${selectedRows.length}개 업무 견적서 생성` : "업무를 선택해주세요"}
-                                >
-                                    <FileImage size={16} />
-                                </button>
-                                {selectedRows.length > 0 && (
-                                    <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                        {selectedRows.length}개 선택됨
-                                    </span>
-                                )}
+                            <div className="flex items-center space-x-4">
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={() => setTopicModalOpen(true)}
+                                        className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
+                                    >
+                                        업무 등록
+                                    </button>
+                                    <button
+                                        onClick={() => setOutlineModalOpen(true)}
+                                        disabled={!canRegisterOutline}
+                                        className="px-5 py-2.5 font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800"
+                                    >
+                                        세부사항 등록
+                                    </button>
+                                    <button
+                                        onClick={() => setLinkModalOpen(true)}
+                                        disabled={!canRegisterLink}
+                                        className="px-5 py-2.5 font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800"
+                                    >
+                                        {(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl ? '결과물 수정' : '결과물 등록'}
+                                    </button>
+                                </div>
+                                <div className="h-8 w-px bg-neutral-300 mx-4"></div>
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-sm font-medium text-neutral-600">📄 문서생성</span>
+                                    </div>
+
+                                    {/* 전체 캠페인 문서생성 */}
+                                    <div className="flex items-center space-x-2 border-r border-neutral-200 pr-4">
+                                        <span className="text-xs text-neutral-500 font-medium">전체</span>
+                                        <button
+                                            onClick={() => handleGenerateDocuments(campaign.id, 'transaction')}
+                                            className="p-2.5 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group"
+                                            title="전체 캠페인 거래명세서 생성 (PDF + JPG)"
+                                        >
+                                            <FileText size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleGenerateDocuments(campaign.id, 'quote')}
+                                            className="p-2.5 text-neutral-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200 group"
+                                            title="전체 캠페인 견적서 생성 (PDF + JPG)"
+                                        >
+                                            <FileImage size={18} />
+                                        </button>
+                                    </div>
+
+                                    {/* 선택한 업무들 문서생성 */}
+                                    <div className="flex items-center space-x-2">
+                                        <span className="text-xs text-neutral-500 font-medium">선택</span>
+                                        <button
+                                            onClick={() => handleGenerateDocuments(campaign.id, 'transaction', selectedRows)}
+                                            disabled={selectedRows.length === 0}
+                                            className="p-2.5 text-neutral-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 group disabled:text-neutral-300 disabled:hover:text-neutral-300 disabled:hover:bg-transparent"
+                                            title={selectedRows.length > 0 ? `선택한 ${selectedRows.length}개 업무 거래명세서 생성` : "업무를 선택해주세요"}
+                                        >
+                                            <FileText size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleGenerateDocuments(campaign.id, 'quote', selectedRows)}
+                                            disabled={selectedRows.length === 0}
+                                            className="p-2.5 text-neutral-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all duration-200 group disabled:text-neutral-300 disabled:hover:text-neutral-300 disabled:hover:bg-transparent"
+                                            title={selectedRows.length > 0 ? `선택한 ${selectedRows.length}개 업무 견적서 생성` : "업무를 선택해주세요"}
+                                        >
+                                            <FileImage size={18} />
+                                        </button>
+                                        {selectedRows.length > 0 && (
+                                            <span className="text-xs text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full font-medium">
+                                                {selectedRows.length}개 선택됨
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="flex-grow overflow-x-auto">
-                    <table className="w-full text-sm text-left text-gray-500">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                            <tr>
-                                <th className="p-2 w-4"><input type="checkbox" onChange={handleSelectAll} /></th>
-                                <th className="p-2">업무 타입</th>
-                                <th className="p-2">제품명</th>
-                                <th className="p-2">업무 내용</th>
-                                <th className="p-2">시작일</th>
-                                <th className="p-2">마감일</th>
-                                <th className="p-2">승인 상태</th>
-                                <th className="p-2">세부사항 검토</th>
-                                <th className="p-2">세부사항 승인 상태</th>
-                                <th className="p-2">첨부 이미지</th>
-                                <th className="p-2">결과물 링크</th>
-                                <th className="p-2">발주 요청</th>
-                                <th className="p-2">작성 시간</th>
-                                <th className="p-2">관리</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                            {filteredPosts.map(post => (
-                                <tr key={post.id} className="hover:bg-gray-50">
-                                    <td className="p-2"><input type="checkbox" checked={selectedRows.includes(post.id)} onChange={() => handleRowSelect(post.id)} /></td>
-                                    <td className="p-2">
-                                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                                            {post.workType || '블로그'}
-                                        </span>
-                                    </td>
-                                    <td className="p-2">
-                                        <span className="text-sm text-gray-600">
-                                            {post.productName || '-'}
+                        {/* Table Section */}
+                        <div className="overflow-x-auto rounded-xl border border-neutral-200/50">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gradient-to-r from-neutral-50 to-neutral-100/50 border-b border-neutral-200">
+                                    <tr>
+                                        <th className="p-4 w-12">
+                                            <input
+                                                type="checkbox"
+                                                onChange={handleSelectAll}
+                                                className="w-4 h-4 text-primary-600 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
+                                            />
+                                        </th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">업무 타입</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">제품명</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">업무 내용</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">시작일</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">마감일</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">승인 상태</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 검토</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 승인 상태</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">첨부 이미지</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">결과물 링크</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">발주 요청</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">작성 시간</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-neutral-200 bg-white">
+                                    {filteredPosts.map(post => (
+                                        <tr key={post.id} className="hover:bg-neutral-50/50 transition-colors duration-150">
+                                            <td className="p-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedRows.includes(post.id)}
+                                                    onChange={() => handleRowSelect(post.id)}
+                                                    className="w-4 h-4 text-primary-600 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
+                                                />
+                                            </td>
+                                            <td className="p-4">
+                                                <span className="inline-flex px-3 py-1.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    {post.workType || '블로그'}
+                                                </span>
+                                            </td>
+                                            <td className="p-4">
+                                                <span className="text-sm text-neutral-700 font-medium">
+                                                    {post.productName || '-'}
                                         </span>
                                     </td>
                                     <td className="p-2">
