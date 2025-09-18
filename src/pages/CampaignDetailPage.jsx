@@ -736,9 +736,10 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             </div>
             {/* Main Content Section */}
             <div className="max-w-[95%] mx-auto px-4 py-6">
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl">
-                    <div className="p-8">
-                        <div className="flex justify-between items-center mb-8">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl overflow-hidden">
+                    {/* Control Panel Header */}
+                    <div className="bg-gradient-to-r from-neutral-50 to-neutral-100/80 border-b border-neutral-200/70 p-6">
+                        <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-6">
                                 <h2 className="text-2xl font-bold text-neutral-800">콘텐츠 기획 및 승인</h2>
                                 <AdvancedFilter
@@ -823,11 +824,10 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                             </div>
                         </div>
                     </div>
-                </div>
-                        {/* Table Section */}
-                        <div className="overflow-x-auto rounded-xl border border-neutral-200/50">
-                            <table className="w-full text-sm">
-                                <thead className="bg-gradient-to-r from-neutral-50 to-neutral-100/50 border-b border-neutral-200">
+                    {/* Table Section */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead className="bg-white/50 border-b border-neutral-200">
                                     <tr>
                                         <th className="p-4 w-12">
                                             <input
@@ -1028,15 +1028,26 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                     <td className="p-2"><div className="flex items-center space-x-2"><button onClick={() => openEditModal(post, 'topic')} className="text-gray-400 hover:text-blue-600"><Edit size={16} /></button><button onClick={() => handleDeleteClick(post)} className="text-gray-400 hover:text-red-600"><Trash2 size={16} /></button></div></td>
                                 </tr>
                             ))}
-                        </tbody>
-                    </table>
-                </div>
-                <div className="flex justify-center items-center mt-4 flex-shrink-0">
-                    <nav className="flex items-center space-x-2">
-                        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-md"><ChevronLeft size={16}/></button>
-                        <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md">1</button>
-                        <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-md"><ChevronRight size={16}/></button>
-                    </nav>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="bg-gradient-to-r from-neutral-50 to-neutral-100/80 border-t border-neutral-200/70 px-6 py-4">
+                        <div className="flex justify-center">
+                            <nav className="flex items-center space-x-2">
+                                <button className="p-3 text-neutral-500 hover:bg-white/60 rounded-xl transition-colors duration-200">
+                                    <ChevronLeft size={18}/>
+                                </button>
+                                <button className="px-4 py-2 text-sm bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium shadow-md">
+                                    1
+                                </button>
+                                <button className="p-3 text-neutral-500 hover:bg-white/60 rounded-xl transition-colors duration-200">
+                                    <ChevronRight size={18}/>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
                 </div>
             </div>
             {isEditModalOpen && <EditModal post={selectedPost} type={modalType} onSave={handleReRequest} onClose={() => setEditModalOpen(false)} />}
