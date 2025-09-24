@@ -15,7 +15,7 @@ const UserManagement = ({ loggedInUser }) => {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeTab, setActiveTab] = useState(loggedInUser?.role === '직원' ? 'clients' : 'staff'); // 'staff' or 'clients'
+  const [activeTab, setActiveTab] = useState(loggedInUser?.role === 'STAFF' ? 'clients' : 'staff'); // 'staff' or 'clients'
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, user: null });
 
   // 사용자 목록 조회 (테넌트/권한 분리용 파라미터 포함)
@@ -40,7 +40,7 @@ const UserManagement = ({ loggedInUser }) => {
         id: user.id,
         name: user.name || user.username || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
         email: user.email,
-        role: user.role || '클라이언트', // Express API에서는 이미 한글로 변환되어 옴
+        role: user.role || 'CLIENT', // API에서 영문 enum으로 받음
         company: user.company || '',
         contact: user.contact || '',
         incentiveRate: parseFloat(user.incentiveRate || user.incentive_rate || 0),
@@ -117,7 +117,7 @@ const UserManagement = ({ loggedInUser }) => {
       name: userData.name,
       email: userData.email,
       role: userData.role,
-      company: userData.company || ((loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : ''),
+      company: userData.company || ((loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') ? loggedInUser.company : ''),
       contact: userData.contact,
       incentive_rate: userData.incentiveRate || 0,
 
@@ -312,21 +312,21 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
   }
 
   // 사용자 필터링
-  const staffUsers = users.filter(user => 
-    user.role === '대행사 어드민' || 
-    user.role === '슈퍼 어드민' ||
-    user.role === '직원'
+  const staffUsers = users.filter(user =>
+    user.role === 'AGENCY_ADMIN' ||
+    user.role === 'SUPER_ADMIN' ||
+    user.role === 'STAFF'
   );
-  const clientUsers = users.filter(user => user.role === '클라이언트');
+  const clientUsers = users.filter(user => user.role === 'CLIENT');
 
-  const currentUsers = loggedInUser?.role === '직원' ? clientUsers : (activeTab === 'staff' ? staffUsers : clientUsers);
+  const currentUsers = loggedInUser?.role === 'STAFF' ? clientUsers : (activeTab === 'staff' ? staffUsers : clientUsers);
 
   const getRoleColor = (role) => {
     switch(role) {
-      case '슈퍼 어드민': return 'bg-purple-100 text-purple-800';
-      case '대행사 어드민': return 'bg-blue-100 text-blue-800';  
-      case '직원': return 'bg-green-100 text-green-800';
-      case '클라이언트': return 'bg-orange-100 text-orange-800';
+      case 'SUPER_ADMIN': return 'bg-purple-100 text-purple-800';
+      case 'AGENCY_ADMIN': return 'bg-blue-100 text-blue-800';
+      case 'STAFF': return 'bg-green-100 text-green-800';
+      case 'CLIENT': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -363,10 +363,10 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
-            {loggedInUser?.role === '직원' ? '클라이언트 관리' : '팀 & 사용자 관리'}
+            {loggedInUser?.role === 'STAFF' ? '클라이언트 관리' : '팀 & 사용자 관리'}
           </h2>
           <p className="text-gray-600 mt-1">
-            {loggedInUser?.role === '직원' ? '클라이언트를 관리하세요' : '팀원과 클라이언트를 관리하세요'}
+            {loggedInUser?.role === 'STAFF' ? '클라이언트를 관리하세요' : '팀원과 클라이언트를 관리하세요'}
           </p>
         </div>
         <button
@@ -374,12 +374,12 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
           className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={18} />
-          <span>{loggedInUser?.role === '직원' ? '클라이언트 추가' : (activeTab === 'staff' ? '팀원 초대' : '클라이언트 추가')}</span>
+          <span>{loggedInUser?.role === 'STAFF' ? '클라이언트 추가' : (activeTab === 'staff' ? '팀원 초대' : '클라이언트 추가')}</span>
         </button>
       </div>
 
       {/* 요약 통계 */}
-      {loggedInUser?.role === '직원' ? (
+      {loggedInUser?.role === 'STAFF' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white p-6 rounded-xl border border-gray-200">
             <div className="flex items-center justify-between">
@@ -433,7 +433,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
       )}
 
       {/* 탭 네비게이션 - 직원은 숨김 */}
-      {loggedInUser?.role !== '직원' && (
+      {loggedInUser?.role !== 'STAFF' && (
         <div className="bg-white p-1 rounded-xl border border-gray-200 inline-flex">
           <button
             onClick={() => setActiveTab('staff')}
@@ -513,7 +513,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                   </td>
                   {activeTab === 'staff' && (
                     <td className="px-6 py-4">
-                      {(user.role === '직원' || user.role === '대행사 어드민') ? (
+                      {(user.role === 'STAFF' || user.role === 'AGENCY_ADMIN') ? (
                         <span className="text-sm font-medium text-blue-600">
                           {user.incentiveRate || 0}%
                         </span>
@@ -529,13 +529,13 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                   <td className="px-6 py-4">
                     {(() => {
                       // 슈퍼 어드민은 모든 계정 관리 가능
-                      if (loggedInUser?.role === '슈퍼 어드민') return true;
-                      
+                      if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+
                       // 대행사 어드민은 슈퍼 어드민 제외하고 관리 가능
-                      if (loggedInUser?.role === '대행사 어드민' && user.role !== '슈퍼 어드민') return true;
-                      
+                      if (loggedInUser?.role === 'AGENCY_ADMIN' && user.role !== 'SUPER_ADMIN') return true;
+
                       // 직원은 클라이언트만 관리 가능
-                      if (loggedInUser?.role === '직원' && user.role === '클라이언트') return true;
+                      if (loggedInUser?.role === 'STAFF' && user.role === 'CLIENT') return true;
                       
                       // 그 외에는 관리 불가
                       return false;
