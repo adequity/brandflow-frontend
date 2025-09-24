@@ -7,7 +7,7 @@ import api from '../api/client';
 // 회사 정보 가져오기
 export const fetchCompanyInfo = async () => {
     try {
-        const response = await api.get('/api/admin/system-settings/?category=company_info');
+        const response = await api.get('/api/admin/system-settings/?category=branding');
         const settings = response.data.settings || [];
 
         const companyData = {};

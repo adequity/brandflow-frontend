@@ -42,7 +42,7 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null }) => {
 
     const fetchCompanyInfo = async () => {
         try {
-            const response = await api.get('/api/admin/system-settings/?category=company_info');
+            const response = await api.get('/api/admin/system-settings/?category=branding');
             const settings = response.data.settings || [];
 
             const companyData = {};
