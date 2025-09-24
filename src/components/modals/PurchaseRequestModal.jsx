@@ -176,7 +176,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     }
   };
 
-  const isAdminRole = loggedInUser?.role === '대행사 어드민' || loggedInUser?.role === '슈퍼 어드민';
+  const isAdminRole = loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN';
 
   if (!isOpen) return null;
 

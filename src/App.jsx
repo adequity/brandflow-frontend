@@ -32,7 +32,7 @@ export default function App() {
         localStorage.setItem('user', JSON.stringify(loggedInUser));
         setUser(loggedInUser);
         // 로그인 성공 후, 역할에 따라 적절한 대시보드로 이동시킵니다.
-        if (loggedInUser.role === '클라이언트') {
+        if (loggedInUser.role === 'CLIENT') {
             navigate('/client/dashboard');
         } else {
             navigate('/admin/dashboard');
@@ -62,13 +62,13 @@ export default function App() {
                 {/* 관리자 페이지 경로 */}
                 <Route 
                     path="/admin/*" 
-                    element={user && user.role !== '클라이언트' ? <LazyRoutes.AdminUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                    element={user && user.role !== 'CLIENT' ? <LazyRoutes.AdminUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
                 />
 
                 {/* 클라이언트 페이지 경로 */}
                 <Route 
                     path="/client/*" 
-                    element={user && user.role === '클라이언트' ? <LazyRoutes.ClientUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+                    element={user && user.role === 'CLIENT' ? <LazyRoutes.ClientUI user={user} onLogout={handleLogout} /> : <Navigate to="/login" />} 
                 />
 
                 {/* 루트 경로 처리 */}
@@ -76,7 +76,7 @@ export default function App() {
                     path="/" 
                     element={
                         !user ? <Navigate to="/login" /> : 
-                        user.role === '클라이언트' ? <Navigate to="/client/dashboard" /> : 
+                        user.role === 'CLIENT' ? <Navigate to="/client/dashboard" /> : 
                         <Navigate to="/admin/dashboard" />
                     } 
                 />

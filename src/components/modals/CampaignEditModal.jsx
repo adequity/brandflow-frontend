@@ -28,7 +28,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
 
   // 직원 목록 불러오기 (대행사 어드민만)
   const fetchStaffMembers = async () => {
-    if (currentUser.role !== '대행사 어드민') return;
+    if (currentUser.role !== 'AGENCY_ADMIN') return;
     
     setLoadingStaff(true);
     try {
@@ -279,7 +279,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
           </div>
 
           {/* 담당 직원 선택 (대행사 어드민만) */}
-          {currentUser.role === '대행사 어드민' && (
+          {currentUser.role === 'AGENCY_ADMIN' && (
             <div>
               <label htmlFor="UserId" className="block text-sm font-medium text-gray-700">
                 👤 담당 직원

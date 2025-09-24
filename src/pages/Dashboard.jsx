@@ -269,7 +269,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         });
 
         // 직원인 경우 실제 데이터 기반 개별 통계
-        if (user.role === '직원') {
+        if (user.role === 'STAFF') {
           // 직원이 담당하는 캠페인들만 필터링
           const employeeCampaigns = latestCampaigns.filter(c => c.managerId === user.id || c.manager === user.id);
           let employeeRevenue = 0;
@@ -279,7 +279,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
               employeeRevenue += response.data.total_revenue || 0;
             } catch (error) {
-              console.error(`직원 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);
+              console.error(`STAFF 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);
             }
           }
           
@@ -540,17 +540,17 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       {/* 환영 메시지 및 주요 알림 */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 rounded-2xl shadow-elegant">
         <h2 className="text-2xl font-bold">
-          {user?.role === '직원' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
+          {user?.role === 'STAFF' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
         </h2>
         <p className="mt-2 opacity-90">
-          {user?.role === '직원' 
+          {user?.role === 'STAFF'
             ? `안녕하세요! 오늘도 화이팅입니다! 💪`
             : urgentTasks.length > 0 
               ? `⚠️ 긴급 처리가 필요한 업무가 ${urgentTasks.length}건 있습니다!`
               : `모든 업무가 원활하게 진행되고 있습니다. 👍`
           }
         </p>
-        {user?.role !== '직원' && avgCompletionTime > 0 && (
+        {user?.role !== 'STAFF' && avgCompletionTime > 0 && (
           <div className="mt-3 text-sm opacity-90">
             평균 업무 완료 시간: <span className="font-bold">{avgCompletionTime}일</span>
           </div>
@@ -558,7 +558,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       </div>
 
       {/* 직원용 매출 데이터 또는 관리자용 재무 현황 */}
-      {user?.role === '직원' ? (
+      {user?.role === 'STAFF' ? (
         <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
           <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
             📊 내 매출 데이터
@@ -660,7 +660,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       </div>
 
       {/* 긴급 업무 섹션 - 관리자만 */}
-      {user?.role !== '직원' && urgentTasks.length > 0 && (
+      {user?.role !== 'STAFF' && urgentTasks.length > 0 && (
         <div className="bg-red-50/80 backdrop-blur-md border border-red-200 rounded-2xl p-6 shadow-card">
           <h3 className="text-lg font-semibold text-red-800 mb-4">🚨 긴급 처리 필요 (3일 이상 대기)</h3>
           <div className="space-y-3">
@@ -684,7 +684,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       )}
 
       {/* 매입/지출 상세 현황 - 관리자만 */}
-      {user?.role !== '직원' && (
+      {user?.role !== 'STAFF' && (
       <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
         <h3 className="text-lg font-semibold text-neutral-800 mb-4">💸 구매요청 및 발주승인 현황</h3>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

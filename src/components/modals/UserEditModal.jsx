@@ -8,7 +8,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         password: '',
         contact: user?.contact || '',
         company: user?.company || '',
-        role: user?.role || '클라이언트',
+        role: user?.role || 'CLIENT',
         incentiveRate: user?.incentiveRate || 0,
         // 클라이언트 실제 회사 정보
         clientCompanyName: user?.clientCompanyName || '',
@@ -29,7 +29,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 password: '',
                 contact: user.contact || '',
                 company: user.company || '',
-                role: user.role || '클라이언트',
+                role: user.role || 'CLIENT',
                 incentiveRate: user.incentiveRate || 0,
                 // 클라이언트 실제 회사 정보
                 clientCompanyName: user.clientCompanyName || '',
@@ -42,11 +42,11 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         } else {
             console.log('UserEditModal - setting formData for new user');
             // 기본 역할을 로그인한 사용자에 따라 설정
-            let defaultRole = '클라이언트';
-            if (loggedInUser?.role === '대행사 어드민') {
-                defaultRole = '클라이언트'; // 🔧 수정: 대행사 어드민도 기본적으로 클라이언트 생성
-            } else if (loggedInUser?.role === '직원') {
-                defaultRole = '클라이언트'; // 직원은 클라이언트만 생성 가능
+            let defaultRole = 'CLIENT';
+            if (loggedInUser?.role === 'AGENCY_ADMIN') {
+                defaultRole = 'CLIENT'; // 🔧 수정: 대행사 어드민도 기본적으로 클라이언트 생성
+            } else if (loggedInUser?.role === 'STAFF') {
+                defaultRole = 'CLIENT'; // 직원은 클라이언트만 생성 가능
             }
             
             setFormData({
@@ -54,7 +54,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 email: '',
                 password: '',
                 contact: '',
-                company: (loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') ? loggedInUser.company : '',
+                company: (loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') ? loggedInUser.company : '',
                 role: defaultRole,
                 incentiveRate: 0,
                 // 클라이언트 실제 회사 정보 초기값
@@ -71,7 +71,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
     // 기존 회사 목록 로드 (슈퍼 어드민만)
     useEffect(() => {
-        if (loggedInUser?.role === '슈퍼 어드민' && !user) {
+        if (loggedInUser?.role === 'SUPER_ADMIN' && !user) {
             fetchExistingCompanies();
         }
     }, [loggedInUser, user]);
@@ -114,7 +114,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         onSave(formData);
     };
 
-    const isStaffRole = formData.role === '대행사 어드민' || formData.role === '직원';
+    const isStaffRole = formData.role === 'AGENCY_ADMIN' || formData.role === 'STAFF';
     
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
@@ -214,20 +214,20 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 소속/회사명
-                                {formData.role === '대행사 어드민' && (
+                                {formData.role === 'AGENCY_ADMIN' && (
                                     <span className="text-blue-600 text-xs ml-2">(새로운 대행사)</span>
                                 )}
                             </label>
                             
                             {/* 직원/대행사 관리자가 사용자 생성 시에는 본인 회사로 고정 */}
-                            {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && !user ? (
+                            {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && !user ? (
                                 <div className="w-full px-4 py-3 border border-gray-300 bg-gray-100 rounded-lg text-gray-700">
                                     {loggedInUser.company} (본인 소속)
                                     <input type="hidden" name="company" value={loggedInUser.company} />
                                 </div>
                             ) : /* 슈퍼 어드민이 직원/클라이언트 생성 시에만 드롭다운 표시 */
-                            loggedInUser?.role === '슈퍼 어드민' && !user && 
-                             (formData.role === '직원' || formData.role === '클라이언트') && 
+                            loggedInUser?.role === 'SUPER_ADMIN' && !user &&
+                             (formData.role === 'STAFF' || formData.role === 'CLIENT') && 
                              existingCompanies.length > 0 ? (
                                 <select
                                     value={formData.company}
@@ -250,7 +250,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                     onChange={handleChange} 
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                                     placeholder={
-                                        formData.role === '대행사 어드민' 
+                                        formData.role === 'AGENCY_ADMIN' 
                                             ? "새 대행사명을 입력하세요" 
                                             : "회사명 또는 부서명"
                                     }
@@ -261,13 +261,13 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 <p className="text-xs text-gray-500 mt-1">기존 대행사 목록 로딩 중...</p>
                             )}
                             
-                            {formData.role === '대행사 어드민' && (
+                            {formData.role === 'AGENCY_ADMIN' && (
                                 <p className="text-xs text-gray-500 mt-1">
                                     💡 대행사 어드민 계정은 새로운 대행사를 만듭니다. 회사명을 정확히 입력해주세요.
                                 </p>
                             )}
                             
-                            {(formData.role === '직원' || formData.role === '클라이언트') && existingCompanies.length > 0 && (
+                            {(formData.role === 'STAFF' || formData.role === 'CLIENT') && existingCompanies.length > 0 && (
                                 <p className="text-xs text-gray-500 mt-1">
                                     💡 기존 대행사에 소속시킬 직원/클라이언트입니다.
                                 </p>
@@ -305,18 +305,18 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         <label className="block text-sm font-medium text-gray-700 mb-3">역할 선택 *</label>
                         <div className="grid grid-cols-1 gap-3">
                             {[
-                                { value: '직원', label: '직원', desc: '업무 처리 및 클라이언트 지원', icon: '👨‍💼', color: 'green' },
-                                { value: '대행사 어드민', label: '대행사 어드민', desc: '팀 관리 및 전체 업무 감독', icon: '👨‍💼', color: 'blue' },
-                                { value: '클라이언트', label: '클라이언트', desc: '업무 의뢰 및 결과 확인', icon: '🤝', color: 'orange' },
-                                { value: '슈퍼 어드민', label: '슈퍼 어드민', desc: '시스템 전체 관리 권한', icon: '⚡', color: 'purple' }
+                                { value: 'STAFF', label: '직원', desc: '업무 처리 및 클라이언트 지원', icon: '👨‍💼', color: 'green' },
+                                { value: 'AGENCY_ADMIN', label: '대행사 어드민', desc: '팀 관리 및 전체 업무 감독', icon: '👨‍💼', color: 'blue' },
+                                { value: 'CLIENT', label: '클라이언트', desc: '업무 의뢰 및 결과 확인', icon: '🤝', color: 'orange' },
+                                { value: 'SUPER_ADMIN', label: '슈퍼 어드민', desc: '시스템 전체 관리 권한', icon: '⚡', color: 'purple' }
                             ].filter(role => {
                                 // 직원은 클라이언트만 생성 가능
-                                if (loggedInUser?.role === '직원') {
-                                    return role.value === '클라이언트';
+                                if (loggedInUser?.role === 'STAFF') {
+                                    return role.value === 'CLIENT';
                                 }
                                 // 대행사 어드민은 슈퍼 어드민 제외하고 생성 가능
-                                if (loggedInUser?.role === '대행사 어드민') {
-                                    return role.value !== '슈퍼 어드민';
+                                if (loggedInUser?.role === 'AGENCY_ADMIN') {
+                                    return role.value !== 'SUPER_ADMIN';
                                 }
                                 // 슈퍼 어드민은 모든 역할 생성 가능
                                 return true;
@@ -335,9 +335,9 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                         htmlFor={`role-${role.value}`}
                                         className={`block p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                             formData.role === role.value
-                                                ? role.value === '직원' ? 'border-green-500 bg-green-50' :
-                                                  role.value === '대행사 어드민' ? 'border-blue-500 bg-blue-50' :
-                                                  role.value === '클라이언트' ? 'border-orange-500 bg-orange-50' :
+                                                ? role.value === 'STAFF' ? 'border-green-500 bg-green-50' :
+                                                  role.value === 'AGENCY_ADMIN' ? 'border-blue-500 bg-blue-50' :
+                                                  role.value === 'CLIENT' ? 'border-orange-500 bg-orange-50' :
                                                   'border-purple-500 bg-purple-50'
                                                 : 'border-gray-200 hover:border-gray-300'
                                         }`}
@@ -367,7 +367,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         </div>
 
                         {/* 오른쪽: 클라이언트 실제 회사 정보 - 클라이언트 역할일 때만 표시 */}
-                        {formData.role === '클라이언트' ? (
+                        {formData.role === 'CLIENT' ? (
                             <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
                                 🏢 실제 거래 회사 정보

@@ -45,7 +45,7 @@ const AdvancedFilter = React.memo(({ onFilterChange, users = [] }) => {
 
   const managerOptions = [
     { value: 'all', label: '전체 담당자' },
-    ...users.filter(u => u.role !== '클라이언트').map(u => ({
+    ...users.filter(u => u.role !== 'CLIENT').map(u => ({
       value: u.id.toString(),
       label: u.name
     }))

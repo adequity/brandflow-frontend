@@ -111,7 +111,7 @@ export default function AdminUI({ user, onLogout }) {
                   console.log('AdminUI: 실제 사용자 데이터 로드 성공:', realUsers.length, '개');
                 } catch (usersError) {
                   console.warn('사용자 데이터 로드 실패:', usersError);
-                  setUsers([{id: 1, name: '시스템 관리자', role: '슈퍼 어드민'}]);
+                  setUsers([{id: 1, name: '시스템 관리자', role: 'SUPER_ADMIN'}]);
                 }
                 
                 setIsLoading(false);

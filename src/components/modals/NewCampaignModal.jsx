@@ -39,16 +39,16 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 const { data } = await apiEndpoints.users.list({
                     params: {
                         viewerId: currentUser?.id || 1,
-                        viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
-                                   currentUser?.role === '대행사 어드민' ? 'agency_admin' :
-                                   currentUser?.role === '직원' ? 'staff' : 'client'
+                        viewerRole: currentUser?.role === 'SUPER_ADMIN' ? 'super_admin' :
+                                   currentUser?.role === 'AGENCY_ADMIN' ? 'agency_admin' :
+                                   currentUser?.role === 'STAFF' ? 'staff' : 'client'
                     }
                 });
                 setAllUsers(Array.isArray(data) ? data : (data?.results || []));
                 console.log('Latest users loaded:', data);
                 
                 // 직원 계정인 경우 사용자 목록 로드 후 기본값 재설정
-                if (currentUser.role === '직원') {
+                if (currentUser.role === 'STAFF') {
                     setUserId(currentUser.id);
                 }
             } catch (error) {
@@ -56,7 +56,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 setAllUsers(users || []);
                 
                 // 실패해도 직원 계정인 경우 본인 ID 설정
-                if (currentUser.role === '직원') {
+                if (currentUser.role === 'STAFF') {
                     setUserId(currentUser.id);
                 }
             }
@@ -79,7 +79,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
         
         // 직원 또는 대행사 어드민 역할만 선택 가능 (한글 role도 지원)
         if (mappedRole !== ROLES.EMPLOYEE && mappedRole !== ROLES.AGENCY_ADMIN && 
-            u.role !== '직원' && u.role !== '대행사 어드민') return false;
+            u.role !== 'STAFF' && u.role !== 'AGENCY_ADMIN') return false;
         
         // 권한 체크를 위해 매핑된 role로 객체 생성
         const userWithMappedRole = { 
@@ -102,9 +102,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     
     // UserId 기본값 설정을 위한 useEffect
     useEffect(() => {
-        if (currentUser.role === '직원') {
+        if (currentUser.role === 'STAFF') {
             setUserId(currentUser.id);
-        } else if (currentUser.role === '대행사 어드민' && staffUsers.length > 0 && !UserId) {
+        } else if (currentUser.role === 'AGENCY_ADMIN' && staffUsers.length > 0 && !UserId) {
             // 대행사 어드민은 초기에만 첫 번째 직원을 기본값으로 설정 (그 후 사용자가 자유롭게 변경 가능)
             setUserId(staffUsers[0]?.id || '');
         }
@@ -132,9 +132,9 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 const response = await apiEndpoints.users.list({
                     params: {
                         viewerId: currentUser?.id || 1,
-                        viewerRole: currentUser?.role === '슈퍼 어드민' ? 'super_admin' :
-                                   currentUser?.role === '대행사 어드민' ? 'agency_admin' :
-                                   currentUser?.role === '직원' ? 'staff' : 'client'
+                        viewerRole: currentUser?.role === 'SUPER_ADMIN' ? 'super_admin' :
+                                   currentUser?.role === 'AGENCY_ADMIN' ? 'agency_admin' :
+                                   currentUser?.role === 'STAFF' ? 'staff' : 'client'
                     },
                     signal: abortController.signal
                 });
@@ -155,7 +155,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 console.log('👥 전체 사용자 데이터:', allUsers, '개수:', allUsers.length);
                 
                 const clientsOnly = allUsers.filter(user => {
-                    const isClient = user.role === 'client' || user.role === '클라이언트' || 
+                    const isClient = user.role === 'CLIENT' || user.role === 'client' || 
                                     ROLE_MAPPING[user.role] === 'client';
                     console.log('🔍 사용자 role 체크:', {
                         name: user.name,
@@ -194,7 +194,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                             },
                             canSelect: canSelect,
                             isSameCompanyDirect: currentUser?.company && client.company && currentUser.company === client.company,
-                            roleMatch: client.role === 'client' || client.role === '클라이언트',
+                            roleMatch: client.role === 'CLIENT' || client.role === 'client',
                             mappedRole: ROLE_MAPPING[client.role] || client.role
                         });
                         
@@ -394,7 +394,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
 
                     <div>
                         <label htmlFor="User" className="block text-sm font-medium text-gray-700">직원</label>
-                        {currentUser.role === '직원' ? (
+                        {currentUser.role === 'STAFF' ? (
                             // 직원 계정인 경우 본인만 표시하고 비활성화
                             <div className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md text-gray-700">
                                 {currentUser.name || currentUser.first_name || 'Unknown'} ({currentUser.company}) - 본인
@@ -416,10 +416,10 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                                 ))}
                             </select>
                         )}
-                        {currentUser.role === '직원' && (
+                        {currentUser.role === 'STAFF' && (
                             <p className="mt-1 text-xs text-blue-600">💡 직원 계정은 본인의 캠페인만 생성할 수 있습니다.</p>
                         )}
-                        {currentUser.role === '대행사 어드민' && (
+                        {currentUser.role === 'AGENCY_ADMIN' && (
                             <p className="mt-1 text-xs text-green-600">💡 대행사 어드민은 하부 직원들에게 캠페인을 배정할 수 있습니다.</p>
                         )}
                     </div>
