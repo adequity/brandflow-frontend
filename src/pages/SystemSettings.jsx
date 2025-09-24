@@ -67,7 +67,7 @@ const SystemSettings = ({ loggedInUser }) => {
   };
 
   const initializeSettings = async () => {
-    if (loggedInUser?.role !== '슈퍼 어드민') {
+    if (loggedInUser?.role !== 'SUPER_ADMIN') {
       showError('초기화는 슈퍼 어드민만 가능합니다.');
       return;
     }
@@ -218,7 +218,7 @@ const SystemSettings = ({ loggedInUser }) => {
     return iconMap[category] || <Settings size={16} />;
   };
 
-  const canManageSettings = ['슈퍼 어드민', '대행사 어드민'].includes(loggedInUser?.role);
+  const canManageSettings = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
 
   if (!canManageSettings) {
     return (
@@ -245,7 +245,7 @@ const SystemSettings = ({ loggedInUser }) => {
         </div>
         
         <div className="flex gap-3">
-          {loggedInUser?.role === '슈퍼 어드민' && (
+          {loggedInUser?.role === 'SUPER_ADMIN' && (
             <button
               onClick={confirmInitialize}
               className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 flex items-center gap-2"
@@ -373,7 +373,7 @@ const SystemSettings = ({ loggedInUser }) => {
       {settings.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           {selectedCategory === 'all' ? '등록된 시스템 설정이 없습니다.' : `${categories.find(c => c.id === selectedCategory)?.label} 카테고리에 설정이 없습니다.`}
-          {loggedInUser?.role === '슈퍼 어드민' && (
+          {loggedInUser?.role === 'SUPER_ADMIN' && (
             <div className="mt-4">
               <button
                 onClick={confirmInitialize}
