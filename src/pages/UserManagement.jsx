@@ -528,13 +528,13 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                   </td>
                   <td className="px-6 py-4">
                     {(() => {
-                      // 슈퍼 어드민은 모든 계정 관리 가능
+                      // SUPER_ADMIN은 모든 계정 관리 가능
                       if (loggedInUser?.role === 'SUPER_ADMIN') return true;
 
-                      // 대행사 어드민은 슈퍼 어드민 제외하고 관리 가능
+                      // AGENCY_ADMIN은 SUPER_ADMIN 제외하고 관리 가능
                       if (loggedInUser?.role === 'AGENCY_ADMIN' && user.role !== 'SUPER_ADMIN') return true;
 
-                      // 직원은 클라이언트만 관리 가능
+                      // STAFF은 CLIENT만 관리 가능
                       if (loggedInUser?.role === 'STAFF' && user.role === 'CLIENT') return true;
                       
                       // 그 외에는 관리 불가

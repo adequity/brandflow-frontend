@@ -1,4 +1,4 @@
-// src/pages/OrderManagement.jsx - 대행사 어드민용 발주 관리 시스템
+// src/pages/OrderManagement.jsx - AGENCY_ADMIN용 발주 관리 시스템
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Eye, Clock, FileText, DollarSign, User, Calendar, Package } from 'lucide-react';
 import api from '../api/client';

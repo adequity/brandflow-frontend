@@ -408,13 +408,13 @@ const Calendar = ({ user, viewMode = 'month' }) => {
         const uniqueAssignees = [...new Set(tasks.map(task => task.assignee).filter(Boolean))];
         const uniqueAgencies = [...new Set(tasks.map(task => task.agency).filter(Boolean))];
 
-        if (user.role === '슈퍼 관리자') {
+        if (user.role === 'SUPER_ADMIN') {
             return {
                 ...baseOptions,
                 agencies: uniqueAgencies,
                 assignees: uniqueAssignees
             };
-        } else if (user.role === '대행사 어드민') {
+        } else if (user.role === 'AGENCY_ADMIN') {
             return {
                 ...baseOptions,
                 assignees: uniqueAssignees.filter(assignee => 

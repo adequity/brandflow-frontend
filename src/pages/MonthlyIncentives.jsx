@@ -28,7 +28,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
     year: new Date().getFullYear(),
     month: new Date().getMonth() + 1,
     status: '',
-    userId: loggedInUser?.role === '직원' ? loggedInUser.id : ''
+    userId: loggedInUser?.role === 'STAFF' ? loggedInUser.id : ''
   });
   const [stats, setStats] = useState({
     totalEmployees: 0,
@@ -49,15 +49,15 @@ const MonthlyIncentives = ({ loggedInUser }) => {
       
       // 인센티브 대상 직원 필터링
       const eligibleUsers = (usersData || []).filter(user => {
-        if (loggedInUser.role === '직원') {
+        if (loggedInUser.role === 'STAFF') {
           return user.id === loggedInUser.id; // 직원은 본인만
         }
-        if (loggedInUser.role === '대행사 어드민') {
+        if (loggedInUser.role === 'AGENCY_ADMIN') {
           // 대행사 어드민은 자신 소속의 직원들만 (본인 제외)
-          return user.role === '직원' && user.incentiveRate > 0 && user.company === loggedInUser.company;
+          return user.role === 'STAFF' && user.incentiveRate > 0 && user.company === loggedInUser.company;
         }
         // 슈퍼 어드민은 모든 직원과 대행사 어드민
-        return (user.role === '직원' || user.role === '대행사 어드민') && user.incentiveRate > 0;
+        return (user.role === 'STAFF' || user.role === 'AGENCY_ADMIN') && user.incentiveRate > 0;
       });
       
       // 각 사용자의 캠페인 데이터를 기반으로 인센티브 계산
@@ -199,15 +199,15 @@ const MonthlyIncentives = ({ loggedInUser }) => {
       
       // 권한별 사용자 필터링
       const staffUsers = (data || []).filter(user => {
-        if (loggedInUser.role === '직원') {
+        if (loggedInUser.role === 'STAFF') {
           return user.id === loggedInUser.id; // 직원은 본인만
         }
-        if (loggedInUser.role === '대행사 어드민') {
+        if (loggedInUser.role === 'AGENCY_ADMIN') {
           // 대행사 어드민은 자신 소속의 직원들만 (본인 제외)
-          return user.role === '직원' && user.company === loggedInUser.company;
+          return user.role === 'STAFF' && user.company === loggedInUser.company;
         }
         // 슈퍼 어드민은 모든 직원과 대행사 어드민
-        return user.role === '직원' || user.role === '대행사 어드민';
+        return user.role === 'STAFF' || user.role === 'AGENCY_ADMIN';
       });
       setUsers(staffUsers);
     } catch (error) {
@@ -312,7 +312,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
     );
   };
 
-  const canManageIncentives = ['슈퍼 어드민', '대행사 어드민'].includes(loggedInUser?.role);
+  const canManageIncentives = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
 
   if (isLoading) {
     return <div className="p-8 text-center">인센티브 목록을 불러오는 중...</div>;
@@ -429,7 +429,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">직원</label>
-            {loggedInUser?.role === '직원' ? (
+            {loggedInUser?.role === 'STAFF' ? (
               <div className="w-full border border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-gray-700">
                 {loggedInUser.name} (본인)
               </div>

@@ -209,7 +209,7 @@ const ProductManagement = ({ loggedInUser }) => {
     return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">비활성</span>;
   };
 
-  const canManageProducts = ['슈퍼 어드민', '대행사 어드민'].includes(loggedInUser?.role);
+  const canManageProducts = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
 
   if (isLoading) {
     return <div className="p-8 text-center">상품 목록을 불러오는 중...</div>;
@@ -360,7 +360,7 @@ const ProductManagement = ({ loggedInUser }) => {
                         >
                           <Edit size={16} />
                         </button>
-                        {loggedInUser?.role === '슈퍼 어드민' && (
+                        {loggedInUser?.role === 'SUPER_ADMIN' && (
                           <button
                             onClick={() => confirmDeleteProduct(product)}
                             className="text-red-600 hover:text-red-900"

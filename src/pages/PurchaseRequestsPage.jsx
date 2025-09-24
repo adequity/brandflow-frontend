@@ -273,17 +273,17 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   };
 
   const canEditRequest = (request) => {
-    if (loggedInUser?.role === '슈퍼 어드민') return true;
-    if (loggedInUser?.role === '대행사 어드민') return true;
-    if (loggedInUser?.role === '직원' && request.requesterId === loggedInUser.id && request.status === '승인 대기') return true;
+    if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+    if (loggedInUser?.role === 'AGENCY_ADMIN') return true;
+    if (loggedInUser?.role === 'STAFF' && request.requesterId === loggedInUser.id && request.status === '승인 대기') return true;
     return false;
   };
 
   const canDeleteRequest = (request) => {
     // 직원은 삭제 불가 (본사가 취소하는 형태로 로그를 남겨야 함)
-    if (loggedInUser?.role === '직원') return false;
-    if (loggedInUser?.role === '슈퍼 어드민') return true;
-    if (loggedInUser?.role === '대행사 어드민') return true;
+    if (loggedInUser?.role === 'STAFF') return false;
+    if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+    if (loggedInUser?.role === 'AGENCY_ADMIN') return true;
     return false;
   };
 
@@ -302,7 +302,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
             💡 <strong>Tip:</strong> 승인된 요청은 거래명세서/견적서를 PDF+JPG로 생성하여 카카오톡으로 드래그 전송할 수 있습니다!
           </div>
         </div>
-        {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && (
+        {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && (
           <button
             onClick={handleCreateRequest}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -412,7 +412,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
           <div className="text-center py-12">
             <div className="text-4xl mb-4">💰</div>
             <p className="text-gray-500 mb-4">등록된 구매요청이 없습니다.</p>
-            {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && (
+            {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && (
               <button
                 onClick={handleCreateRequest}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -524,7 +524,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       {/* 대행사 어드민 전용 승인/완료 버튼 */}
-                      {loggedInUser?.role === '대행사 어드민' && (
+                      {loggedInUser?.role === 'AGENCY_ADMIN' && (
                         <>
                           {request.status === '승인 대기' && (
                             <button

@@ -126,7 +126,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
   };
 
   // 권한 체크
-  const canManage = loggedInUser?.role === '슈퍼 어드민' || loggedInUser?.role === '대행사 어드민';
+  const canManage = loggedInUser?.role === 'SUPER_ADMIN' || loggedInUser?.role === 'AGENCY_ADMIN';
 
   if (!canManage) {
     return (

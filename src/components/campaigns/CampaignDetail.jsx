@@ -498,7 +498,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                     <td className="p-2 bg-blue-50">
                       <div className="flex flex-col items-center space-y-1">
                         {renderPurchaseStatusBadge(post.id)}
-                        {(loggedInUser?.role === '직원' || loggedInUser?.role === '대행사 어드민') && (
+                        {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && (
                           <button
                             onClick={() => handlePurchaseRequest(post.id)}
                             className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"

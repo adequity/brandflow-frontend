@@ -9,7 +9,7 @@ const SalesRegistrationEnhanced = ({ loggedInUser }) => {
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
-  const [employees, setEmployees] = useState([]); // 대행사 어드민용 직원 목록
+  const [employees, setEmployees] = useState([]); // AGENCY_ADMIN용 STAFF 목록
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -24,25 +24,25 @@ const SalesRegistrationEnhanced = ({ loggedInUser }) => {
   });
 
   // 권한 확인
-  const canRegisterSales = ['직원', '대행사 어드민'].includes(loggedInUser?.role);
-  const canManageSales = ['슈퍼 어드민', '대행사 어드민'].includes(loggedInUser?.role);
-  const canRegisterForOthers = loggedInUser?.role === '대행사 어드민'; // 대행사 어드민만 다른 직원 대신 등록 가능
+  const canRegisterSales = ['STAFF', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
+  const canManageSales = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
+  const canRegisterForOthers = loggedInUser?.role === 'AGENCY_ADMIN'; // AGENCY_ADMIN만 다른 STAFF 대신 등록 가능
 
-  // 직원 목록 조회 (대행사 어드민용)
+  // STAFF 목록 조회 (AGENCY_ADMIN용)
   const fetchEmployees = async () => {
-    if (loggedInUser?.role !== '대행사 어드민') return;
+    if (loggedInUser?.role !== 'AGENCY_ADMIN') return;
     
     try {
       const { data } = await api.get('/api/users', {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role,
-          role: '직원' // 직원만 조회
+          role: 'STAFF' // STAFF만 조회
         }
       });
       setEmployees(data.filter(user => user.company === loggedInUser.company));
     } catch (error) {
-      console.error('직원 목록 로딩 실패:', error);
+      console.error('STAFF 목록 로딩 실패:', error);
     }
   };
 
@@ -59,7 +59,7 @@ const SalesRegistrationEnhanced = ({ loggedInUser }) => {
       );
       if (!description) return;
 
-      // 발주요청 생성 - 대행사 어드민의 승인 대기 상태로 생성
+      // 발주요청 생성 - AGENCY_ADMIN의 승인 대기 상태로 생성
       const response = await api.post('/api/sales/create-order-request', {
         saleId: sale.id,
         title: `매출 연동 발주요청 - ${sale.saleNumber}`,
@@ -86,9 +86,9 @@ const SalesRegistrationEnhanced = ({ loggedInUser }) => {
     }
   };
 
-  // 대행사 어드민 ID 찾기
+  // AGENCY_ADMIN ID 찾기
   const getAgencyAdminId = (user) => {
-    // 현재 사용자가 직원인 경우, 같은 회사의 대행사 어드민 ID를 반환
+    // 현재 사용자가 STAFF인 경우, 같은 회사의 AGENCY_ADMIN ID를 반환
     // 백엔드에서 처리하거나 사전에 저장된 정보 사용
     return user.agencyAdminId || null;
   };
@@ -293,7 +293,7 @@ const EnhancedSaleModal = ({
       // 담당자 설정 로직
       assignedEmployeeId: canRegisterForOthers ? 
         formData.assignedEmployeeId : 
-        loggedInUser?.id, // 직원은 본인만 가능
+        loggedInUser?.id, // STAFF은 본인만 가능
       
       // 등록자 정보 (실제 등록한 사람)
       registeredBy: loggedInUser?.id,

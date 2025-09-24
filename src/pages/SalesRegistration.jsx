@@ -12,7 +12,7 @@ const SalesRegistration = ({ loggedInUser }) => {
   const [sales, setSales] = useState([]);
   const [products, setProducts] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
-  const [employees, setEmployees] = useState([]); // 대행사 어드민용 직원 목록
+  const [employees, setEmployees] = useState([]); // AGENCY_ADMIN용 STAFF 목록
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -181,16 +181,16 @@ const SalesRegistration = ({ loggedInUser }) => {
     }
   };
 
-  // 직원 목록 조회 (대행사 어드민용)
+  // STAFF 목록 조회 (AGENCY_ADMIN용)
   const fetchEmployees = async () => {
-    if (loggedInUser?.role !== '대행사 어드민') return;
+    if (loggedInUser?.role !== 'AGENCY_ADMIN') return;
     
     try {
-      // API에서 직원 데이터 로드 (현재는 빈 배열)
+      // API에서 STAFF 데이터 로드 (현재는 빈 배열)
       const employeesData = [];
       setEmployees(employeesData);
     } catch (error) {
-      console.error('직원 목록 로딩 실패:', error);
+      console.error('STAFF 목록 로딩 실패:', error);
     }
   };
 
@@ -414,15 +414,15 @@ const SalesRegistration = ({ loggedInUser }) => {
     );
   };
 
-  const canRegisterSales = ['직원', '대행사 어드민'].includes(loggedInUser?.role);
-  const canManageSales = ['슈퍼 어드민', '대행사 어드민'].includes(loggedInUser?.role);
-  const canRegisterForOthers = loggedInUser?.role === '대행사 어드민'; // 대행사 어드민만 다른 직원 대신 등록 가능
+  const canRegisterSales = ['STAFF', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
+  const canManageSales = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
+  const canRegisterForOthers = loggedInUser?.role === 'AGENCY_ADMIN'; // AGENCY_ADMIN만 다른 STAFF 대신 등록 가능
   
   // 인센티브 표시 여부 확인
   const shouldShowIncentive = () => {
-    if (loggedInUser?.role === '슈퍼 어드민') return true;
-    if (loggedInUser?.role === '대행사 어드민') return incentiveSettings.showIncentiveToAgencyAdmin;
-    if (loggedInUser?.role === '직원') return incentiveSettings.showIncentiveToStaff;
+    if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+    if (loggedInUser?.role === 'AGENCY_ADMIN') return incentiveSettings.showIncentiveToAgencyAdmin;
+    if (loggedInUser?.role === 'STAFF') return incentiveSettings.showIncentiveToStaff;
     return false;
   };
 

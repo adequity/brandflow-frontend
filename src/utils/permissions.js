@@ -1,17 +1,17 @@
 // src/utils/permissions.js
 export const ROLES = {
-  SUPER_ADMIN: '슈퍼 어드민',
-  AGENCY_ADMIN: '대행사 어드민', 
-  EMPLOYEE: '직원',
-  CLIENT: '클라이언트'
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  AGENCY_ADMIN: 'AGENCY_ADMIN',
+  EMPLOYEE: 'STAFF',
+  CLIENT: 'CLIENT'
 };
 
-// Django에서 오는 영문 role을 한글로 매핑
+// 백엔드 API에서 오는 영문 role과 프론트엔드 enum 매핑 (이미 영문이므로 직접 매핑)
 export const ROLE_MAPPING = {
-  'super_admin': ROLES.SUPER_ADMIN,
-  'agency_admin': ROLES.AGENCY_ADMIN,
-  'staff': ROLES.EMPLOYEE,
-  'client': ROLES.CLIENT
+  'SUPER_ADMIN': ROLES.SUPER_ADMIN,
+  'AGENCY_ADMIN': ROLES.AGENCY_ADMIN,
+  'STAFF': ROLES.EMPLOYEE,
+  'CLIENT': ROLES.CLIENT
 };
 
 export const PERMISSIONS = {
@@ -37,7 +37,7 @@ export const PERMISSIONS = {
   CREATE_POST: 'create_post',
   EDIT_POST: 'edit_post',
   DELETE_POST: 'delete_post',
-  APPROVE_POST: 'approve_post', // 클라이언트만 자신의 캠페인 업무 승인
+  APPROVE_POST: 'approve_post', // CLIENT만 자신의 캠페인 업무 승인
   VIEW_ALL_POSTS: 'view_all_posts',
   VIEW_COMPANY_POSTS: 'view_company_posts',
   VIEW_OWN_POSTS: 'view_own_posts',
@@ -46,12 +46,12 @@ export const PERMISSIONS = {
   CREATE_PURCHASE_REQUEST: 'create_purchase_request',
   EDIT_PURCHASE_REQUEST: 'edit_purchase_request',
   DELETE_PURCHASE_REQUEST: 'delete_purchase_request',
-  APPROVE_PURCHASE_REQUEST: 'approve_purchase_request', // 대행사 어드민만
+  APPROVE_PURCHASE_REQUEST: 'approve_purchase_request', // AGENCY_ADMIN만
   VIEW_ALL_PURCHASE_REQUESTS: 'view_all_purchase_requests',
   
   // 인센티브 관리
   CALCULATE_INCENTIVES: 'calculate_incentives',
-  APPROVE_INCENTIVES: 'approve_incentives', // 대행사 어드민만
+  APPROVE_INCENTIVES: 'approve_incentives', // AGENCY_ADMIN만
   VIEW_ALL_INCENTIVES: 'view_all_incentives',
   VIEW_OWN_INCENTIVES: 'view_own_incentives',
   
@@ -71,7 +71,7 @@ const ROLE_PERMISSIONS = {
   [ROLES.AGENCY_ADMIN]: [
     PERMISSIONS.CREATE_EMPLOYEE,
     PERMISSIONS.CREATE_CLIENT,
-    // CREATE_AGENCY_ADMIN 제거 - 슈퍼 어드민만 생성 가능
+    // CREATE_AGENCY_ADMIN 제거 - SUPER_ADMIN만 생성 가능
     PERMISSIONS.EDIT_USER,
     PERMISSIONS.DELETE_USER,
     PERMISSIONS.VIEW_COMPANY_USERS,
@@ -179,32 +179,32 @@ export const isSameCompany = (user1, user2) => {
 export const canManageUser = (manager, targetUser) => {
   if (!manager || !targetUser) return false;
   
-  // 슈퍼 어드민은 모든 사용자 관리 가능
+  // SUPER_ADMIN은 모든 사용자 관리 가능
   if (manager.role === ROLES.SUPER_ADMIN) return true;
   
   // 본인은 언제나 수정 가능
   if (manager.id === targetUser.id) return true;
   
-  // 대행사 어드민은 같은 회사의 직원/클라이언트만 관리 가능 (슈퍼 어드민 제외)
+  // AGENCY_ADMIN은 같은 회사의 STAFF/CLIENT만 관리 가능 (SUPER_ADMIN 제외)
   if (manager.role === ROLES.AGENCY_ADMIN) {
     return isSameCompany(manager, targetUser) && 
            targetUser.role !== ROLES.SUPER_ADMIN;
   }
   
-  // 직원은 다른 사용자 관리 불가
+  // STAFF는 다른 사용자 관리 불가
   return false;
 };
 
 /**
- * 사용자가 클라이언트를 선택할 수 있는지 확인 (캠페인 생성 시)
+ * 사용자가 CLIENT를 선택할 수 있는지 확인 (캠페인 생성 시)
  */
 export const canSelectClient = (user, client) => {
   if (!user || !client) return false;
   
-  // 슈퍼 어드민은 모든 클라이언트 선택 가능
+  // SUPER_ADMIN은 모든 CLIENT 선택 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민과 직원은 같은 회사 클라이언트만 선택 가능
+  // AGENCY_ADMIN과 STAFF는 같은 회사 CLIENT만 선택 가능
   if (user.role === ROLES.AGENCY_ADMIN || user.role === ROLES.EMPLOYEE) {
     return isSameCompany(user, client) && client.role === ROLES.CLIENT;
   }
@@ -213,21 +213,21 @@ export const canSelectClient = (user, client) => {
 };
 
 /**
- * 사용자가 직원을 선택할 수 있는지 확인 (캠페인 담당자 지정 시)
+ * 사용자가 STAFF를 선택할 수 있는지 확인 (캠페인 담당자 지정 시)
  */
 export const canSelectEmployee = (user, employee) => {
   if (!user || !employee) return false;
   
-  // 슈퍼 어드민은 모든 직원 선택 가능
+  // SUPER_ADMIN은 모든 STAFF 선택 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민은 같은 회사 직원만 선택 가능
+  // AGENCY_ADMIN은 같은 회사 STAFF만 선택 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
     return isSameCompany(user, employee) && 
            (employee.role === ROLES.EMPLOYEE || employee.role === ROLES.AGENCY_ADMIN);
   }
   
-  // 직원은 본인만 선택 가능
+  // STAFF는 본인만 선택 가능
   if (user.role === ROLES.EMPLOYEE) {
     return user.id === employee.id;
   }
@@ -241,15 +241,15 @@ export const canSelectEmployee = (user, employee) => {
 export const canCreateRole = (creator, targetRole) => {
   if (!creator || !targetRole) return false;
   
-  // 슈퍼 어드민은 모든 역할 생성 가능
+  // SUPER_ADMIN은 모든 역할 생성 가능
   if (creator.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민은 직원, 클라이언트만 생성 가능 (대행사 어드민 생성 불가)
+  // AGENCY_ADMIN은 STAFF, CLIENT만 생성 가능 (AGENCY_ADMIN 생성 불가)
   if (creator.role === ROLES.AGENCY_ADMIN) {
     return [ROLES.EMPLOYEE, ROLES.CLIENT].includes(targetRole);
   }
   
-  // 직원은 클라이언트만 생성 가능
+  // STAFF는 CLIENT만 생성 가능
   if (creator.role === ROLES.EMPLOYEE) {
     return targetRole === ROLES.CLIENT;
   }
@@ -265,7 +265,7 @@ export const canDelete = (user, resourceType, resource = null) => {
   
   switch (resourceType) {
     case 'purchase_request':
-      // 직원은 구매요청 삭제 불가
+      // STAFF는 구매요청 삭제 불가
       if (user.role === ROLES.EMPLOYEE) return false;
       return hasPermission(user, PERMISSIONS.DELETE_PURCHASE_REQUEST);
       
@@ -297,12 +297,12 @@ export const getCurrentUser = () => {
 };
 
 /**
- * 업무(Post) 승인 권한 확인 - 클라이언트만 자신의 캠페인 업무 승인 가능
+ * 업무(Post) 승인 권한 확인 - CLIENT만 자신의 캠페인 업무 승인 가능
  */
 export const canApprovePost = (user, post) => {
   if (!user || !post || !post.Campaign) return false;
   
-  // 클라이언트만 자신의 캠페인 업무를 승인할 수 있음
+  // CLIENT만 자신의 캠페인 업무를 승인할 수 있음
   if (user.role === ROLES.CLIENT) {
     return post.Campaign.userId === user.id;
   }
@@ -311,15 +311,15 @@ export const canApprovePost = (user, post) => {
 };
 
 /**
- * 발주요청 승인 권한 확인 - 대행사 어드민만 같은 회사 요청 승인 가능
+ * 발주요청 승인 권한 확인 - AGENCY_ADMIN만 같은 회사 요청 승인 가능
  */
 export const canApprovePurchaseRequest = (user, purchaseRequest) => {
   if (!user || !purchaseRequest) return false;
   
-  // 슈퍼 어드민은 모든 요청 승인 가능
+  // SUPER_ADMIN은 모든 요청 승인 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민은 같은 회사의 요청만 승인 가능
+  // AGENCY_ADMIN은 같은 회사의 요청만 승인 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
     if (!user.company) return false;
     return purchaseRequest.requester?.company === user.company;
@@ -329,15 +329,15 @@ export const canApprovePurchaseRequest = (user, purchaseRequest) => {
 };
 
 /**
- * 인센티브 승인 권한 확인 - 대행사 어드민만 같은 회사 직원 인센티브 승인 가능
+ * 인센티브 승인 권한 확인 - AGENCY_ADMIN만 같은 회사 STAFF 인센티브 승인 가능
  */
 export const canApproveIncentive = (user, incentive) => {
   if (!user || !incentive) return false;
   
-  // 슈퍼 어드민은 모든 인센티브 승인 가능
+  // SUPER_ADMIN은 모든 인센티브 승인 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민은 같은 회사 직원의 인센티브만 승인 가능
+  // AGENCY_ADMIN은 같은 회사 STAFF의 인센티브만 승인 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
     if (!user.company) return false;
     return incentive.employee?.company === user.company;
@@ -352,10 +352,10 @@ export const canApproveIncentive = (user, incentive) => {
 export const canAccessCampaign = (user, campaign) => {
   if (!user || !campaign) return false;
   
-  // 슈퍼 어드민은 모든 캠페인 접근 가능
+  // SUPER_ADMIN은 모든 캠페인 접근 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민은 같은 회사 캠페인 접근 가능
+  // AGENCY_ADMIN은 같은 회사 캠페인 접근 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
     if (!user.company) return false;
     return campaign.User?.company === user.company || 
@@ -363,12 +363,12 @@ export const canAccessCampaign = (user, campaign) => {
            campaign.managerId === user.id;
   }
   
-  // 직원은 본인이 담당자인 캠페인만 접근 가능
+  // STAFF는 본인이 담당자인 캠페인만 접근 가능
   if (user.role === ROLES.EMPLOYEE) {
     return campaign.managerId === user.id;
   }
   
-  // 클라이언트는 자신의 캠페인만 접근 가능
+  // CLIENT는 자신의 캠페인만 접근 가능
   if (user.role === ROLES.CLIENT) {
     return campaign.userId === user.id;
   }
@@ -382,10 +382,10 @@ export const canAccessCampaign = (user, campaign) => {
 export const canEditCampaign = (user, campaign) => {
   if (!user || !campaign) return false;
   
-  // 슈퍼 어드민: 모든 캠페인 수정 가능
+  // SUPER_ADMIN: 모든 캠페인 수정 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // 대행사 어드민: 자신이 관리하는 캠페인 수정 가능
+  // AGENCY_ADMIN: 자신이 관리하는 캠페인 수정 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
     if (!user.company) return false;
     // 같은 회사의 캠페인이거나, 본인이 매니저인 캠페인
@@ -395,12 +395,12 @@ export const canEditCampaign = (user, campaign) => {
            campaign.creator_id === user.id;
   }
   
-  // 직원: 배정받은 캠페인 수정 가능 (담당자이거나 생성자인 경우)
+  // STAFF: 배정받은 캠페인 수정 가능 (담당자이거나 생성자인 경우)
   if (user.role === ROLES.EMPLOYEE) {
     return campaign.managerId === user.id || campaign.creator_id === user.id;
   }
   
-  // 클라이언트: 자신의 회사 캠페인 수정 가능
+  // CLIENT: 자신의 회사 캠페인 수정 가능
   if (user.role === ROLES.CLIENT) {
     return campaign.userId === user.id || 
            (campaign.Client?.company === user.company);

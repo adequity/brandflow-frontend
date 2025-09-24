@@ -271,7 +271,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   );
 
   // 클라이언트는 신규 캠페인 생성 버튼 숨김(정책에 맞게 조정 가능)
-  const canCreate = currentUser?.role && currentUser.role !== '클라이언트';
+  const canCreate = currentUser?.role && currentUser.role !== 'CLIENT';
 
   return (
     <div className="p-6">
@@ -311,7 +311,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               <th className="px-6 py-3">종료일</th>
               <th className="px-6 py-3">최근 업데이트</th>
               <th className="px-6 py-3">카톡 관리</th>
-              {(currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민' || currentUser?.role === '직원') && (
+              {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'STAFF') && (
                 <th className="px-6 py-3">관리</th>
               )}
             </tr>
