@@ -122,14 +122,22 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
     console.log('Selected Post IDs:', selectedPostIds);
     console.log('Products:', products);
 
-    // 수신자 정보 디버깅
+    // 수신자 정보 디버깅 - 상세 확인
     console.log('🏢 수신자 정보 디버깅:');
+    console.log('  campaign.client_user 전체:', campaign.client_user);
     console.log('  client_company_name:', campaign.client_user?.client_company_name);
     console.log('  client_business_number:', campaign.client_user?.client_business_number);
     console.log('  client_ceo_name:', campaign.client_user?.client_ceo_name);
     console.log('  client_company_address:', campaign.client_user?.client_company_address);
     console.log('  client_business_type:', campaign.client_user?.client_business_type);
     console.log('  client_business_item:', campaign.client_user?.client_business_item);
+    console.log('  name (fallback):', campaign.client_user?.name);
+    console.log('  clientName:', campaign.clientName);
+    console.log('  client_company:', campaign.client_company);
+
+    // 최종 선택된 수신자명 미리 확인
+    const recipientName = campaign.client_user?.client_company_name || campaign.client_user?.name || campaign.clientName || campaign.client_company || '고객사';
+    console.log('  → 최종 선택된 수신자명:', recipientName);
 
     // 포스트의 productId나 productName으로 상품의 원가 찾기 함수
     const getProductCost = (post) => {
