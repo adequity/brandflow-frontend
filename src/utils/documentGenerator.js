@@ -7,7 +7,9 @@ import api from '../api/client';
 // 회사 정보 가져오기
 export const fetchCompanyInfo = async () => {
     try {
+        console.log('🏢 공급자 정보 API 호출 시작...');
         const response = await api.get('/api/admin/system-settings/?category=branding');
+        console.log('🏢 API 응답:', response.data);
         const settings = response.data.settings || [];
 
         const companyData = {};
@@ -16,19 +18,32 @@ export const fetchCompanyInfo = async () => {
             companyData[key] = setting.current_value || setting.default_value;
         });
 
+        console.log('🏢 처리된 공급자 정보:', companyData);
+
+        // 공급자 정보가 비어있으면 기본값 사용
+        if (Object.keys(companyData).length === 0) {
+            console.log('⚠️ 공급자 정보가 비어있어 기본값 사용');
+            return getDefaultCompanyInfo();
+        }
+
         return companyData;
     } catch (error) {
-        console.error('회사 정보 로딩 실패:', error);
-        // 기본값 반환
-        return {
-            businessNumber: "119-86-25255",
-            name: "성현시스템 주식회사",
-            ceo: "임선준",
-            address: "서울시 금천구 가산디지털2로 108, 뉴티캐슬 1101호, 1102호",
-            businessType: "제조, 도소매외",
-            businessItem: "전자제품,정보통신공사외"
-        };
+        console.error('❌ 회사 정보 로딩 실패:', error);
+        console.log('🏢 기본값 반환');
+        return getDefaultCompanyInfo();
     }
+};
+
+// 기본 공급자 정보
+const getDefaultCompanyInfo = () => {
+    return {
+        businessNumber: "119-86-25255",
+        name: "성현시스템 주식회사",
+        ceo: "임선준",
+        address: "서울시 금천구 가산디지털2로 108, 뉴티캐슬 1101호, 1102호",
+        businessType: "제조, 도소매외",
+        businessItem: "전자제품,정보통신공사외"
+    };
 };
 
 // 문서 번호 생성
@@ -256,6 +271,12 @@ const getBasePriceByWorkType = (workType) => {
 
 // 문서 HTML 생성
 export const generateDocumentHTML = (documentData, companyInfo, template = {}) => {
+    console.log('📄 HTML 생성 시 공급자 정보:', companyInfo);
+
+    // 공급자 정보가 없거나 비어있으면 기본값 사용
+    const safeCompanyInfo = companyInfo && Object.keys(companyInfo).length > 0
+        ? companyInfo
+        : getDefaultCompanyInfo();
     const styles = {
         primaryColor: template.styles?.primaryColor || '#000000',
         headerFontSize: template.styles?.headerFontSize || '24px',
@@ -411,12 +432,12 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
         </div>
         <div class="party-section">
             <h3>공급자</h3>
-            <div>사업자번호: ${companyInfo.businessNumber}</div>
-            <div>상호: ${companyInfo.name}</div>
-            <div>대표자: ${companyInfo.ceo}</div>
-            <div>소재지: ${companyInfo.address}</div>
-            <div>업태: ${companyInfo.businessType}</div>
-            <div>종목: ${companyInfo.businessItem}</div>
+            <div>사업자번호: ${safeCompanyInfo.businessNumber}</div>
+            <div>상호: ${safeCompanyInfo.name}</div>
+            <div>대표자: ${safeCompanyInfo.ceo}</div>
+            <div>소재지: ${safeCompanyInfo.address}</div>
+            <div>업태: ${safeCompanyInfo.businessType}</div>
+            <div>종목: ${safeCompanyInfo.businessItem}</div>
         </div>
     </div>
 
