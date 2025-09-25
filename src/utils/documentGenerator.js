@@ -122,6 +122,15 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
     console.log('Selected Post IDs:', selectedPostIds);
     console.log('Products:', products);
 
+    // 수신자 정보 디버깅
+    console.log('🏢 수신자 정보 디버깅:');
+    console.log('  client_company_name:', campaign.client_user?.client_company_name);
+    console.log('  client_business_number:', campaign.client_user?.client_business_number);
+    console.log('  client_ceo_name:', campaign.client_user?.client_ceo_name);
+    console.log('  client_company_address:', campaign.client_user?.client_company_address);
+    console.log('  client_business_type:', campaign.client_user?.client_business_type);
+    console.log('  client_business_item:', campaign.client_user?.client_business_item);
+
     // 포스트의 productId나 productName으로 상품의 원가 찾기 함수
     const getProductCost = (post) => {
         console.log(`🔍 문서생성용 원가 찾기 - 포스트 ID: ${post.id}, 제목: ${post.title}`);
