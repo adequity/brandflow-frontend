@@ -102,6 +102,7 @@ export const numberToKorean = (num) => {
 export const transformCampaignToDocument = (campaign, posts, selectedPostIds = null, type = 'transaction', products = []) => {
     console.log('🔍 Document Generation Debug:');
     console.log('Campaign:', campaign);
+    console.log('Campaign client_user:', campaign.client_user);
     console.log('Posts:', posts);
     console.log('Selected Post IDs:', selectedPostIds);
     console.log('Products:', products);
@@ -219,7 +220,7 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
             issueDate: new Date().toLocaleDateString('ko-KR')
         },
         recipient: {
-            name: campaign.client_user?.client_company_name || campaign.client_user?.name || campaign.clientName || '고객사',
+            name: campaign.client_user?.client_company_name || campaign.client_user?.name || campaign.clientName || campaign.client_company || '고객사',
             businessNumber: campaign.client_user?.client_business_number || campaign.client_user?.business_number || campaign.clientBusinessNumber || '',
             contact: campaign.client_user?.contact || '',
             ceoName: campaign.client_user?.client_ceo_name || '',
