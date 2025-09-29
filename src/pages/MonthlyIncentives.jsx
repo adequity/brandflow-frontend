@@ -536,7 +536,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {(() => {
-                      const rate = incentive.user?.incentive_rate || 0;
+                      const rate = incentive.user?.incentiveRate || 0;
                       console.log(`🎯 테이블 표시 인센티브율 - 사용자 ${incentive.user?.name}: ${rate}%`);
                       return `${rate}%`;
                     })()}
