@@ -159,6 +159,14 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         staff_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
+      console.log('[CAMPAIGN-EDIT-MODAL] 전송할 데이터:', {
+        campaign_id: campaign.id,
+        formData_UserId: formData.UserId,
+        formData_UserId_type: typeof formData.UserId,
+        calculated_staff_id: updateData.staff_id,
+        calculated_staff_id_type: typeof updateData.staff_id,
+        전체_updateData: updateData
+      });
 
       await api.put(`/api/campaigns/${campaign.id}`, updateData, {
         params: {
