@@ -85,7 +85,8 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             }
           });
           
-          const campaigns = campaignsResponse.data.results || campaignsResponse.data || [];
+          console.log('🔍 캠페인 API 응답 구조:', campaignsResponse.data);
+          const campaigns = campaignsResponse.data.data || campaignsResponse.data.results || campaignsResponse.data || [];
           
           // 완료된 캠페인들의 매출 계산
           const completedCampaigns = campaigns.filter(c => c.status === '완료' || c.status === '승인');
