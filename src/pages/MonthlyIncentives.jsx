@@ -53,11 +53,23 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           return user.id === loggedInUser.id; // 직원은 본인만
         }
         if (loggedInUser.role === 'AGENCY_ADMIN') {
+          // 디버깅 로그 추가
+          console.log('🔍 필터링 체크:', {
+            userName: user.name,
+            userRole: user.role,
+            userCompany: user.company,
+            userIncentiveRate: user.incentiveRate,
+            loggedInCompany: loggedInUser.company,
+            companyMatch: user.company === loggedInUser.company,
+            isStaff: user.role === 'STAFF',
+            incentiveRate: `${user.incentiveRate}%`
+          });
+
           // 대행사 어드민은 자신 소속의 직원들만 (본인 제외)
-          return user.role === 'STAFF' && user.incentiveRate > 0 && user.company === loggedInUser.company;
+          return user.role === 'STAFF' && user.company === loggedInUser.company;
         }
         // 슈퍼 어드민은 모든 직원과 대행사 어드민
-        return (user.role === 'STAFF' || user.role === 'AGENCY_ADMIN') && user.incentiveRate > 0;
+        return (user.role === 'STAFF' || user.role === 'AGENCY_ADMIN');
       });
       
       // 각 사용자의 캠페인 데이터를 기반으로 인센티브 계산
@@ -203,12 +215,24 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           return user.id === loggedInUser.id; // 직원은 본인만
         }
         if (loggedInUser.role === 'AGENCY_ADMIN') {
+          // 디버깅 로그 추가
+          console.log('👥 드롭다운용 사용자 필터링:', {
+            userName: user.name,
+            userRole: user.role,
+            userCompany: user.company,
+            loggedInCompany: loggedInUser.company,
+            companyMatch: user.company === loggedInUser.company,
+            isStaff: user.role === 'STAFF'
+          });
+
           // 대행사 어드민은 자신 소속의 직원들만 (본인 제외)
           return user.role === 'STAFF' && user.company === loggedInUser.company;
         }
         // 슈퍼 어드민은 모든 직원과 대행사 어드민
         return user.role === 'STAFF' || user.role === 'AGENCY_ADMIN';
       });
+
+      console.log('📋 필터링된 직원 목록:', staffUsers);
       setUsers(staffUsers);
     } catch (error) {
       console.error('사용자 목록 로딩 실패:', error);

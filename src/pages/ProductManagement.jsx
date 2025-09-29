@@ -172,10 +172,23 @@ const ProductManagement = ({ loggedInUser }) => {
 
   const handleUpdateProduct = async (productId, productData) => {
     try {
+      // 데이터 형식 변환 및 정리
+      const formattedData = {
+        name: productData.name || null,
+        description: productData.description || null,
+        sku: productData.sku || null,
+        category: productData.category || null,
+        costPrice: productData.costPrice ? parseFloat(productData.costPrice) : null,
+        sellingPrice: productData.sellingPrice ? parseFloat(productData.sellingPrice) : null,
+        unit: productData.unit || null,
+        minQuantity: productData.minQuantity ? parseInt(productData.minQuantity) : null,
+        maxQuantity: productData.maxQuantity ? parseInt(productData.maxQuantity) : null,
+        tags: productData.tags || null
+        // isActive는 PUT 요청에서 제외 (백엔드 스키마에 없음)
+      };
+
       // 실제 API 호출 (JWT 인증)
-      const response = await api.put(`/api/products/${productId}`, {
-        ...productData
-      });
+      const response = await api.put(`/api/products/${productId}`, formattedData);
       showSuccess('상품이 수정되었습니다!');
       fetchProducts();
       setEditModalOpen(false);
