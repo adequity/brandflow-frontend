@@ -38,8 +38,9 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             // 실제 캠페인 데이터에서 일정 생성 (JWT 기반)
             const response = await api.get('/api/campaigns/');
 
-            const campaigns = response.data.results || response.data || [];
-            console.log('캘린더용 캠페인 데이터:', campaigns);
+            const campaigns = response.data.data || response.data.results || response.data || [];
+            console.log('캘린더용 캠페인 데이터:', response.data);
+            console.log('추출된 캠페인 배열:', campaigns);
 
             // 캠페인 데이터를 기반으로 일정 생성
             const calendarTasks = [];
