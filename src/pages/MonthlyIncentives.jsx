@@ -87,15 +87,27 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           
           console.log('🔍 캠페인 API 응답 구조:', campaignsResponse.data);
           const campaigns = campaignsResponse.data.data || campaignsResponse.data.results || campaignsResponse.data || [];
-          
+
+          console.log(`💰 사용자 ${user.name}의 캠페인 분석:`, {
+            총_캠페인_수: campaigns.length,
+            캠페인_목록: campaigns.map(c => ({ id: c.id, name: c.name, status: c.status, posts: c.posts }))
+          });
+
           // 완료된 캠페인들의 매출 계산
           const completedCampaigns = campaigns.filter(c => c.status === '완료' || c.status === '승인');
+          console.log(`✅ 완료된 캠페인 (${completedCampaigns.length}개):`, completedCampaigns.map(c => ({ id: c.id, name: c.name, status: c.status })));
+
           const totalRevenue = completedCampaigns.reduce((sum, campaign) => {
             const campaignRevenue = campaign.posts?.reduce((postSum, post) => {
-              return postSum + (post.unitPrice || 0) * (post.quantity || 1);
+              const postRevenue = (post.unitPrice || 0) * (post.quantity || 1);
+              console.log(`  📄 포스트 매출: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postRevenue}원`);
+              return postSum + postRevenue;
             }, 0) || 0;
+            console.log(`  🎯 캠페인 ${campaign.name} 매출: ${campaignRevenue}원`);
             return sum + campaignRevenue;
           }, 0);
+
+          console.log(`💵 사용자 ${user.name} 총 매출: ${totalRevenue}원`);
           
           // 인센티브 계산 (매출 * 인센티브율)
           const baseIncentive = Math.round(totalRevenue * (user.incentive_rate / 100));
