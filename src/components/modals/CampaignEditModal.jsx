@@ -26,9 +26,9 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
   const [loadingClients, setLoadingClients] = useState(false);
 
 
-  // 직원 목록 불러오기 (대행사 어드민만)
+  // 직원 목록 불러오기 (담당자 정보 표시용)
   const fetchStaffMembers = async () => {
-    if (currentUser.role !== 'AGENCY_ADMIN') return;
+    if (!currentUser?.id) return;
     
     setLoadingStaff(true);
     try {
@@ -278,40 +278,48 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             )}
           </div>
 
-          {/* 담당 직원 선택 (대행사 어드민만) */}
-          {currentUser.role === 'AGENCY_ADMIN' && (
-            <div>
-              <label htmlFor="UserId" className="block text-sm font-medium text-gray-700">
-                👤 담당 직원
-              </label>
-              {loadingStaff ? (
-                <div className="mt-1 flex items-center text-sm text-gray-500">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
-                  직원 목록 불러오는 중...
-                </div>
-              ) : (
-                <select
-                  name="UserId"
-                  id="UserId"
-                  value={formData.UserId}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">담당 직원을 선택하세요</option>
-                  {staffMembers.map((staff) => (
-                    <option key={staff.id} value={staff.id}>
-                      {staff.name} ({staff.email})
-                    </option>
-                  ))}
-                </select>
-              )}
-              {staffMembers.length === 0 && !loadingStaff && (
-                <p className="mt-1 text-xs text-gray-500">
-                  같은 회사의 직원이 없습니다.
-                </p>
-              )}
-            </div>
-          )}
+          {/* 담당 직원 선택 */}
+          <div>
+            <label htmlFor="UserId" className="block text-sm font-medium text-gray-700">
+              👤 담당 직원
+            </label>
+            {loadingStaff ? (
+              <div className="mt-1 flex items-center text-sm text-gray-500">
+                <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mr-2"></div>
+                직원 목록 불러오는 중...
+              </div>
+            ) : currentUser.role === 'AGENCY_ADMIN' || currentUser.role === 'SUPER_ADMIN' ? (
+              <select
+                name="UserId"
+                id="UserId"
+                value={formData.UserId}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="">담당 직원을 선택하세요</option>
+                {staffMembers.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.name} ({staff.email})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md text-gray-700">
+                {formData.UserId ?
+                  staffMembers.find(s => s.id === parseInt(formData.UserId))?.name || '담당자 정보 없음' :
+                  '담당자 정보 없음'
+                } (수정 권한 없음)
+              </div>
+            )}
+            {staffMembers.length === 0 && !loadingStaff && (
+              <p className="mt-1 text-xs text-gray-500">
+                같은 회사의 직원이 없습니다.
+              </p>
+            )}
+            {currentUser.role === 'STAFF' && (
+              <p className="mt-1 text-xs text-blue-600">💡 직원 계정은 담당자 변경 권한이 없습니다.</p>
+            )}
+          </div>
 
           {/* 예산 */}
           <div>
