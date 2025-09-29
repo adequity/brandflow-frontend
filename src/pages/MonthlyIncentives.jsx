@@ -108,11 +108,17 @@ const MonthlyIncentives = ({ loggedInUser }) => {
 
           const totalRevenue = revenueCampaigns.reduce((sum, campaign) => {
             const campaignRevenue = campaign.posts?.reduce((postSum, post) => {
+              // 포스트 담당자가 현재 사용자와 일치하는 경우만 매출에 포함
+              if (post.assigned_user_id && post.assigned_user_id !== user.id) {
+                console.log(`  📄 포스트 ${post.title} - 다른 담당자 (${post.assigned_user_id}), 매출 제외`);
+                return postSum;
+              }
+
               const postRevenue = (post.unitPrice || 0) * (post.quantity || 1);
-              console.log(`  📄 포스트 매출: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postRevenue}원`);
+              console.log(`  📄 포스트 ${post.title} - 담당자: ${post.assigned_user_id || '미지정'}, 매출: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postRevenue}원`);
               return postSum + postRevenue;
             }, 0) || 0;
-            console.log(`  🎯 캠페인 ${campaign.name} 매출: ${campaignRevenue}원`);
+            console.log(`  🎯 캠페인 ${campaign.name} 사용자 ${user.name} 매출: ${campaignRevenue}원`);
             return sum + campaignRevenue;
           }, 0);
 
