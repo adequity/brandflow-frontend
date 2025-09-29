@@ -41,41 +41,75 @@ const MonthlyIncentives = ({ loggedInUser }) => {
 
   const fetchIncentives = async () => {
     if (!loggedInUser?.id) return;
-    
+
     setIsLoading(true);
     try {
-      // 실제 사용자 데이터를 먼저 가져온다
+      // 먼저 백엔드에서 저장된 인센티브 데이터 조회 시도
+      const { data: savedIncentives } = await api.get('/api/monthly-incentives/', {
+        params: {
+          year: filters.year,
+          month: filters.month,
+          status: filters.status || undefined,
+          user_id: filters.userId || undefined,
+          limit: 100
+        }
+      });
+
+      if (savedIncentives && savedIncentives.length > 0) {
+        // 저장된 데이터가 있으면 그것을 사용
+        console.log('💾 저장된 인센티브 데이터 사용:', savedIncentives);
+
+        const transformedIncentives = savedIncentives.map(incentive => ({
+          id: incentive.id,
+          userId: incentive.user_id,
+          user: {
+            name: incentive.user?.name || '알 수 없음',
+            email: incentive.user?.email || '',
+            company: incentive.user?.company || incentive.company || '미설정',
+            incentiveRate: incentive.incentive_rate
+          },
+          year: incentive.year,
+          month: incentive.month,
+          totalRevenue: incentive.total_revenue,
+          totalProfit: incentive.total_profit,
+          totalCost: incentive.total_revenue - incentive.total_profit, // 매출 - 이익 = 원가
+          baseIncentiveAmount: incentive.profit_incentive_amount,
+          adjustmentAmount: incentive.adjustment_amount,
+          finalIncentiveAmount: incentive.final_incentive_amount,
+          status: incentive.status === 'CALCULATED' ? '계산 완료' :
+                  incentive.status === 'PENDING' ? '검토대기' :
+                  incentive.status === 'APPROVED' ? '승인완료' :
+                  incentive.status === 'PAID' ? '지급완료' :
+                  incentive.status === 'ON_HOLD' ? '보류' :
+                  incentive.status === 'CANCELLED' ? '취소' : incentive.status,
+          calculatedAt: incentive.created_at,
+          campaignCount: incentive.campaign_count,
+          notes: incentive.notes
+        }));
+
+        setIncentives(transformedIncentives);
+        return;
+      }
+
+      console.log('🔄 저장된 데이터 없음, 실시간 계산 진행');
+
+      // 저장된 데이터가 없으면 기존 실시간 계산 로직 사용
       const { data: usersData } = await api.get('/api/users');
-      
+
       // 인센티브 대상 직원 필터링
       const eligibleUsers = (usersData || []).filter(user => {
         if (loggedInUser.role === 'STAFF') {
-          return user.id === loggedInUser.id; // 직원은 본인만
+          return user.id === loggedInUser.id;
         }
         if (loggedInUser.role === 'AGENCY_ADMIN') {
-          // 디버깅 로그 추가
-          console.log('🔍 필터링 체크:', {
-            userName: user.name,
-            userRole: user.role,
-            userCompany: user.company,
-            userIncentiveRate: user.incentive_rate,
-            loggedInCompany: loggedInUser.company,
-            companyMatch: user.company === loggedInUser.company,
-            isStaff: user.role === 'STAFF',
-            incentiveRate: `${user.incentive_rate}%`
-          });
-
-          // 대행사 어드민은 자신 소속의 직원들만 (본인 제외)
           return user.role === 'STAFF' && user.company === loggedInUser.company;
         }
-        // 슈퍼 어드민은 모든 직원과 대행사 어드민
         return (user.role === 'STAFF' || user.role === 'AGENCY_ADMIN');
       });
-      
+
       // 각 사용자의 캠페인 데이터를 기반으로 인센티브 계산
       const incentivePromises = eligibleUsers.map(async (user) => {
         try {
-          // 해당 사용자의 캠페인 데이터 조회
           const campaignsResponse = await api.get('/api/campaigns/', {
             params: {
               viewerId: user.id,
@@ -84,64 +118,37 @@ const MonthlyIncentives = ({ loggedInUser }) => {
               month: filters.month
             }
           });
-          
-          console.log('🔍 캠페인 API 응답 구조:', campaignsResponse.data);
+
           const campaigns = campaignsResponse.data.data || campaignsResponse.data.results || campaignsResponse.data || [];
 
-          console.log(`💰 사용자 ${user.name}의 캠페인 분석:`, {
-            총_캠페인_수: campaigns.length,
-            캠페인_목록: campaigns.map(c => ({ id: c.id, name: c.name, status: c.status, posts: c.posts }))
-          });
-
-          // 매출 계산 대상 캠페인들 (완료, 승인, 진행중 모두 포함)
+          // 매출 계산 대상 캠페인들
           const revenueCampaigns = campaigns.filter(c =>
-            c.status === '완료' ||
-            c.status === '승인' ||
-            c.status === '진행중' ||
-            c.status === '활성' ||
-            c.status === '실행중' ||
-            c.status === 'ACTIVE' ||
-            c.status === 'COMPLETED' ||
-            c.status === 'APPROVED'
+            c.status === '완료' || c.status === '승인' || c.status === '진행중' ||
+            c.status === '활성' || c.status === '실행중' || c.status === 'ACTIVE' ||
+            c.status === 'COMPLETED' || c.status === 'APPROVED'
           );
-          console.log(`💰 매출 계산 대상 캠페인 (${revenueCampaigns.length}개):`, revenueCampaigns.map(c => ({ id: c.id, name: c.name, status: c.status })));
 
-          // 매출과 이익을 별도로 계산
+          // 매출과 이익 계산
           const { totalRevenue, totalCost, totalProfit } = revenueCampaigns.reduce((acc, campaign) => {
-            // 캠페인 담당자 확인 (staff_id 기준)
             const campaignAssignedToUser = campaign.staff_id === user.id;
-            console.log(`  🎯 캠페인 ${campaign.name} - 담당자: ${campaign.staff_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
 
-            // 캠페인 담당자인 경우 매출과 이익 계산
             if (campaignAssignedToUser) {
-              const campaignRevenue = campaign.budget || 0; // 매출 (캠페인 예산)
-
-              // 원가 계산 (해당 캠페인의 모든 포스트 단가 × 수량 합계)
+              const campaignRevenue = campaign.budget || 0;
               const campaignCost = campaign.posts?.reduce((costSum, post) => {
-                const postCost = (post.unitPrice || 0) * (post.quantity || 1);
-                console.log(`    📄 포스트 ${post.title} 원가: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postCost}원`);
-                return costSum + postCost;
+                return costSum + ((post.unitPrice || 0) * (post.quantity || 1));
               }, 0) || 0;
-
-              const campaignProfit = campaignRevenue - campaignCost; // 이익 = 매출 - 원가
-              console.log(`  💰 캠페인 ${campaign.name} - 매출: ${campaignRevenue}원, 원가: ${campaignCost}원, 이익: ${campaignProfit}원`);
 
               return {
                 totalRevenue: acc.totalRevenue + campaignRevenue,
                 totalCost: acc.totalCost + campaignCost,
-                totalProfit: acc.totalProfit + campaignProfit
+                totalProfit: acc.totalProfit + (campaignRevenue - campaignCost)
               };
-            } else {
-              console.log(`  🚫 캠페인 ${campaign.name} - 담당자가 아니므로 매출/이익 제외`);
-              return acc;
             }
+            return acc;
           }, { totalRevenue: 0, totalCost: 0, totalProfit: 0 });
-
-          console.log(`💵 사용자 ${user.name} - 총 매출: ${totalRevenue}원, 총 원가: ${totalCost}원, 총 이익: ${totalProfit}원`);
 
           // 인센티브 계산 (이익 * 인센티브율)
           const baseIncentive = Math.round(totalProfit * (user.incentive_rate / 100));
-          const adjustmentAmount = 0; // 기본값, 나중에 수동 조정 가능
 
           return {
             id: `${user.id}-${filters.year}-${filters.month}`,
@@ -154,12 +161,12 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             },
             year: filters.year,
             month: filters.month,
-            totalRevenue: totalRevenue, // 실제 매출
-            totalProfit: totalProfit,   // 이익 (매출 - 원가)
-            totalCost: totalCost,       // 원가
+            totalRevenue: totalRevenue,
+            totalProfit: totalProfit,
+            totalCost: totalCost,
             baseIncentiveAmount: baseIncentive,
-            adjustmentAmount: adjustmentAmount,
-            finalIncentiveAmount: baseIncentive + adjustmentAmount,
+            adjustmentAmount: 0, // API에서 조회해야 하지만 임시로 0
+            finalIncentiveAmount: baseIncentive,
             status: baseIncentive > 0 ? '계산 완료' : '매출 없음',
             calculatedAt: new Date().toISOString(),
             campaignCount: revenueCampaigns.length,
@@ -167,7 +174,6 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           };
         } catch (error) {
           console.error(`사용자 ${user.name}의 인센티브 계산 실패:`, error);
-          // 오류 발생 시에도 기본 인센티브 레코드 생성
           return {
             id: `${user.id}-${filters.year}-${filters.month}`,
             userId: user.id,
@@ -192,9 +198,9 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           };
         }
       });
-      
+
       const calculatedIncentives = await Promise.all(incentivePromises);
-      
+
       // 필터 적용
       let filteredIncentives = calculatedIncentives;
       if (filters.status) {
@@ -203,7 +209,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
       if (filters.userId && filters.userId !== '') {
         filteredIncentives = filteredIncentives.filter(i => i.userId === parseInt(filters.userId));
       }
-      
+
       setIncentives(filteredIncentives);
     } catch (error) {
       console.error('인센티브 목록 로딩 실패:', error);
@@ -358,18 +364,27 @@ const MonthlyIncentives = ({ loggedInUser }) => {
 
   const handleStatusUpdate = async (incentiveId, status) => {
     try {
-      await api.put(`/api/monthly-incentives/${incentiveId}`, { status }, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
+      // 상태 변환 (한국어 → 영어)
+      const statusMap = {
+        '승인': 'APPROVED',
+        '승인완료': 'APPROVED',
+        '지급완료': 'PAID',
+        '보류': 'ON_HOLD',
+        '취소': 'CANCELLED'
+      };
+
+      const apiStatus = statusMap[status] || status;
+
+      await api.put(`/api/monthly-incentives/${incentiveId}`, {
+        status: apiStatus
       });
+
       fetchIncentives();
       fetchStats();
     } catch (error) {
       console.error('상태 업데이트 실패:', error);
       await showError(
-        error.response?.data?.message || '상태 업데이트에 실패했습니다.',
+        error.response?.data?.detail || error.response?.data?.message || '상태 업데이트에 실패했습니다.',
         '업데이트 실패'
       );
     }
