@@ -369,7 +369,8 @@ const MonthlyIncentives = ({ loggedInUser }) => {
     try {
       const { data } = await api.post('/api/monthly-incentives/calculate', {
         year: filters.year,
-        month: filters.month
+        month: filters.month,
+        recalculate: true  // 항상 재계산하도록 설정
       }, {
         params: {
           viewerId: loggedInUser.id,
