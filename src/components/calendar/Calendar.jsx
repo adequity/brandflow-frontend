@@ -49,11 +49,12 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                 try {
                     // 캠페인 객체에서 posts 데이터 사용 (이미 포함되어 있으면 별도 API 호출 안함)
                     let posts = campaign.posts || [];
+                    console.log(`캠페인 ${campaign.id} 포스트 데이터:`, posts.length > 0 ? `${posts.length}개 포스트 포함` : '포스트 없음');
                     
-                    // posts가 없거나 빈 배열인 경우에만 API 호출
+                    // posts가 없거나 빈 배열인 경우에만 JWT API 호출
                     if (!posts || posts.length === 0) {
                         try {
-                            const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts/`);
+                            const postsResponse = await api.get(`/api/campaigns/${campaign.id}/posts/jwt`);
                             posts = postsResponse.data || [];
                         } catch (postError) {
                             console.warn(`캠페인 ${campaign.id}의 posts 조회 실패:`, postError);
