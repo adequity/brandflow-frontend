@@ -99,7 +99,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         status: campaign.status || '초안',
         invoice_issued: campaign.invoice_issued || false,
         payment_completed: campaign.payment_completed || false,
-        UserId: campaign.creator_id || ''
+        UserId: campaign.staff_id || ''
       };
       setFormData(formattedData);
     }
@@ -156,7 +156,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
         status: formData.status || '초안',
         invoice_issued: formData.invoice_issued,
         payment_completed: formData.payment_completed,
-        creator_id: formData.UserId ? parseInt(formData.UserId) : null
+        staff_id: formData.UserId ? parseInt(formData.UserId) : null
       };
 
 

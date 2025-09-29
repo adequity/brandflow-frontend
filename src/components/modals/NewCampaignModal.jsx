@@ -299,7 +299,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
             name: campaignName,
             clientName: clientFullName,
             clientId: selectedClient.id,
-            UserId: UserId, // 담당자의 ID를 전달합니다.
+            staff_id: UserId, // 담당자의 ID를 staff_id로 전달
             budget: budget ? parseFloat(removeCommas(budget)) : null,
             notes: notes || null,
             reminders: reminders || null,
