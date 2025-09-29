@@ -106,26 +106,35 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           );
           console.log(`💰 매출 계산 대상 캠페인 (${revenueCampaigns.length}개):`, revenueCampaigns.map(c => ({ id: c.id, name: c.name, status: c.status })));
 
-          const totalRevenue = revenueCampaigns.reduce((sum, campaign) => {
+          const totalProfit = revenueCampaigns.reduce((sum, campaign) => {
             // 캠페인 담당자 확인 (creator_id 기준)
             const campaignAssignedToUser = campaign.creator_id === user.id;
             console.log(`  🎯 캠페인 ${campaign.name} - 담당자: ${campaign.creator_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
 
-            // 캠페인 담당자인 경우 캠페인 예산을 매출로 계산
+            // 캠페인 담당자인 경우 이익 계산 (매출 - 원가)
             if (campaignAssignedToUser) {
-              const campaignBudget = campaign.budget || 0;
-              console.log(`  💰 캠페인 ${campaign.name} 예산: ${campaignBudget}원`);
-              return sum + campaignBudget;
+              const campaignRevenue = campaign.budget || 0; // 매출 (캠페인 예산)
+
+              // 원가 계산 (해당 캠페인의 모든 포스트 단가 × 수량 합계)
+              const campaignCost = campaign.posts?.reduce((costSum, post) => {
+                const postCost = (post.unitPrice || 0) * (post.quantity || 1);
+                console.log(`    📄 포스트 ${post.title} 원가: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postCost}원`);
+                return costSum + postCost;
+              }, 0) || 0;
+
+              const campaignProfit = campaignRevenue - campaignCost; // 이익 = 매출 - 원가
+              console.log(`  💰 캠페인 ${campaign.name} - 매출: ${campaignRevenue}원, 원가: ${campaignCost}원, 이익: ${campaignProfit}원`);
+              return sum + campaignProfit;
             } else {
-              console.log(`  🚫 캠페인 ${campaign.name} - 담당자가 아니므로 매출 제외`);
+              console.log(`  🚫 캠페인 ${campaign.name} - 담당자가 아니므로 이익 제외`);
               return sum;
             }
           }, 0);
 
-          console.log(`💵 사용자 ${user.name} 총 매출: ${totalRevenue}원`);
-          
-          // 인센티브 계산 (매출 * 인센티브율)
-          const baseIncentive = Math.round(totalRevenue * (user.incentive_rate / 100));
+          console.log(`💵 사용자 ${user.name} 총 이익: ${totalProfit}원`);
+
+          // 인센티브 계산 (이익 * 인센티브율)
+          const baseIncentive = Math.round(totalProfit * (user.incentive_rate / 100));
           const adjustmentAmount = 0; // 기본값, 나중에 수동 조정 가능
           
           return {
@@ -139,14 +148,14 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             },
             year: filters.year,
             month: filters.month,
-            totalRevenue,
+            totalRevenue: totalProfit,
             baseIncentiveAmount: baseIncentive,
             adjustmentAmount: adjustmentAmount,
             finalIncentiveAmount: baseIncentive + adjustmentAmount,
             status: baseIncentive > 0 ? '계산 완료' : '매출 없음',
             calculatedAt: new Date().toISOString(),
             campaignCount: revenueCampaigns.length,
-            notes: `${revenueCampaigns.length}개 캠페인 예산 합산, 매출: ${totalRevenue.toLocaleString()}원`
+            notes: `${revenueCampaigns.length}개 캠페인 기준, 이익: ${totalProfit.toLocaleString()}원 (매출-원가)`
           };
         } catch (error) {
           console.error(`사용자 ${user.name}의 인센티브 계산 실패:`, error);
@@ -522,7 +531,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">직원</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">기간</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">매출/이익</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이익</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">인센티브율</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">계산금액</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">조정금액</th>
@@ -555,7 +564,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      매출: {incentive.totalRevenue?.toLocaleString() || '0'}원
+                      이익: {incentive.totalRevenue?.toLocaleString() || '0'}원
                     </div>
                     <div className="text-sm text-gray-500">
                       캠페인: {incentive.campaignCount || 0}개
