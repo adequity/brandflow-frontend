@@ -93,11 +93,20 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             캠페인_목록: campaigns.map(c => ({ id: c.id, name: c.name, status: c.status, posts: c.posts }))
           });
 
-          // 완료된 캠페인들의 매출 계산
-          const completedCampaigns = campaigns.filter(c => c.status === '완료' || c.status === '승인');
-          console.log(`✅ 완료된 캠페인 (${completedCampaigns.length}개):`, completedCampaigns.map(c => ({ id: c.id, name: c.name, status: c.status })));
+          // 매출 계산 대상 캠페인들 (완료, 승인, 진행중 모두 포함)
+          const revenueCampaigns = campaigns.filter(c =>
+            c.status === '완료' ||
+            c.status === '승인' ||
+            c.status === '진행중' ||
+            c.status === '활성' ||
+            c.status === '실행중' ||
+            c.status === 'ACTIVE' ||
+            c.status === 'COMPLETED' ||
+            c.status === 'APPROVED'
+          );
+          console.log(`💰 매출 계산 대상 캠페인 (${revenueCampaigns.length}개):`, revenueCampaigns.map(c => ({ id: c.id, name: c.name, status: c.status })));
 
-          const totalRevenue = completedCampaigns.reduce((sum, campaign) => {
+          const totalRevenue = revenueCampaigns.reduce((sum, campaign) => {
             const campaignRevenue = campaign.posts?.reduce((postSum, post) => {
               const postRevenue = (post.unitPrice || 0) * (post.quantity || 1);
               console.log(`  📄 포스트 매출: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postRevenue}원`);
@@ -130,8 +139,8 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             finalIncentiveAmount: baseIncentive + adjustmentAmount,
             status: baseIncentive > 0 ? '계산 완료' : '매출 없음',
             calculatedAt: new Date().toISOString(),
-            campaignCount: completedCampaigns.length,
-            notes: `${completedCampaigns.length}개 캠페인 기준, 매출: ${totalRevenue.toLocaleString()}원`
+            campaignCount: revenueCampaigns.length,
+            notes: `${revenueCampaigns.length}개 캠페인 기준, 매출: ${totalRevenue.toLocaleString()}원`
           };
         } catch (error) {
           console.error(`사용자 ${user.name}의 인센티브 계산 실패:`, error);
