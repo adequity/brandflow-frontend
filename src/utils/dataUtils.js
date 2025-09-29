@@ -94,7 +94,8 @@ export const validateCampaignData = (campaignData) => {
       created_at: campaign.created_at || null,
       updated_at: campaign.updated_at || null,
       // 백엔드 필드와 프론트엔드 필드 매핑
-      manager_name: campaign.creator_name || campaign.User?.name || null
+      staff_id: campaign.staff_id || null,
+      staff_name: campaign.staff_user?.name || campaign.User?.name || null
     };
   });
 };
