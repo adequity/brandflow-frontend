@@ -119,10 +119,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
                     // 각 포스트별 일정 생성 - start_date와 due_date 기반
                     posts.forEach((post, index) => {
-                        // Post 시작일 일정 추가 (posts.start_date 기준)
-                        if (post.start_date) {
+                        // Post 시작일 일정 추가 (posts.start_date 또는 startDate 기준)
+                        const startDateValue = post.start_date || post.startDate;
+                        if (startDateValue) {
                             try {
-                                const startDate = new Date(post.start_date);
+                                const startDate = new Date(startDateValue);
                                 if (!isNaN(startDate.getTime())) {
                                     calendarTasks.push({
                                         id: `post-start-${post.id}`,
@@ -147,14 +148,15 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     });
                                 }
                             } catch (error) {
-                                console.warn(`Post ${post.id} start_date 파싱 오류:`, post.start_date, error);
+                                console.warn(`Post ${post.id} start_date 파싱 오류:`, startDateValue, error);
                             }
                         }
 
-                        // Post 마감일 일정 추가 (posts.due_date 기준)
-                        if (post.due_date) {
+                        // Post 마감일 일정 추가 (posts.due_date 또는 dueDate 기준)
+                        const dueDateValue = post.due_date || post.dueDate;
+                        if (dueDateValue) {
                             try {
-                                const dueDate = new Date(post.due_date);
+                                const dueDate = new Date(dueDateValue);
                                 if (!isNaN(dueDate.getTime())) {
                                     calendarTasks.push({
                                         id: `post-due-${post.id}`,
@@ -179,13 +181,13 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     });
                                 }
                             } catch (error) {
-                                console.warn(`Post ${post.id} due_date 파싱 오류:`, post.due_date, error);
+                                console.warn(`Post ${post.id} due_date 파싱 오류:`, dueDateValue, error);
                             }
                         }
 
 
                         // 날짜가 없는 포스트는 캠페인 시작일 기준으로 자동 배치
-                        if (!post.start_date && !post.due_date) {
+                        if (!startDateValue && !dueDateValue) {
                             let autoDate;
                             if (campaign.start_date) {
                                 autoDate = new Date(campaign.start_date);
