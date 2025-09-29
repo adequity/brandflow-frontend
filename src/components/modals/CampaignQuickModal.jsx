@@ -66,19 +66,19 @@ const CampaignQuickModal = ({ campaign, isOpen, onClose, onEdit }) => {
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">클라이언트:</span>
-                <span className="font-medium">{campaign.client}</span>
+                <span className="font-medium">{campaign.client_company || campaign.client_user?.name || campaign.client || '미정'}</span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">생성일:</span>
-                <span className="font-medium">{formatDate(campaign.createdAt)}</span>
+                <span className="font-medium">{formatDate(campaign.created_at || campaign.createdAt)}</span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-400" />
                 <span className="text-gray-600">예상 수익:</span>
-                <span className="font-medium text-green-600">{formatCurrency(campaign.revenue || 0)}</span>
+                <span className="font-medium text-green-600">{formatCurrency(campaign.budget || campaign.revenue || 0)}</span>
               </div>
               
               <div className="flex items-center space-x-2">
@@ -93,7 +93,7 @@ const CampaignQuickModal = ({ campaign, isOpen, onClose, onEdit }) => {
           <div>
             <h4 className="font-medium text-gray-900 mb-2">담당자</h4>
             <div className="bg-gray-50 rounded-lg p-3">
-              <span className="text-sm font-medium">{campaign.staff_name || campaign.User?.name || '미정'}</span>
+              <span className="text-sm font-medium">{campaign.staff_user?.name || campaign.staff_name || campaign.User?.name || '미정'}</span>
             </div>
           </div>
 
@@ -105,17 +105,17 @@ const CampaignQuickModal = ({ campaign, isOpen, onClose, onEdit }) => {
                 {campaign.posts.map((post, index) => (
                   <div key={post.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <div 
-                        className={`w-3 h-3 rounded-full ${getWorkTypeColor(post.workType)}`}
-                        title={post.workType}
+                      <div
+                        className={`w-3 h-3 rounded-full ${getWorkTypeColor(post.work_type || post.workType)}`}
+                        title={post.work_type || post.workType}
                       />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                        <div className="text-xs text-gray-500">{post.workType}</div>
+                        <div className="text-xs text-gray-500">{post.work_type || post.workType}</div>
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.topicStatus)}`}>
-                      {post.topicStatus}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.topic_status || post.topicStatus)}`}>
+                      {post.topic_status || post.topicStatus}
                     </span>
                   </div>
                 ))}
