@@ -129,23 +129,53 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           );
 
           // 매출과 이익 계산
+          console.log(`🔍 사용자 ${user.name}의 캠페인 분석 시작:`, {
+            총_캠페인_수: revenueCampaigns.length,
+            사용자_ID: user.id,
+            캠페인_목록: revenueCampaigns.map(c => ({
+              id: c.id,
+              name: c.name,
+              staff_id: c.staff_id,
+              budget: c.budget,
+              posts_count: c.posts?.length || 0
+            }))
+          });
+
           const { totalRevenue, totalCost, totalProfit } = revenueCampaigns.reduce((acc, campaign) => {
             const campaignAssignedToUser = campaign.staff_id === user.id;
+            console.log(`  🎯 캠페인 ${campaign.name} (ID: ${campaign.id}):`);
+            console.log(`    - staff_id: ${campaign.staff_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
+            console.log(`    - budget: ${campaign.budget} (타입: ${typeof campaign.budget})`);
 
             if (campaignAssignedToUser) {
               const campaignRevenue = campaign.budget || 0;
+              console.log(`    - 매출 계산: ${campaign.budget} || 0 = ${campaignRevenue}`);
+
               const campaignCost = campaign.posts?.reduce((costSum, post) => {
-                return costSum + ((post.unitPrice || 0) * (post.quantity || 1));
+                const postCost = (post.unitPrice || 0) * (post.quantity || 1);
+                console.log(`      📄 포스트 ${post.title || post.id}: unitPrice=${post.unitPrice} × quantity=${post.quantity} = ${postCost}원`);
+                return costSum + postCost;
               }, 0) || 0;
+
+              console.log(`    - 원가 합계: ${campaignCost}원`);
+              console.log(`    - 이익: ${campaignRevenue} - ${campaignCost} = ${campaignRevenue - campaignCost}원`);
 
               return {
                 totalRevenue: acc.totalRevenue + campaignRevenue,
                 totalCost: acc.totalCost + campaignCost,
                 totalProfit: acc.totalProfit + (campaignRevenue - campaignCost)
               };
+            } else {
+              console.log(`    - 담당자가 아니므로 제외`);
             }
             return acc;
           }, { totalRevenue: 0, totalCost: 0, totalProfit: 0 });
+
+          console.log(`💵 사용자 ${user.name} 최종 계산 결과:`, {
+            총_매출: totalRevenue,
+            총_원가: totalCost,
+            총_이익: totalProfit
+          });
 
           // 인센티브 계산 (이익 * 인센티브율)
           const baseIncentive = Math.round(totalProfit * (user.incentive_rate / 100));
