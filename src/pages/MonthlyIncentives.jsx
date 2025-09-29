@@ -58,11 +58,11 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             userName: user.name,
             userRole: user.role,
             userCompany: user.company,
-            userIncentiveRate: user.incentiveRate,
+            userIncentiveRate: user.incentive_rate,
             loggedInCompany: loggedInUser.company,
             companyMatch: user.company === loggedInUser.company,
             isStaff: user.role === 'STAFF',
-            incentiveRate: `${user.incentiveRate}%`
+            incentiveRate: `${user.incentive_rate}%`
           });
 
           // 대행사 어드민은 자신 소속의 직원들만 (본인 제외)
@@ -98,7 +98,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           }, 0);
           
           // 인센티브 계산 (매출 * 인센티브율)
-          const baseIncentive = Math.round(totalRevenue * (user.incentiveRate / 100));
+          const baseIncentive = Math.round(totalRevenue * (user.incentive_rate / 100));
           const adjustmentAmount = 0; // 기본값, 나중에 수동 조정 가능
           
           return {
@@ -108,7 +108,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
               name: user.name,
               email: user.email,
               company: user.company || '미설정',
-              incentiveRate: user.incentiveRate
+              incentiveRate: user.incentive_rate
             },
             year: filters.year,
             month: filters.month,
@@ -131,7 +131,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
               name: user.name,
               email: user.email,
               company: user.company || '미설정',
-              incentiveRate: user.incentiveRate
+              incentiveRate: user.incentive_rate
             },
             year: filters.year,
             month: filters.month,
@@ -522,7 +522,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {incentive.user?.incentiveRate || 0}%
+                    {incentive.user?.incentive_rate || 0}%
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {incentive.baseIncentiveAmount?.toLocaleString() || '0'}원
