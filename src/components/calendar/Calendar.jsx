@@ -119,25 +119,24 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
                     // 각 포스트별 일정 생성 - start_date와 due_date 기반
                     posts.forEach((post, index) => {
-                        // Post 시작일 일정 추가 (기존 필드 사용)
-                        const startDateValue = post.startDate || post.start_date;
-                        if (startDateValue) {
+                        // Post 시작일 일정 추가 (posts.start_date 기준)
+                        if (post.start_date) {
                             try {
-                                const startDate = new Date(startDateValue);
+                                const startDate = new Date(post.start_date);
                                 if (!isNaN(startDate.getTime())) {
                                     calendarTasks.push({
                                         id: `post-start-${post.id}`,
-                                        title: `🚀 시작: ${post.title || post.workType}`,
+                                        title: `🚀 시작: ${post.title || post.work_type}`,
                                         date: startDate,
                                         type: 'post-start',
-                                        workType: post.workType || '기타',
-                                        status: post.topicStatus || '대기',
+                                        workType: post.work_type || '기타',
+                                        status: post.topic_status || '대기',
                                         priority: 'medium',
                                         assignee: campaign.User?.name || campaign.staff_name || campaign.creator_name || '담당자 미정',
                                         agency: campaign.client_company || campaign.client || '클라이언트 미정',
                                         campaign: campaign,
                                         post: post,
-                                        description: `${post.workType || '작업'} 시작 - ${post.title || '제목 없음'}`,
+                                        description: `${post.work_type || '작업'} 시작 - ${post.title || '제목 없음'}`,
                                         detail: {
                                             outline: post.outline,
                                             images: post.images,
@@ -148,29 +147,28 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     });
                                 }
                             } catch (error) {
-                                console.warn(`Post ${post.id} start_date 파싱 오류:`, startDateValue, error);
+                                console.warn(`Post ${post.id} start_date 파싱 오류:`, post.start_date, error);
                             }
                         }
 
-                        // Post 마감일 일정 추가 (기존 필드 사용)
-                        const dueDateValue = post.dueDate || post.due_date;
-                        if (dueDateValue) {
+                        // Post 마감일 일정 추가 (posts.due_date 기준)
+                        if (post.due_date) {
                             try {
-                                const dueDate = new Date(dueDateValue);
+                                const dueDate = new Date(post.due_date);
                                 if (!isNaN(dueDate.getTime())) {
                                     calendarTasks.push({
                                         id: `post-due-${post.id}`,
-                                        title: `⏰ 마감: ${post.title || post.workType}`,
+                                        title: `⏰ 마감: ${post.title || post.work_type}`,
                                         date: dueDate,
                                         type: 'post-deadline',
-                                        workType: post.workType || '기타',
-                                        status: post.topicStatus || '대기',
+                                        workType: post.work_type || '기타',
+                                        status: post.topic_status || '대기',
                                         priority: 'high',
                                         assignee: campaign.User?.name || campaign.staff_name || campaign.creator_name || '담당자 미정',
                                         agency: campaign.client_company || campaign.client || '클라이언트 미정',
                                         campaign: campaign,
                                         post: post,
-                                        description: `${post.workType || '작업'} 마감 - ${post.title || '제목 없음'}`,
+                                        description: `${post.work_type || '작업'} 마감 - ${post.title || '제목 없음'}`,
                                         detail: {
                                             outline: post.outline,
                                             images: post.images,
@@ -181,13 +179,13 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     });
                                 }
                             } catch (error) {
-                                console.warn(`Post ${post.id} due_date 파싱 오류:`, dueDateValue, error);
+                                console.warn(`Post ${post.id} due_date 파싱 오류:`, post.due_date, error);
                             }
                         }
 
 
                         // 날짜가 없는 포스트는 캠페인 시작일 기준으로 자동 배치
-                        if (!post.startDate && !post.start_date && !post.dueDate && !post.due_date) {
+                        if (!post.start_date && !post.due_date) {
                             let autoDate;
                             if (campaign.start_date) {
                                 autoDate = new Date(campaign.start_date);
@@ -199,17 +197,17 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
                             calendarTasks.push({
                                 id: `post-auto-${post.id}`,
-                                title: `📝 ${post.title || post.workType}`,
+                                title: `📝 ${post.title || post.work_type}`,
                                 date: autoDate,
                                 type: 'post-auto',
-                                workType: post.workType || '기타',
-                                status: post.topicStatus || '대기',
+                                workType: post.work_type || '기타',
+                                status: post.topic_status || '대기',
                                 priority: 'low',
                                 assignee: campaign.User?.name || campaign.staff_name || campaign.creator_name || '담당자 미정',
                                 agency: campaign.client_company || campaign.client || '클라이언트 미정',
                                 campaign: campaign,
                                 post: post,
-                                description: `${post.workType || '작업'} (자동배치) - ${post.title || '제목 없음'}`,
+                                description: `${post.work_type || '작업'} (자동배치) - ${post.title || '제목 없음'}`,
                                 detail: {
                                     outline: post.outline,
                                     images: post.images,
@@ -399,14 +397,16 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
     // 권한별 필터 옵션 (실제 데이터 기반)
     const getFilterOptions = () => {
-        const baseOptions = {
-            workTypes: ['블로그', '인스타그램', '유튜브', '페이스북', '캠페인', '기타'],
-            statuses: ['대기', '진행중', '승인', '완료']
-        };
-
-        // 실제 데이터에서 담당자와 대행사 목록 추출
+        // 실제 데이터에서 업무타입, 상태, 담당자, 대행사 목록 추출
+        const uniqueWorkTypes = [...new Set(tasks.map(task => task.workType).filter(Boolean))];
+        const uniqueStatuses = [...new Set(tasks.map(task => task.status).filter(Boolean))];
         const uniqueAssignees = [...new Set(tasks.map(task => task.assignee).filter(Boolean))];
         const uniqueAgencies = [...new Set(tasks.map(task => task.agency).filter(Boolean))];
+
+        const baseOptions = {
+            workTypes: uniqueWorkTypes.length > 0 ? uniqueWorkTypes : ['기타'],
+            statuses: uniqueStatuses.length > 0 ? uniqueStatuses : ['대기', '승인']
+        };
 
         if (user.role === 'SUPER_ADMIN') {
             return {
@@ -417,7 +417,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
         } else if (user.role === 'AGENCY_ADMIN') {
             return {
                 ...baseOptions,
-                assignees: uniqueAssignees.filter(assignee => 
+                assignees: uniqueAssignees.filter(assignee =>
                     // 같은 회사의 담당자만 표시
                     tasks.some(task => task.assignee === assignee && task.agency === user.company)
                 )
@@ -429,8 +429,66 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
     const filterOptions = getFilterOptions();
 
+    // 오늘의 할 일 계산
+    const getTodayTasks = () => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return filteredTasks.filter(task => {
+            const taskDate = new Date(task.date);
+            taskDate.setHours(0, 0, 0, 0);
+            return taskDate.getTime() === today.getTime();
+        }).sort((a, b) => {
+            // 우선순위 정렬: high > medium > low
+            const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+            return (priorityOrder[b.priority] || 1) - (priorityOrder[a.priority] || 1);
+        });
+    };
+
+    const todayTasks = getTodayTasks();
+
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
+            {/* 오늘의 할 일 */}
+            {todayTasks.length > 0 && (
+                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+                        📅 오늘의 할 일 ({todayTasks.length}개)
+                    </h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {todayTasks.map(task => {
+                            const typeStyle = getTaskTypeStyle(task.type, task.priority);
+                            return (
+                                <div
+                                    key={task.id}
+                                    className={`flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors border-l-4 ${typeStyle.border.split(' ').slice(-2).join(' ')}`}
+                                    onClick={(e) => handleCampaignClick(task, e)}
+                                    title="클릭하여 캠페인 상세 보기"
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <div className="text-lg">{typeStyle.icon}</div>
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900 flex items-center">
+                                                {task.title}
+                                                {task.priority === 'high' && <span className="ml-2 text-red-500 text-xs">🔥</span>}
+                                            </div>
+                                            <div className="text-sm text-gray-600">
+                                                👤 {task.assignee} • 📊 {task.status}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm text-gray-500 text-right">
+                                        <span className={`px-2 py-1 rounded-full text-xs ${getTaskColor(task.workType)}`}>
+                                            {task.workType}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* 헤더 */}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-4">
@@ -665,7 +723,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             <div className="mt-6 space-y-3 text-sm">
                 <div className="flex flex-wrap items-center gap-4">
                     <span className="font-medium text-gray-700">업무타입:</span>
-                    {['블로그', '인스타그램', '유튜브', '페이스북', '리워드 광고', '캠페인'].map(type => (
+                    {filterOptions.workTypes.map(type => (
                         <div key={type} className="flex items-center space-x-1">
                             <div className={`w-3 h-3 rounded-full ${getTaskColor(type).split(' ')[0]}`}></div>
                             <span className="text-gray-600">{type}</span>
