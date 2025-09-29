@@ -234,6 +234,19 @@ const MonthlyIncentives = ({ loggedInUser }) => {
       });
 
       console.log('📋 필터링된 직원 목록:', staffUsers);
+
+      // 인센티브율 데이터 상세 확인
+      console.log('🔍 사용자별 인센티브율 상세:');
+      staffUsers.forEach(user => {
+        console.log(`  사용자 ${user.id} (${user.name}):`, {
+          role: user.role,
+          company: user.company,
+          incentive_rate: user.incentive_rate,
+          incentiveRate_카멜케이스: user.incentiveRate,
+          전체_사용자_객체: user
+        });
+      });
+
       setUsers(staffUsers);
     } catch (error) {
       console.error('사용자 목록 로딩 실패:', error);
@@ -522,7 +535,11 @@ const MonthlyIncentives = ({ loggedInUser }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {incentive.user?.incentive_rate || 0}%
+                    {(() => {
+                      const rate = incentive.user?.incentive_rate || 0;
+                      console.log(`🎯 테이블 표시 인센티브율 - 사용자 ${incentive.user?.name}: ${rate}%`);
+                      return `${rate}%`;
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {incentive.baseIncentiveAmount?.toLocaleString() || '0'}원
