@@ -321,7 +321,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               // 디버깅: 캠페인 데이터 구조 확인
               console.log('Campaign data:', {
                 id: campaign.id,
-                manager_name: campaign.manager_name,
+                staff_name: campaign.staff_name,
                 User: campaign.User,
                 posts: campaign.posts,
                 post_count: campaign.post_count
@@ -363,7 +363,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     {campaign.creator_name || 
-                     campaign.manager_name || 
+                     campaign.staff_name || 
                      campaign.User?.name || 
                      users?.find(u => u.id === campaign.creator_id)?.name ||
                      'N/A'}

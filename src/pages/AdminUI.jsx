@@ -173,7 +173,7 @@ export default function AdminUI({ user, onLogout }) {
             }
             
             activities.push({
-              user: campaign.User?.name || campaign.manager_name || '관리자',
+              user: campaign.User?.name || campaign.staff_name || '관리자',
               action: `'${campaign.name}' 캠페인을 생성했습니다.`,
               time: timeText,
               type: 'action'
@@ -197,7 +197,7 @@ export default function AdminUI({ user, onLogout }) {
                 }
                 
                 activities.push({
-                  user: campaign.User?.name || campaign.manager_name || '관리자',
+                  user: campaign.User?.name || campaign.staff_name || '관리자',
                   action: `'${post.title}' 주제를 등록했습니다.`,
                   time: postTimeText,
                   type: post.topicStatus === '대기' ? 'action' : 

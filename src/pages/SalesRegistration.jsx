@@ -62,7 +62,7 @@ const SalesRegistration = ({ loggedInUser }) => {
             projectBudget: summary.total_revenue || campaign.budget,
             clientName: campaign.client,
             clientContact: '담당자', // 기본값
-            staffName: campaign.manager_name || campaign.User?.name || '담당자',
+            staffName: campaign.staff_name || campaign.User?.name || '담당자',
             agencyName: '대행사A', // 기본값
             sellingPrice: summary.total_revenue || parseInt(campaign.budget) || 0,
             costPrice: summary.total_cost || 0,
@@ -87,7 +87,7 @@ const SalesRegistration = ({ loggedInUser }) => {
             projectBudget: campaign.budget || 0,
             clientName: campaign.client,
             clientContact: '담당자',
-            staffName: campaign.manager_name || campaign.User?.name || '담당자',
+            staffName: campaign.staff_name || campaign.User?.name || '담당자',
             agencyName: '대행사A',
             sellingPrice: parseInt(campaign.budget) || 0,
             costPrice: 0,

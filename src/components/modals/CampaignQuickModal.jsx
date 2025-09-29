@@ -93,7 +93,7 @@ const CampaignQuickModal = ({ campaign, isOpen, onClose, onEdit }) => {
           <div>
             <h4 className="font-medium text-gray-900 mb-2">담당자</h4>
             <div className="bg-gray-50 rounded-lg p-3">
-              <span className="text-sm font-medium">{campaign.manager_name || campaign.User?.name || '미정'}</span>
+              <span className="text-sm font-medium">{campaign.staff_name || campaign.User?.name || '미정'}</span>
             </div>
           </div>
 
