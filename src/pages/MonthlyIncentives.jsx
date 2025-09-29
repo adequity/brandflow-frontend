@@ -108,9 +108,9 @@ const MonthlyIncentives = ({ loggedInUser }) => {
 
           // 매출과 이익을 별도로 계산
           const { totalRevenue, totalCost, totalProfit } = revenueCampaigns.reduce((acc, campaign) => {
-            // 캠페인 담당자 확인 (creator_id 기준)
-            const campaignAssignedToUser = campaign.creator_id === user.id;
-            console.log(`  🎯 캠페인 ${campaign.name} - 담당자: ${campaign.creator_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
+            // 캠페인 담당자 확인 (staff_id 기준)
+            const campaignAssignedToUser = campaign.staff_id === user.id;
+            console.log(`  🎯 캠페인 ${campaign.name} - 담당자: ${campaign.staff_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
 
             // 캠페인 담당자인 경우 매출과 이익 계산
             if (campaignAssignedToUser) {
