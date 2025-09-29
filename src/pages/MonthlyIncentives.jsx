@@ -111,29 +111,15 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             const campaignAssignedToUser = campaign.creator_id === user.id;
             console.log(`  🎯 캠페인 ${campaign.name} - 담당자: ${campaign.creator_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
 
-            const campaignRevenue = campaign.posts?.reduce((postSum, post) => {
-              // 1. 포스트에 개별 담당자가 지정된 경우: 포스트 담당자 우선
-              if (post.assigned_user_id) {
-                if (post.assigned_user_id !== user.id) {
-                  console.log(`    📄 포스트 ${post.title} - 개별 담당자 (${post.assigned_user_id}), 매출 제외`);
-                  return postSum;
-                }
-                console.log(`    📄 포스트 ${post.title} - 개별 담당자 매치, 매출 포함`);
-              }
-              // 2. 포스트에 담당자가 없는 경우: 캠페인 담당자 확인
-              else if (!campaignAssignedToUser) {
-                console.log(`    📄 포스트 ${post.title} - 캠페인 담당자 불일치, 매출 제외`);
-                return postSum;
-              } else {
-                console.log(`    📄 포스트 ${post.title} - 캠페인 담당자 매치, 매출 포함`);
-              }
-
-              const postRevenue = (post.unitPrice || 0) * (post.quantity || 1);
-              console.log(`    📄 매출: ${post.unitPrice || 0} × ${post.quantity || 1} = ${postRevenue}원`);
-              return postSum + postRevenue;
-            }, 0) || 0;
-            console.log(`  🎯 캠페인 ${campaign.name} 사용자 ${user.name} 최종 매출: ${campaignRevenue}원`);
-            return sum + campaignRevenue;
+            // 캠페인 담당자인 경우 캠페인 예산을 매출로 계산
+            if (campaignAssignedToUser) {
+              const campaignBudget = campaign.budget || 0;
+              console.log(`  💰 캠페인 ${campaign.name} 예산: ${campaignBudget}원`);
+              return sum + campaignBudget;
+            } else {
+              console.log(`  🚫 캠페인 ${campaign.name} - 담당자가 아니므로 매출 제외`);
+              return sum;
+            }
           }, 0);
 
           console.log(`💵 사용자 ${user.name} 총 매출: ${totalRevenue}원`);
@@ -160,7 +146,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
             status: baseIncentive > 0 ? '계산 완료' : '매출 없음',
             calculatedAt: new Date().toISOString(),
             campaignCount: revenueCampaigns.length,
-            notes: `${revenueCampaigns.length}개 캠페인 기준, 매출: ${totalRevenue.toLocaleString()}원`
+            notes: `${revenueCampaigns.length}개 캠페인 예산 합산, 매출: ${totalRevenue.toLocaleString()}원`
           };
         } catch (error) {
           console.error(`사용자 ${user.name}의 인센티브 계산 실패:`, error);
