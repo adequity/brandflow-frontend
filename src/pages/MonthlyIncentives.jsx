@@ -142,9 +142,15 @@ const MonthlyIncentives = ({ loggedInUser }) => {
           });
 
           const { totalRevenue, totalCost, totalProfit } = revenueCampaigns.reduce((acc, campaign) => {
-            const campaignAssignedToUser = campaign.staff_id === user.id;
+            // 타입을 맞춰서 비교 (둘 다 숫자로 변환)
+            const campaignStaffId = parseInt(campaign.staff_id);
+            const currentUserId = parseInt(user.id);
+            const campaignAssignedToUser = campaignStaffId === currentUserId;
+
             console.log(`  🎯 캠페인 ${campaign.name} (ID: ${campaign.id}):`);
-            console.log(`    - staff_id: ${campaign.staff_id}, 현재 사용자: ${user.id}, 담당여부: ${campaignAssignedToUser}`);
+            console.log(`    - staff_id: ${campaign.staff_id} (${typeof campaign.staff_id}) → ${campaignStaffId}`);
+            console.log(`    - 현재 사용자: ${user.id} (${typeof user.id}) → ${currentUserId}`);
+            console.log(`    - 담당여부: ${campaignAssignedToUser}`);
             console.log(`    - budget: ${campaign.budget} (타입: ${typeof campaign.budget})`);
 
             if (campaignAssignedToUser) {
