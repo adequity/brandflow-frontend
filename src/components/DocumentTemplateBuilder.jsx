@@ -50,52 +50,67 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
 
     const fetchCompanyInfo = async () => {
         try {
-            const response = await api.get('/api/admin/system-settings/?category=branding');
-            const settings = response.data.settings || [];
+            // 새로운 회사별 설정 API 사용
+            const response = await api.get('/api/company-settings/info');
 
-            const companyData = {};
-            settings.forEach(setting => {
-                const key = setting.setting_key.replace('company_info_', '');
-                companyData[key] = setting.current_value || setting.default_value;
-            });
-
-            if (Object.keys(companyData).length > 0) {
-                setCompanyInfo(companyData);
+            if (response.data && response.data.success && response.data.info) {
+                setCompanyInfo(response.data.info);
             } else {
-                // 기본값 설정
+                // 빈 상태로 설정 (하드코딩된 기본값 제거)
                 setCompanyInfo({
-                    businessNumber: "119-86-25255",
-                    name: "성현시스템 주식회사",
-                    ceo: "임선준",
-                    address: "서울시 금천구 가산디지털2로 108, 뉴티캐슬 1101호, 1102호",
-                    businessType: "제조, 도소매외",
-                    businessItem: "전자제품,정보통신공사외"
+                    businessNumber: "",
+                    name: "",
+                    ceo: "",
+                    address: "",
+                    businessType: "",
+                    businessItem: "",
+                    bankName: "",
+                    accountNumber: "",
+                    accountHolder: "",
+                    sealImageUrl: ""
                 });
             }
         } catch (error) {
             console.error('회사 정보 로딩 실패:', error);
-            // 기본값으로 설정
+            // 빈 상태로 설정 (하드코딩된 기본값 제거)
             setCompanyInfo({
-                businessNumber: "119-86-25255",
-                name: "성현시스템 주식회사",
-                ceo: "임선준",
-                address: "서울시 금천구 가산디지털2로 108, 뉴티캐슬 1101호, 1102호",
-                businessType: "제조, 도소매외",
-                businessItem: "전자제품,정보통신공사외"
+                businessNumber: "",
+                name: "",
+                ceo: "",
+                address: "",
+                businessType: "",
+                businessItem: "",
+                bankName: "",
+                accountNumber: "",
+                accountHolder: "",
+                sealImageUrl: ""
             });
         }
     };
 
     const saveCompanyInfo = async () => {
         try {
+            // 새로운 회사별 설정 API 사용
             const settingsToUpdate = {};
             Object.keys(companyInfo).forEach(key => {
-                settingsToUpdate[`company_info_${key}`] = companyInfo[key];
+                // camelCase를 snake_case로 변환
+                let settingKey;
+                if (key === 'businessNumber') settingKey = 'business_number';
+                else if (key === 'name') settingKey = 'company_name';
+                else if (key === 'ceo') settingKey = 'ceo_name';
+                else if (key === 'address') settingKey = 'company_address';
+                else if (key === 'businessType') settingKey = 'business_type';
+                else if (key === 'businessItem') settingKey = 'business_item';
+                else if (key === 'bankName') settingKey = 'bank_name';
+                else if (key === 'accountNumber') settingKey = 'account_number';
+                else if (key === 'accountHolder') settingKey = 'account_holder';
+                else if (key === 'sealImageUrl') settingKey = 'seal_image_url';
+                else settingKey = key;
+
+                settingsToUpdate[settingKey] = companyInfo[key] || '';
             });
 
-            await api.post('/api/admin/system-settings/bulk-update', {
-                settings: settingsToUpdate
-            });
+            await api.post('/api/company-settings/bulk-update', settingsToUpdate);
 
             setEditingCompanyInfo(false);
             alert('회사 정보가 저장되었습니다!');
