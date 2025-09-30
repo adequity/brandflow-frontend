@@ -3,8 +3,8 @@ import { FileText, Plus, Minus, Download, Eye, Settings, Building } from 'lucide
 import api from '../api/client';
 
 const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
-    // 회사 정보 편집 권한 체크 (관리자 및 슈퍼 어드민)
-    const canEditCompanyInfo = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+    // 회사 정보 편집 권한 체크 (에이전시 관리자 및 슈퍼 어드민)
+    const canEditCompanyInfo = user?.role === 'AGENCY_ADMIN' || user?.role === 'SUPER_ADMIN';
     const [template, setTemplate] = useState(initialTemplate || {
         header: {
             title: "거래명세표",
@@ -571,7 +571,7 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
                                     💡 이 정보는 모든 문서에서 공통으로 사용됩니다.
                                     {!canEditCompanyInfo && (
                                         <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800">
-                                            ⚠️ 회사 정보 수정은 관리자(ADMIN) 또는 슈퍼 어드민(SUPER_ADMIN)만 가능합니다.
+                                            ⚠️ 회사 정보 수정은 에이전시 관리자(AGENCY_ADMIN) 또는 슈퍼 어드민(SUPER_ADMIN)만 가능합니다.
                                         </div>
                                     )}
                                 </div>

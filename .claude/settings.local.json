@@ -5,7 +5,9 @@
       "WebFetch(domain:brandflow-backend-production-99ae.up.railway.app)",
       "Bash(railway list:*)",
       "Bash(git push:*)",
-      "Bash(railway logs:*)"
+      "Bash(railway logs:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": [],
