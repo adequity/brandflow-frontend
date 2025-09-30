@@ -116,18 +116,26 @@ const CompanyInfoSection = ({ user }) => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await api.post('/api/file-upload/', formData, {
+            const response = await api.post('/api/files/single', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
 
-            if (response.data && response.data.file_url) {
+            console.log('File upload response:', response.data);
+
+            if (response.data && response.data.success && response.data.data) {
+                // 백엔드 파일 업로드 응답 구조: { success: true, data: { relative_path: 'images/filename.png', ... } }
+                const relativePath = response.data.data.relative_path;
+                // relative_path는 "images/filename.png" 형태
+                const [category, filename] = relativePath.split('/');
+                const fileUrl = `/api/files/view/${category}/${filename}`;
+
                 setCompanyInfo(prev => ({
                     ...prev,
-                    sealImageUrl: response.data.file_url
+                    sealImageUrl: fileUrl
                 }));
-                setSealPreview(response.data.file_url);
+                setSealPreview(fileUrl);
                 showSuccess('도장 이미지가 업로드되었습니다!');
             }
         } catch (error) {
