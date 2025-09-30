@@ -126,6 +126,14 @@ const CompanyInfoSection = ({ user }) => {
             const formData = new FormData();
             formData.append('file', file);
 
+            // 디버깅: FormData 내용 확인
+            console.log('📁 FormData 생성:', {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                formDataEntries: Array.from(formData.entries())
+            });
+
             // FormData 사용 시 Content-Type 헤더를 수동으로 설정하면 boundary가 누락됨
             // 브라우저가 자동으로 Content-Type과 boundary를 설정하도록 함
             const response = await api.post('/api/files/single', formData);
