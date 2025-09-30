@@ -366,7 +366,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         </div>
                         </div>
 
-                        {/* 오른쪽: 클라이언트 실제 회사 정보 - 클라이언트 역할일 때만 표시 */}
+                        {/* 오른쪽: 회사 정보 - 모든 역할에서 표시 */}
                         {formData.role === 'CLIENT' ? (
                             <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
@@ -456,6 +456,98 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 </div>
                             </div>
                             </div>
+                        ) : formData.role === 'SUPER_ADMIN' || formData.role === 'AGENCY_ADMIN' ? (
+                            <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                                🏢 회사 정보
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-4">
+                                {formData.role === 'AGENCY_ADMIN'
+                                    ? '대행사 관리자의 회사 정보입니다. 문서 생성 시 기본 공급자 정보로 사용됩니다.'
+                                    : '슈퍼 어드민의 회사 정보입니다.'
+                                }
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        회사명
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientCompanyName}
+                                        onChange={(e) => setFormData({...formData, clientCompanyName: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="예: (주)성현시스템"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        사업자등록번호
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientBusinessNumber}
+                                        onChange={(e) => setFormData({...formData, clientBusinessNumber: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="예: 119-86-25255"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        대표자명
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientCeoName}
+                                        onChange={(e) => setFormData({...formData, clientCeoName: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="예: 임선준"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        업태
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientBusinessType}
+                                        onChange={(e) => setFormData({...formData, clientBusinessType: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="예: 제조업, 도소매업"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        회사 주소
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientCompanyAddress}
+                                        onChange={(e) => setFormData({...formData, clientCompanyAddress: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="예: 서울시 금천구 가산디지털2로 108"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        종목
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.clientBusinessItem}
+                                        onChange={(e) => setFormData({...formData, clientBusinessItem: e.target.value})}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="예: 전자제품, 정보통신공사"
+                                    />
+                                </div>
+                            </div>
+                            </div>
                         ) : (
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-400 border-b border-gray-200 pb-2">
@@ -463,7 +555,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 </h3>
                                 <div className="text-center py-8 text-gray-500">
                                     <div className="text-4xl mb-2">📝</div>
-                                    <p>클라이언트 역할일 때 회사 정보를 입력할 수 있습니다.</p>
+                                    <p>STAFF 역할은 상위 관리자가 설정한 회사 정보를 사용합니다.</p>
                                 </div>
                             </div>
                         )}
