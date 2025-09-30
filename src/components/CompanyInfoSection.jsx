@@ -34,14 +34,22 @@ const CompanyInfoSection = ({ user }) => {
 
             if (response.data && response.data.success && response.data.info) {
                 const info = response.data.info;
+                console.log('🔍 API에서 받은 회사 정보:', info);
+                console.log('🔍 도장 이미지 URL:', info.sealImageUrl);
+                console.log('🔍 API_BASE_URL:', API_BASE_URL);
                 setCompanyInfo(info);
 
                 // ✅ 도장 이미지가 상대경로로 저장되어 있으면 미리보기용 절대 URL 생성
                 if (info.sealImageUrl && !info.sealImageUrl.startsWith('http')) {
                     const previewUrl = `${API_BASE_URL}/api/files/view/${info.sealImageUrl}`;
+                    console.log('🖼️ 상대경로 → 절대경로 변환:', {
+                        원본: info.sealImageUrl,
+                        변환후: previewUrl
+                    });
                     setSealPreview(previewUrl);
                 } else if (info.sealImageUrl) {
                     // 기존 절대 URL인 경우 (하위 호환성)
+                    console.log('🖼️ 기존 절대 URL 사용:', info.sealImageUrl);
                     setSealPreview(info.sealImageUrl);
                 }
             } else {
@@ -364,9 +372,19 @@ const CompanyInfoSection = ({ user }) => {
                             <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
                                 {(sealPreview || companyInfo.sealImageUrl) ? (
                                     <img
-                                        src={sealPreview || companyInfo.sealImageUrl}
+                                        src={(() => {
+                                            const url = sealPreview || companyInfo.sealImageUrl;
+                                            console.log('🖼️ 편집모드 이미지 URL:', {
+                                                sealPreview: sealPreview,
+                                                companyInfoUrl: companyInfo.sealImageUrl,
+                                                최종URL: url
+                                            });
+                                            return url;
+                                        })()}
                                         alt="도장 미리보기"
                                         className="max-w-full max-h-full object-contain rounded"
+                                        onLoad={() => console.log('✅ 편집모드 도장 이미지 로드 성공')}
+                                        onError={(e) => console.error('❌ 편집모드 도장 이미지 로드 실패:', e.target.src)}
                                     />
                                 ) : (
                                     <ImageIcon className="text-gray-400" size={24} />
@@ -425,11 +443,21 @@ const CompanyInfoSection = ({ user }) => {
                             <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 border border-gray-300 rounded bg-gray-50 flex items-center justify-center">
                                     <img
-                                        src={companyInfo.sealImageUrl.startsWith('http')
-                                            ? companyInfo.sealImageUrl
-                                            : `${API_BASE_URL}/api/files/view/${companyInfo.sealImageUrl}`}
+                                        src={(() => {
+                                            const finalUrl = companyInfo.sealImageUrl.startsWith('http')
+                                                ? companyInfo.sealImageUrl
+                                                : `${API_BASE_URL}/api/files/view/${companyInfo.sealImageUrl}`;
+                                            console.log('🖼️ 이미지 표시 URL:', {
+                                                원본: companyInfo.sealImageUrl,
+                                                최종URL: finalUrl,
+                                                isHttp: companyInfo.sealImageUrl.startsWith('http')
+                                            });
+                                            return finalUrl;
+                                        })()}
                                         alt="도장"
                                         className="max-w-full max-h-full object-contain rounded"
+                                        onLoad={() => console.log('✅ 도장 이미지 로드 성공')}
+                                        onError={(e) => console.error('❌ 도장 이미지 로드 실패:', e.target.src)}
                                     />
                                 </div>
                                 <span className="text-sm text-green-600">✓ 등록됨</span>
