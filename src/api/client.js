@@ -21,10 +21,14 @@ const createRequest = async (method, url, data = null, config = {}) => {
   
   // Headers
   const headers = {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
     ...config.headers
   };
+
+  // FormData가 아닌 경우에만 Content-Type 설정
+  if (!(data instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
   
   // Add auth token
   const token = localStorage.getItem('authToken');
