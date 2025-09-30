@@ -116,11 +116,9 @@ const CompanyInfoSection = ({ user }) => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await api.post('/api/files/single', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            // FormData 사용 시 Content-Type 헤더를 수동으로 설정하면 boundary가 누락됨
+            // 브라우저가 자동으로 Content-Type과 boundary를 설정하도록 함
+            const response = await api.post('/api/files/single', formData);
 
             console.log('File upload response:', response.data);
 
