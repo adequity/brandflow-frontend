@@ -7,7 +7,10 @@
       "Bash(git push:*)",
       "Bash(railway logs:*)",
       "Bash(git commit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(railway status:*)",
+      "Bash(railway run:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": [],
