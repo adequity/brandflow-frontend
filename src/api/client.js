@@ -54,7 +54,7 @@ const createRequest = async (method, url, data = null, config = {}) => {
     const response = await fetch(requestUrl, {
       method: method.toUpperCase(),
       headers,
-      body: data ? JSON.stringify(data) : null,
+      body: data ? (data instanceof FormData ? data : JSON.stringify(data)) : null,
       signal: AbortSignal.timeout(API_TIMEOUT),
       mode: 'cors',
       credentials: 'include'
