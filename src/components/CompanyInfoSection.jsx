@@ -150,7 +150,19 @@ const CompanyInfoSection = ({ user }) => {
             }
         } catch (error) {
             console.error('도장 업로드 실패:', error);
-            showError('도장 이미지 업로드에 실패했습니다.');
+            console.error('에러 응답:', error.response?.data);
+
+            // 구체적인 에러 메시지 표시
+            let errorMessage = '도장 이미지 업로드에 실패했습니다.';
+            if (error.response?.data?.detail) {
+                if (Array.isArray(error.response.data.detail)) {
+                    errorMessage = error.response.data.detail.map(d => d.msg || d).join(', ');
+                } else {
+                    errorMessage = error.response.data.detail;
+                }
+            }
+
+            showError(errorMessage);
         } finally {
             setUploadingSeal(false);
         }
