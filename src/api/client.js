@@ -1,5 +1,5 @@
 // API Client - Local Development Backend (Railway 연결 문제로 임시 변경)
-const API_BASE_URL = process.env.NODE_ENV === 'production'
+export const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://brandflow-backend-production-99ae.up.railway.app'
   : 'http://127.0.0.1:8083';
 const API_TIMEOUT = 30000;

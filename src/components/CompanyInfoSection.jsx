@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Building, Edit3, Save, X, Upload, Image as ImageIcon } from 'lucide-react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 import { useToast } from '../contexts/ToastContext';
 
 const CompanyInfoSection = ({ user }) => {
@@ -127,7 +127,9 @@ const CompanyInfoSection = ({ user }) => {
                 const relativePath = response.data.data.relative_path;
                 // relative_path는 "images/filename.png" 형태
                 const [category, filename] = relativePath.split('/');
-                const fileUrl = `/api/files/view/${category}/${filename}`;
+
+                // import된 API_BASE_URL 사용하여 하드코딩 방지
+                const fileUrl = `${API_BASE_URL}/api/files/view/${category}/${filename}`;
 
                 setCompanyInfo(prev => ({
                     ...prev,
