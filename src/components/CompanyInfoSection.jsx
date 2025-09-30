@@ -425,7 +425,9 @@ const CompanyInfoSection = ({ user }) => {
                             <div className="flex items-center gap-3">
                                 <div className="w-16 h-16 border border-gray-300 rounded bg-gray-50 flex items-center justify-center">
                                     <img
-                                        src={companyInfo.sealImageUrl}
+                                        src={companyInfo.sealImageUrl.startsWith('http')
+                                            ? companyInfo.sealImageUrl
+                                            : `${API_BASE_URL}/api/files/view/${companyInfo.sealImageUrl}`}
                                         alt="도장"
                                         className="max-w-full max-h-full object-contain rounded"
                                     />
