@@ -3,8 +3,6 @@ import { FileText, Plus, Minus, Download, Eye, Settings, Building } from 'lucide
 import api from '../api/client';
 
 const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
-    // 회사 정보 편집 권한 체크 (에이전시 관리자 및 슈퍼 어드민)
-    const canEditCompanyInfo = user?.role === 'AGENCY_ADMIN' || user?.role === 'SUPER_ADMIN';
     const [template, setTemplate] = useState(initialTemplate || {
         header: {
             title: "거래명세표",
@@ -39,9 +37,6 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
     });
 
     const [previewMode, setPreviewMode] = useState(false);
-    const [editingCompanyInfo, setEditingCompanyInfo] = useState(false);
-    const [uploadingSeal, setUploadingSeal] = useState(false);
-    const [sealPreview, setSealPreview] = useState(null);
 
     // 회사 정보 로드
     useEffect(() => {
@@ -88,106 +83,6 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
         }
     };
 
-    const saveCompanyInfo = async () => {
-        try {
-            // 새로운 회사별 설정 API 사용
-            const settingsToUpdate = {};
-            Object.keys(companyInfo).forEach(key => {
-                // camelCase를 snake_case로 변환
-                let settingKey;
-                if (key === 'businessNumber') settingKey = 'business_number';
-                else if (key === 'name') settingKey = 'company_name';
-                else if (key === 'ceo') settingKey = 'ceo_name';
-                else if (key === 'address') settingKey = 'company_address';
-                else if (key === 'businessType') settingKey = 'business_type';
-                else if (key === 'businessItem') settingKey = 'business_item';
-                else if (key === 'bankName') settingKey = 'bank_name';
-                else if (key === 'accountNumber') settingKey = 'account_number';
-                else if (key === 'accountHolder') settingKey = 'account_holder';
-                else if (key === 'sealImageUrl') settingKey = 'seal_image_url';
-                else settingKey = key;
-
-                settingsToUpdate[settingKey] = companyInfo[key] || '';
-            });
-
-            await api.post('/api/company-settings/bulk-update', settingsToUpdate);
-
-            setEditingCompanyInfo(false);
-            alert('회사 정보가 저장되었습니다!');
-        } catch (error) {
-            console.error('회사 정보 저장 실패:', error);
-            alert('회사 정보 저장에 실패했습니다.');
-        }
-    };
-
-    // 도장 이미지 업로드 함수
-    const handleSealImageUpload = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        // 이미지 파일 검증
-        if (!file.type.startsWith('image/')) {
-            alert('이미지 파일만 업로드 가능합니다.');
-            return;
-        }
-
-        // 파일 크기 검증 (5MB 제한)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('파일 크기는 5MB 이하여야 합니다.');
-            return;
-        }
-
-        setUploadingSeal(true);
-
-        try {
-            // 미리보기 설정
-            const reader = new FileReader();
-            reader.onload = (e) => setSealPreview(e.target.result);
-            reader.readAsDataURL(file);
-
-            // FormData로 파일 업로드
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('category', 'seal'); // 도장 이미지 카테고리
-
-            const response = await api.post('/api/files/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            // 업로드된 이미지 URL 저장
-            const imageUrl = response.data.file_url || response.data.url;
-            setCompanyInfo(prev => ({
-                ...prev,
-                sealImageUrl: imageUrl
-            }));
-
-            alert('도장 이미지가 업로드되었습니다!');
-        } catch (error) {
-            console.error('도장 이미지 업로드 실패:', error);
-            alert('도장 이미지 업로드에 실패했습니다.');
-            setSealPreview(null);
-        } finally {
-            setUploadingSeal(false);
-        }
-    };
-
-    // 도장 이미지 삭제 함수
-    const handleSealImageRemove = () => {
-        setCompanyInfo(prev => ({
-            ...prev,
-            sealImageUrl: ""
-        }));
-        setSealPreview(null);
-    };
-
-    const updateCompanyInfo = (field, value) => {
-        setCompanyInfo(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
 
     const updateTemplate = (section, field, value) => {
         setTemplate(prev => ({
@@ -367,231 +262,23 @@ const DocumentTemplateBuilder = ({ onSave, initialTemplate = null, user }) => {
                         </div>
                     </div>
 
-                    {/* 회사 정보 관리 */}
-                    <div className="bg-white p-6 rounded-lg shadow-sm border">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold flex items-center gap-2">
-                                <Building size={18} />
-                                내 회사 정보
-                            </h3>
-                            {canEditCompanyInfo && (
-                                <button
-                                    onClick={() => setEditingCompanyInfo(!editingCompanyInfo)}
-                                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                    {editingCompanyInfo ? '취소' : '편집'}
-                                </button>
-                            )}
+                    {/* 회사 정보 참고 안내 */}
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Building size={18} className="text-blue-600" />
+                            <h3 className="text-md font-semibold text-blue-800">회사 정보 설정</h3>
                         </div>
-
-                        {editingCompanyInfo ? (
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">사업자번호</label>
-                                    <input
-                                        type="text"
-                                        value={companyInfo.businessNumber}
-                                        onChange={(e) => updateCompanyInfo('businessNumber', e.target.value)}
-                                        className="w-full p-2 border rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">회사명</label>
-                                    <input
-                                        type="text"
-                                        value={companyInfo.name}
-                                        onChange={(e) => updateCompanyInfo('name', e.target.value)}
-                                        className="w-full p-2 border rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">대표자</label>
-                                    <input
-                                        type="text"
-                                        value={companyInfo.ceo}
-                                        onChange={(e) => updateCompanyInfo('ceo', e.target.value)}
-                                        className="w-full p-2 border rounded-lg"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">주소</label>
-                                    <textarea
-                                        value={companyInfo.address}
-                                        onChange={(e) => updateCompanyInfo('address', e.target.value)}
-                                        className="w-full p-2 border rounded-lg"
-                                        rows={2}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">업태</label>
-                                        <input
-                                            type="text"
-                                            value={companyInfo.businessType}
-                                            onChange={(e) => updateCompanyInfo('businessType', e.target.value)}
-                                            className="w-full p-2 border rounded-lg"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">종목</label>
-                                        <input
-                                            type="text"
-                                            value={companyInfo.businessItem}
-                                            onChange={(e) => updateCompanyInfo('businessItem', e.target.value)}
-                                            className="w-full p-2 border rounded-lg"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* 입금 계좌 정보 */}
-                                <div className="border-t pt-4 mt-6">
-                                    <h4 className="text-md font-medium mb-3 text-gray-800">입금 계좌 정보</h4>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">은행명</label>
-                                            <input
-                                                type="text"
-                                                value={companyInfo.bankName || ''}
-                                                onChange={(e) => updateCompanyInfo('bankName', e.target.value)}
-                                                className="w-full p-2 border rounded-lg"
-                                                placeholder="예: 국민은행"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">계좌번호</label>
-                                            <input
-                                                type="text"
-                                                value={companyInfo.accountNumber || ''}
-                                                onChange={(e) => updateCompanyInfo('accountNumber', e.target.value)}
-                                                className="w-full p-2 border rounded-lg"
-                                                placeholder="예: 123456-78-901234"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">예금주</label>
-                                            <input
-                                                type="text"
-                                                value={companyInfo.accountHolder || ''}
-                                                onChange={(e) => updateCompanyInfo('accountHolder', e.target.value)}
-                                                className="w-full p-2 border rounded-lg"
-                                                placeholder="예: 성현시스템 주식회사"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* 도장 이미지 설정 */}
-                                <div className="border-t pt-4 mt-6">
-                                    <h4 className="text-md font-medium mb-3 text-gray-800">공급자 도장</h4>
-                                    <div className="space-y-3">
-                                        {/* 현재 도장 이미지 미리보기 */}
-                                        {(companyInfo.sealImageUrl || sealPreview) && (
-                                            <div className="flex items-center gap-4">
-                                                <div className="border border-gray-300 rounded-lg p-2 bg-gray-50">
-                                                    <img
-                                                        src={sealPreview || companyInfo.sealImageUrl}
-                                                        alt="도장 미리보기"
-                                                        className="w-16 h-16 object-contain"
-                                                    />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-sm text-gray-600">현재 도장 이미지</p>
-                                                    <button
-                                                        onClick={handleSealImageRemove}
-                                                        className="text-xs text-red-600 hover:text-red-800 mt-1"
-                                                    >
-                                                        삭제
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* 도장 이미지 업로드 */}
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">
-                                                도장 이미지 업로드 (.png, .jpg 권장)
-                                            </label>
-                                            <div className="flex items-center gap-3">
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={handleSealImageUpload}
-                                                    className="hidden"
-                                                    id="seal-upload"
-                                                    disabled={uploadingSeal}
-                                                />
-                                                <label
-                                                    htmlFor="seal-upload"
-                                                    className={`px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 flex items-center gap-2 text-sm ${
-                                                        uploadingSeal ? 'opacity-50 cursor-not-allowed' : ''
-                                                    }`}
-                                                >
-                                                    <Plus size={16} />
-                                                    {uploadingSeal ? '업로드 중...' : '이미지 선택'}
-                                                </label>
-                                            </div>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                • 권장 크기: 80x80px 정방형
-                                                • 투명 배경 PNG 파일 권장
-                                                • 최대 파일 크기: 5MB
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={saveCompanyInfo}
-                                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 mt-6"
-                                >
-                                    회사 정보 저장
-                                </button>
+                        <p className="text-sm text-blue-700 mb-3">
+                            문서에 표시될 회사 정보와 도장 이미지는 <strong>시스템 설정 → 내 회사 정보</strong>에서 관리할 수 있습니다.
+                        </p>
+                        <div className="space-y-2 text-sm text-blue-700">
+                            <div><span className="font-medium">현재 설정:</span></div>
+                            <div className="ml-4 space-y-1 text-xs">
+                                <div>• 회사명: {companyInfo.name || '미설정'}</div>
+                                <div>• 계좌정보: {companyInfo.bankName ? `${companyInfo.bankName} ${companyInfo.accountNumber}` : '미설정'}</div>
+                                <div>• 도장: {companyInfo.sealImageUrl ? '등록됨' : '미등록'}</div>
                             </div>
-                        ) : (
-                            <div className="space-y-3 text-sm text-gray-700">
-                                <div><span className="font-medium">사업자번호:</span> {companyInfo.businessNumber || '미입력'}</div>
-                                <div><span className="font-medium">회사명:</span> {companyInfo.name || '미입력'}</div>
-                                <div><span className="font-medium">대표자:</span> {companyInfo.ceo || '미입력'}</div>
-                                <div><span className="font-medium">주소:</span> {companyInfo.address || '미입력'}</div>
-                                <div><span className="font-medium">업태:</span> {companyInfo.businessType || '미입력'}</div>
-                                <div><span className="font-medium">종목:</span> {companyInfo.businessItem || '미입력'}</div>
-
-                                {/* 입금 계좌 정보 표시 */}
-                                <div className="border-t pt-3 mt-3">
-                                    <div className="text-xs font-medium text-gray-600 mb-2">입금 계좌 정보</div>
-                                    <div><span className="font-medium">은행명:</span> {companyInfo.bankName || '미입력'}</div>
-                                    <div><span className="font-medium">계좌번호:</span> {companyInfo.accountNumber || '미입력'}</div>
-                                    <div><span className="font-medium">예금주:</span> {companyInfo.accountHolder || '미입력'}</div>
-                                </div>
-
-                                {/* 도장 이미지 표시 */}
-                                <div className="border-t pt-3 mt-3">
-                                    <div className="text-xs font-medium text-gray-600 mb-2">공급자 도장</div>
-                                    {companyInfo.sealImageUrl ? (
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 border border-gray-300 rounded bg-gray-50 flex items-center justify-center">
-                                                <img
-                                                    src={companyInfo.sealImageUrl}
-                                                    alt="도장 미리보기"
-                                                    className="max-w-full max-h-full object-contain"
-                                                />
-                                            </div>
-                                            <span className="text-xs text-green-600">✓ 등록됨</span>
-                                        </div>
-                                    ) : (
-                                        <div className="text-xs text-gray-500">미등록</div>
-                                    )}
-                                </div>
-
-                                <div className="text-xs text-gray-500 mt-3">
-                                    💡 이 정보는 모든 문서에서 공통으로 사용됩니다.
-                                    {!canEditCompanyInfo && (
-                                        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-yellow-800">
-                                            ⚠️ 회사 정보 수정은 에이전시 관리자(AGENCY_ADMIN) 또는 슈퍼 어드민(SUPER_ADMIN)만 가능합니다.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* 문서 설정 */}
