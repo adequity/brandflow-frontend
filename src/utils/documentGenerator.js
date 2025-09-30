@@ -42,7 +42,11 @@ const getDefaultCompanyInfo = () => {
         ceo: "임선준",
         address: "서울시 금천구 가산디지털2로 108, 뉴티캐슬 1101호, 1102호",
         businessType: "제조, 도소매외",
-        businessItem: "전자제품,정보통신공사외"
+        businessItem: "전자제품,정보통신공사외",
+        bankName: "",
+        accountNumber: "",
+        accountHolder: "",
+        sealImageUrl: ""
     };
 };
 
@@ -423,7 +427,16 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
             height: 80px;
             border: 1px solid ${styles.primaryColor};
             margin-top: 10px;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+        }
+
+        .signature-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
     </style>
 </head>
@@ -501,11 +514,20 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
     <div class="footer-info">
         <div class="account-info">
             <h4>계좌정보</h4>
-            <div>입금계좌: [계좌정보 입력]</div>
+            ${safeCompanyInfo.bankName || safeCompanyInfo.accountNumber || safeCompanyInfo.accountHolder ? `
+                <div>은행명: ${safeCompanyInfo.bankName || '-'}</div>
+                <div>계좌번호: ${safeCompanyInfo.accountNumber || '-'}</div>
+                <div>예금주: ${safeCompanyInfo.accountHolder || '-'}</div>
+            ` : '<div>입금계좌: [계좌정보 미입력]</div>'}
         </div>
         <div class="signature-area">
             <div>공급자 (인)</div>
-            <div class="signature-box"></div>
+            <div class="signature-box">
+                ${safeCompanyInfo.sealImageUrl ?
+                    `<img src="${safeCompanyInfo.sealImageUrl}" alt="회사 도장" />` :
+                    ''
+                }
+            </div>
         </div>
     </div>
 </body>
