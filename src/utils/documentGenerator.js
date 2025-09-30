@@ -1,4 +1,4 @@
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 
 /**
  * 문서 생성을 위한 유틸리티 함수들
@@ -13,6 +13,12 @@ export const fetchCompanyInfo = async () => {
 
         if (response.data && response.data.success && response.data.info) {
             const companyData = response.data.info;
+
+            // ✅ 도장 이미지가 상대경로로 저장되어 있으면 절대 URL로 변환
+            if (companyData.sealImageUrl && !companyData.sealImageUrl.startsWith('http')) {
+                companyData.sealImageUrl = `${API_BASE_URL}/api/files/view/${companyData.sealImageUrl}`;
+            }
+
             console.log('🏢 처리된 공급자 정보:', companyData);
             return companyData;
         } else {

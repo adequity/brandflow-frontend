@@ -33,7 +33,17 @@ const CompanyInfoSection = ({ user }) => {
             const response = await api.get('/api/company-settings/info');
 
             if (response.data && response.data.success && response.data.info) {
-                setCompanyInfo(response.data.info);
+                const info = response.data.info;
+                setCompanyInfo(info);
+
+                // ✅ 도장 이미지가 상대경로로 저장되어 있으면 미리보기용 절대 URL 생성
+                if (info.sealImageUrl && !info.sealImageUrl.startsWith('http')) {
+                    const previewUrl = `${API_BASE_URL}/api/files/view/${info.sealImageUrl}`;
+                    setSealPreview(previewUrl);
+                } else if (info.sealImageUrl) {
+                    // 기존 절대 URL인 경우 (하위 호환성)
+                    setSealPreview(info.sealImageUrl);
+                }
             } else {
                 // 빈 상태로 설정
                 setCompanyInfo({
@@ -125,17 +135,17 @@ const CompanyInfoSection = ({ user }) => {
             if (response.data && response.data.success && response.data.data) {
                 // 백엔드 파일 업로드 응답 구조: { success: true, data: { relative_path: 'images/filename.png', ... } }
                 const relativePath = response.data.data.relative_path;
-                // relative_path는 "images/filename.png" 형태
-                const [category, filename] = relativePath.split('/');
 
-                // import된 API_BASE_URL 사용하여 하드코딩 방지
-                const fileUrl = `${API_BASE_URL}/api/files/view/${category}/${filename}`;
-
+                // ✅ DB에는 상대경로만 저장 (하드코딩 방지)
                 setCompanyInfo(prev => ({
                     ...prev,
-                    sealImageUrl: fileUrl
+                    sealImageUrl: relativePath  // "images/filename.png" 형태로만 저장
                 }));
-                setSealPreview(fileUrl);
+
+                // ✅ 미리보기용으로만 절대 URL 생성
+                const previewUrl = `${API_BASE_URL}/api/files/view/${relativePath}`;
+                setSealPreview(previewUrl);
+
                 showSuccess('도장 이미지가 업로드되었습니다!');
             }
         } catch (error) {
