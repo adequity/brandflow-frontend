@@ -41,7 +41,15 @@ const CompanyInfoSection = ({ user }) => {
 
                 // ✅ 도장 이미지가 상대경로로 저장되어 있으면 미리보기용 절대 URL 생성
                 if (info.sealImageUrl && !info.sealImageUrl.startsWith('http')) {
-                    const previewUrl = `${API_BASE_URL}/api/files/view/${info.sealImageUrl}`;
+                    let previewUrl;
+                    // 상대경로가 이미 category/filename 형태인지 확인
+                    if (info.sealImageUrl.includes('/')) {
+                        // 이미 category/filename 형태: /api/files/view/category/filename
+                        previewUrl = `${API_BASE_URL}/api/files/view/${info.sealImageUrl}`;
+                    } else {
+                        // filename만 있는 경우: images 카테고리 가정
+                        previewUrl = `${API_BASE_URL}/api/files/view/images/${info.sealImageUrl}`;
+                    }
                     console.log('🖼️ 상대경로 → 절대경로 변환:', {
                         원본: info.sealImageUrl,
                         변환후: previewUrl
