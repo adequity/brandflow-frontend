@@ -7,6 +7,7 @@ import ConfirmModal from '../components/ui/ConfirmModal';
 import LogoUpload from '../components/LogoUpload';
 import TelegramSettings from '../components/TelegramSettings';
 import DocumentTemplateBuilder from '../components/DocumentTemplateBuilder';
+import CompanyInfoSection from '../components/CompanyInfoSection';
 import useLogo from '../hooks/useLogo';
 
 const SystemSettings = ({ loggedInUser }) => {
@@ -22,6 +23,7 @@ const SystemSettings = ({ loggedInUser }) => {
 
   const categories = [
     { id: 'all', label: '전체', icon: <Settings size={16} /> },
+    { id: 'company', label: '내 회사 정보', icon: <Shield size={16} /> },
     { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
     { id: 'document', label: '문서 템플릿', icon: <FileText size={16} /> },
     { id: 'telegram', label: '텔레그램 알림', icon: <Settings size={16} /> },
@@ -287,6 +289,13 @@ const SystemSettings = ({ loggedInUser }) => {
           ))}
         </div>
       </div>
+
+      {/* 내 회사 정보 섹션 */}
+      {(selectedCategory === 'all' || selectedCategory === 'company') && (
+        <div className="mb-6">
+          <CompanyInfoSection user={loggedInUser} />
+        </div>
+      )}
 
       {/* 브랜딩 섹션 */}
       {(selectedCategory === 'all' || selectedCategory === 'branding') && (
