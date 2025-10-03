@@ -74,10 +74,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         // 캠페인 데이터가 없으면 다시 로드 (posts는 대시보드에서 불필요하므로 제거)
         if (!campaigns || campaigns.length === 0) {
           try {
-            const campaignsResponse = await apiEndpoints.campaigns.list({
-              viewerId: user.id, 
-              viewerRole: user.role
-            });
+            const campaignsResponse = await api.get('/api/campaigns');
             latestCampaigns = campaignsResponse.data || [];
             console.log('[DASHBOARD] 캠페인 목록 로드 완료:', latestCampaigns.length, '개');
           } catch (error) {
