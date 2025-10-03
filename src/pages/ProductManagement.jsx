@@ -60,44 +60,8 @@ const ProductManagement = ({ loggedInUser }) => {
           setProducts([]);
         }
       } else {
-        console.warn('ProductManagement: 인증 토큰이 없어 실제 데이터 직접 로드 시도');
-        // 토큰 없이도 실제 상품 데이터 로드 시도
-        try {
-          const apiUrl = 'https://brandflow-backend-production-99ae.up.railway.app/api/products/?viewerId=1&viewerRole=super_admin';
-          const response = await fetch(apiUrl);
-          
-          if (response.ok) {
-            const productData = await response.json();
-            const realProducts = productData.data || productData.results || productData;
-            
-            if (realProducts && Array.isArray(realProducts)) {
-              // 필터 적용
-              let filteredProducts = realProducts;
-              
-              if (filters.category && filters.category !== '') {
-                filteredProducts = filteredProducts.filter(product => product.category === filters.category);
-              }
-              
-              if (filters.isActive === 'true') {
-                filteredProducts = filteredProducts.filter(product => product.isActive === true);
-              } else if (filters.isActive === 'false') {
-                filteredProducts = filteredProducts.filter(product => product.isActive === false);
-              }
-              
-              setProducts(filteredProducts);
-              console.log('ProductManagement: 토큰 없이 실제 상품 데이터 로드 성공:', filteredProducts.length, '개');
-            } else {
-              setProducts([]);
-              console.log('ProductManagement: 상품 데이터가 비어있음');
-            }
-          } else {
-            setProducts([]);
-            console.warn('ProductManagement: 상품 API 호출 실패:', response.status);
-          }
-        } catch (error) {
-          console.error('ProductManagement: 토큰 없이 상품 로드 실패:', error);
-          setProducts([]);
-        }
+        console.warn('ProductManagement: 인증 토큰이 없습니다. 빈 상품 목록으로 설정합니다.');
+        setProducts([]);
       }
     } catch (error) {
       console.error('상품 목록 로딩 실패:', error);
@@ -126,23 +90,8 @@ const ProductManagement = ({ loggedInUser }) => {
           setCategories([]);
         }
       } else {
-        console.warn('ProductManagement: 토큰 없이 실제 업무타입 로드 시도');
-        // 토큰 없이도 실제 업무타입 로드 시도
-        try {
-          const response = await fetch('https://brandflow-backend-production-99ae.up.railway.app/api/work-types?viewerId=1&viewerRole=super_admin');
-          if (response.ok) {
-            const workTypesData = await response.json();
-            const workTypes = workTypesData.data || workTypesData.results || workTypesData;
-            const categories = Array.isArray(workTypes) ? workTypes.map(wt => wt.name || wt) : [];
-            setCategories(categories);
-            console.log('ProductManagement: 토큰 없이 실제 업무타입 로드 성공:', categories.length, '개');
-          } else {
-            setCategories([]);
-          }
-        } catch (error) {
-          console.error('ProductManagement: 토큰 없이 업무타입 로드 실패:', error);
-          setCategories([]);
-        }
+        console.warn('ProductManagement: 인증 토큰이 없습니다. 빈 카테고리 목록으로 설정합니다.');
+        setCategories([]);
       }
     } catch (error) {
       console.error('ProductManagement: 카테고리 목록 로딩 실패:', error);

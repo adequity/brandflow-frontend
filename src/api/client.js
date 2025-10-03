@@ -1,7 +1,5 @@
-// API Client - Local Development Backend (Railway 연결 문제로 임시 변경)
-export const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? 'https://brandflow-backend-production-99ae.up.railway.app'
-  : 'http://127.0.0.1:8083';
+// API Client - Railway Production Backend
+export const API_BASE_URL = 'https://brandflow-backend-production-99ae.up.railway.app';
 const API_TIMEOUT = 30000;
 
 console.log('🔧 API Client 초기화:', API_BASE_URL);
