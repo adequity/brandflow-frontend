@@ -23,7 +23,19 @@ const WorkTypeManagement = ({ loggedInUser }) => {
       // JWT 기반 API 호출 (파라미터 없이, Authorization 헤더만 사용)
       const response = await api.get('/api/work-types');
       console.log('✅ WorkTypeManagement JWT: API 호출 성공', response.data);
-      setWorkTypes(response.data || []);
+
+      // 백엔드 snake_case를 프론트엔드 camelCase로 변환
+      const workTypesData = (response.data || []).map(wt => ({
+        id: wt.id,
+        name: wt.name,
+        description: wt.description,
+        isActive: wt.is_active,  // snake_case → camelCase
+        sortOrder: wt.sortOrder || wt.sort_order || 0,
+        createdAt: wt.created_at || wt.createdAt,
+        updatedAt: wt.updated_at || wt.updatedAt
+      }));
+
+      setWorkTypes(workTypesData);
     } catch (error) {
       console.error('업무타입 목록 로딩 실패:', error);
       showError('업무타입 목록을 불러오는데 실패했습니다.');
@@ -104,17 +116,18 @@ const WorkTypeManagement = ({ loggedInUser }) => {
   const confirmToggleActive = async () => {
     const workType = toggleConfirm.workType;
     if (!workType) return;
-    
+
     try {
+      // 백엔드에 snake_case로 전송
       await api.put(`/api/work-types/${workType.id}`, {
-        isActive: !workType.isActive
+        is_active: !workType.isActive  // camelCase → snake_case
       }, {
         params: {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role
         }
       });
-      
+
       showSuccess(`업무타입이 ${workType.isActive ? '비활성' : '활성'}화되었습니다.`);
       fetchWorkTypes();
       setToggleConfirm({ isOpen: false, workType: null });
