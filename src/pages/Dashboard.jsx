@@ -271,23 +271,25 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const employeeCampaigns = latestCampaigns.filter(c =>
             c.creator_id === user.id || c.staff_id === user.id
           );
-          let employeeRevenue = 0;
 
-          console.log('[STAFF-DASHBOARD] 담당 캠페인 필터링:', {
+          // 담당 캠페인의 budget 합계 계산
+          const employeeRevenue = employeeCampaigns.reduce((sum, campaign) => {
+            return sum + (campaign.budget || 0);
+          }, 0);
+
+          console.log('[STAFF-DASHBOARD] 담당 캠페인 매출 계산:', {
             userId: user.id,
             totalCampaigns: latestCampaigns.length,
             employeeCampaigns: employeeCampaigns.length,
-            campaigns: employeeCampaigns.map(c => ({ id: c.id, name: c.name, creator_id: c.creator_id, staff_id: c.staff_id }))
+            totalRevenue: employeeRevenue,
+            campaigns: employeeCampaigns.map(c => ({
+              id: c.id,
+              name: c.name,
+              creator_id: c.creator_id,
+              staff_id: c.staff_id,
+              budget: c.budget
+            }))
           });
-
-          for (const campaign of employeeCampaigns) {
-            try {
-              const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
-              employeeRevenue += response.data.total_revenue || 0;
-            } catch (error) {
-              console.error(`STAFF 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);
-            }
-          }
 
           // 사용자 인센티브율 가져오기
           const userIncentiveRate = user.incentive_rate ? parseFloat(user.incentive_rate) / 100 : 0.1;
