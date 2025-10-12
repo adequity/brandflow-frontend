@@ -13,7 +13,12 @@
       "Bash(cat:*)",
       "Bash(find:*)",
       "Bash(npm run build:*)",
-      "Bash(start \"C:\\Users\\User\\Desktop\\test_api.html\")"
+      "Bash(start \"C:\\Users\\User\\Desktop\\test_api.html\")",
+      "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/api/admin/check-test-data\")",
+      "Bash(python:*)",
+      "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/docs\")",
+      "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/health\")",
+      "Bash(start \"C:\\Users\\User\\Desktop\\test_campaign_details.html\")"
     ],
     "deny": [],
     "ask": [],

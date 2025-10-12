@@ -267,10 +267,19 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
         // 직원인 경우 실제 데이터 기반 개별 통계
         if (user.role === 'STAFF') {
-          // 직원이 담당하는 캠페인들만 필터링
-          const employeeCampaigns = latestCampaigns.filter(c => c.managerId === user.id || c.manager === user.id);
+          // 직원이 담당하는 캠페인들만 필터링 (백엔드 필드명 사용: creator_id, staff_id)
+          const employeeCampaigns = latestCampaigns.filter(c =>
+            c.creator_id === user.id || c.staff_id === user.id
+          );
           let employeeRevenue = 0;
-          
+
+          console.log('[STAFF-DASHBOARD] 담당 캠페인 필터링:', {
+            userId: user.id,
+            totalCampaigns: latestCampaigns.length,
+            employeeCampaigns: employeeCampaigns.length,
+            campaigns: employeeCampaigns.map(c => ({ id: c.id, name: c.name, creator_id: c.creator_id, staff_id: c.staff_id }))
+          });
+
           for (const campaign of employeeCampaigns) {
             try {
               const response = await apiEndpoints.campaigns.financialSummary(campaign.id);
@@ -279,10 +288,10 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               console.error(`STAFF 캠페인 ${campaign.id} 데이터 로딩 실패:`, error);
             }
           }
-          
+
           // 사용자 인센티브율 가져오기
           const userIncentiveRate = user.incentive_rate ? parseFloat(user.incentive_rate) / 100 : 0.1;
-          
+
           setEmployeeStats({
             thisMonthRevenue: employeeRevenue,
             thisMonthIncentive: employeeRevenue * userIncentiveRate,
