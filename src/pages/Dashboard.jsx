@@ -277,17 +277,30 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             return sum + (campaign.budget || 0);
           }, 0);
 
-          console.log('[STAFF-DASHBOARD] 담당 캠페인 매출 계산:', {
+          // 담당 캠페인의 계산서/입금 상태 계산
+          const employeePendingInvoices = employeeCampaigns.filter(c =>
+            c.invoice_issued === false || c.invoice_issued === null
+          ).length;
+
+          const employeePendingPayments = employeeCampaigns.filter(c =>
+            c.payment_completed === false || c.payment_completed === null
+          ).length;
+
+          console.log('[STAFF-DASHBOARD] 담당 캠페인 통계:', {
             userId: user.id,
             totalCampaigns: latestCampaigns.length,
             employeeCampaigns: employeeCampaigns.length,
             totalRevenue: employeeRevenue,
+            pendingInvoices: employeePendingInvoices,
+            pendingPayments: employeePendingPayments,
             campaigns: employeeCampaigns.map(c => ({
               id: c.id,
               name: c.name,
               creator_id: c.creator_id,
               staff_id: c.staff_id,
-              budget: c.budget
+              budget: c.budget,
+              invoice_issued: c.invoice_issued,
+              payment_completed: c.payment_completed
             }))
           });
 
@@ -297,8 +310,8 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           setEmployeeStats({
             thisMonthRevenue: employeeRevenue,
             thisMonthIncentive: employeeRevenue * userIncentiveRate,
-            pendingInvoices: pendingInvoices,
-            pendingPayments: pendingPayments
+            pendingInvoices: employeePendingInvoices,
+            pendingPayments: employeePendingPayments
           });
         }
 
