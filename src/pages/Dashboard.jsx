@@ -277,13 +277,13 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             return sum + (campaign.budget || 0);
           }, 0);
 
-          // 담당 캠페인의 계산서/입금 상태 계산
+          // 담당 캠페인의 계산서/입금 상태 계산 (false만 카운트)
           const employeePendingInvoices = employeeCampaigns.filter(c =>
-            c.invoice_issued === false || c.invoice_issued === null
+            c.invoice_issued === false
           ).length;
 
           const employeePendingPayments = employeeCampaigns.filter(c =>
-            c.payment_completed === false || c.payment_completed === null
+            c.payment_completed === false
           ).length;
 
           console.log('[STAFF-DASHBOARD] 담당 캠페인 통계:', {
