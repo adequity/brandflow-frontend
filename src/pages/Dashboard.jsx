@@ -278,12 +278,13 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           }, 0);
 
           // 담당 캠페인의 계산서/입금 상태 계산 (false만 카운트)
+          // 백엔드는 camelCase로 반환: invoiceIssued, paymentCompleted
           const employeePendingInvoices = employeeCampaigns.filter(c =>
-            c.invoice_issued === false
+            c.invoiceIssued === false
           ).length;
 
           const employeePendingPayments = employeeCampaigns.filter(c =>
-            c.payment_completed === false
+            c.paymentCompleted === false
           ).length;
 
           console.log('[STAFF-DASHBOARD] 담당 캠페인 통계:', {
@@ -299,8 +300,8 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               creator_id: c.creator_id,
               staff_id: c.staff_id,
               budget: c.budget,
-              invoice_issued: c.invoice_issued,
-              payment_completed: c.payment_completed
+              invoiceIssued: c.invoiceIssued,
+              paymentCompleted: c.paymentCompleted
             }))
           });
 
