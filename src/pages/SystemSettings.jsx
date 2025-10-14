@@ -16,22 +16,32 @@ const SystemSettings = ({ loggedInUser }) => {
   const [settings, setSettings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  // STAFF는 기본적으로 '내 회사 정보' 탭 표시, 나머지는 '전체'
+  const [selectedCategory, setSelectedCategory] = useState(
+    loggedInUser?.role === 'STAFF' ? 'company' : 'all'
+  );
   const [hasChanges, setHasChanges] = useState(false);
   const [modifiedSettings, setModifiedSettings] = useState({});
   const [initConfirm, setInitConfirm] = useState({ isOpen: false });
 
-  const categories = [
-    { id: 'all', label: '전체', icon: <Settings size={16} /> },
-    { id: 'company', label: '내 회사 정보', icon: <Shield size={16} /> },
-    { id: 'branding', label: '브랜딩', icon: <Image size={16} /> },
-    { id: 'document', label: '문서 템플릿', icon: <FileText size={16} /> },
-    { id: 'telegram', label: '텔레그램 알림', icon: <Settings size={16} /> },
+  // STAFF 권한에 따른 카테고리 필터링
+  const isStaff = loggedInUser?.role === 'STAFF';
+  const allCategories = [
+    { id: 'all', label: '전체', icon: <Settings size={16} />, staffAllowed: false },
+    { id: 'company', label: '내 회사 정보', icon: <Shield size={16} />, staffAllowed: true },
+    { id: 'branding', label: '브랜딩', icon: <Image size={16} />, staffAllowed: false },
+    { id: 'document', label: '문서 템플릿', icon: <FileText size={16} />, staffAllowed: false },
+    { id: 'telegram', label: '텔레그램 알림', icon: <Settings size={16} />, staffAllowed: true },
     // 사용하지 않는 탭들 (임시 주석처리)
     // { id: 'incentive', label: '인센티브', icon: <DollarSign size={16} /> },
     // { id: 'sales', label: '매출', icon: <DollarSign size={16} /> },
     // { id: 'general', label: '일반', icon: <Settings size={16} /> }
   ];
+
+  // STAFF는 허용된 카테고리만 표시
+  const categories = isStaff
+    ? allCategories.filter(cat => cat.staffAllowed)
+    : allCategories;
 
   const fetchSettings = async () => {
     if (!loggedInUser?.id) return;
@@ -220,15 +230,17 @@ const SystemSettings = ({ loggedInUser }) => {
     return iconMap[category] || <Settings size={16} />;
   };
 
+  // 관리자 권한 체크 (STAFF는 읽기 전용 접근 허용)
   const canManageSettings = ['SUPER_ADMIN', 'AGENCY_ADMIN'].includes(loggedInUser?.role);
+  const canViewSettings = ['SUPER_ADMIN', 'AGENCY_ADMIN', 'STAFF'].includes(loggedInUser?.role);
 
-  if (!canManageSettings) {
+  if (!canViewSettings) {
     return (
       <div className="p-6 text-center">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
           <Shield className="mx-auto h-12 w-12 text-yellow-600 mb-4" />
           <h3 className="text-lg font-medium text-yellow-800 mb-2">접근 권한 없음</h3>
-          <p className="text-yellow-700">시스템 설정 관리는 관리자 권한이 필요합니다.</p>
+          <p className="text-yellow-700">시스템 설정은 직원 이상의 권한이 필요합니다.</p>
         </div>
       </div>
     );
@@ -243,9 +255,11 @@ const SystemSettings = ({ loggedInUser }) => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">시스템 설정</h1>
-          <p className="text-gray-600 mt-1">업체별 기능 설정을 관리합니다</p>
+          <p className="text-gray-600 mt-1">
+            {isStaff ? '회사 정보 및 알림 설정을 확인할 수 있습니다' : '업체별 기능 설정을 관리합니다'}
+          </p>
         </div>
-        
+
         <div className="flex gap-3">
           {loggedInUser?.role === 'SUPER_ADMIN' && (
             <button
@@ -256,8 +270,8 @@ const SystemSettings = ({ loggedInUser }) => {
               초기화
             </button>
           )}
-          
-          {hasChanges && (
+
+          {hasChanges && canManageSettings && (
             <button
               onClick={saveSettings}
               disabled={isSaving}
