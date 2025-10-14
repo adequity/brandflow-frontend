@@ -43,6 +43,8 @@ const SystemSettings = ({ loggedInUser }) => {
     ? allCategories.filter(cat => cat.staffAllowed)
     : allCategories;
 
+  console.log('[SystemSettings] isStaff:', isStaff, 'categories:', categories.map(c => c.id));
+
   const fetchSettings = async () => {
     if (!loggedInUser?.id) return;
 
