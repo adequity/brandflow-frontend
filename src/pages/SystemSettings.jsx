@@ -46,6 +46,13 @@ const SystemSettings = ({ loggedInUser }) => {
   const fetchSettings = async () => {
     if (!loggedInUser?.id) return;
 
+    // company와 telegram은 시스템 설정이 아니므로 API 호출 불필요
+    if (selectedCategory === 'company' || selectedCategory === 'telegram') {
+      setIsLoading(false);
+      setSettings([]);
+      return;
+    }
+
     setIsLoading(true);
     try {
       // API에서 시스템 설정 데이터 로드
