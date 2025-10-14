@@ -310,7 +310,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               <th className="px-6 py-3">재무 상태</th>
               <th className="px-6 py-3">종료일</th>
               <th className="px-6 py-3">최근 업데이트</th>
-              <th className="px-6 py-3">카톡 관리</th>
+              {/* 카톡 관리 - CLIENT 역할에게는 보이지 않음 */}
+              {currentUser?.role !== 'CLIENT' && (
+                <th className="px-6 py-3">카톡 관리</th>
+              )}
               {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'STAFF') && (
                 <th className="px-6 py-3">관리</th>
               )}
@@ -484,18 +487,21 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                   >
                     {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString() : '-'}
                   </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setChatContentModal(campaign);
-                      }}
-                      className="text-green-600 hover:text-green-900"
-                      title="카톡 내용 정리"
-                    >
-                      <MessageSquare size={16} />
-                    </button>
-                  </td>
+                  {/* 카톡 관리 버튼 - CLIENT 역할에게는 보이지 않음 */}
+                  {currentUser?.role !== 'CLIENT' && (
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setChatContentModal(campaign);
+                        }}
+                        className="text-green-600 hover:text-green-900"
+                        title="카톡 내용 정리"
+                      >
+                        <MessageSquare size={16} />
+                      </button>
+                    </td>
+                  )}
                   {canEditCampaign(currentUser, campaign) && (
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
