@@ -37,14 +37,11 @@ export const fetchCompanyInfo = async () => {
 
             // ✅ 도장 이미지가 상대경로로 저장되어 있으면 절대 URL로 변환
             if (companyData.sealImageUrl && !companyData.sealImageUrl.startsWith('http')) {
-                // 상대경로가 이미 category/filename 형태인지 확인
-                if (companyData.sealImageUrl.includes('/')) {
-                    // 이미 category/filename 형태: /uploads/category/filename
-                    companyData.sealImageUrl = `${API_BASE_URL}${companyData.sealImageUrl.startsWith('/') ? '' : '/'}${companyData.sealImageUrl}`;
-                } else {
-                    // filename만 있는 경우: images 카테고리 가정
-                    companyData.sealImageUrl = `${API_BASE_URL}/uploads/images/${companyData.sealImageUrl}`;
-                }
+                // 로고와 동일한 방식으로 처리
+                companyData.sealImageUrl = companyData.sealImageUrl.startsWith('/')
+                    ? `${API_BASE_URL}${companyData.sealImageUrl}`
+                    : `${API_BASE_URL}/${companyData.sealImageUrl}`;
+                console.log('🔐 처리된 도장 URL:', companyData.sealImageUrl);
             }
 
             console.log('🏢 처리된 공급자 정보:', companyData);
