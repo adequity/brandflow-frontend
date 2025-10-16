@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Eye, Check } from 'lucide-react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 
 const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
     const [isUploading, setIsUploading] = useState(false);
@@ -148,10 +148,17 @@ const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
                     <p className="text-sm text-gray-600 mb-2">현재 로고:</p>
                     <div className="flex items-center space-x-4">
                         <div className="w-32 h-16 border rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
-                            <img 
-                                src={currentLogo.logoUrl} 
-                                alt="Current Logo" 
+                            <img
+                                src={currentLogo.logoUrl.startsWith('http')
+                                    ? currentLogo.logoUrl
+                                    : `${API_BASE_URL}${currentLogo.logoUrl}`
+                                }
+                                alt="Current Logo"
                                 className="max-w-full max-h-full object-contain"
+                                onError={(e) => {
+                                    console.error('❌ 로고 이미지 로드 실패:', currentLogo.logoUrl);
+                                    e.target.style.display = 'none';
+                                }}
                             />
                         </div>
                         <button
