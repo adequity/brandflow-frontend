@@ -69,13 +69,24 @@ export const fetchCompanyInfo = async () => {
         if (response.data && response.data.success && response.data.info) {
             const companyData = response.data.info;
 
-            // ✅ 도장 이미지가 상대경로로 저장되어 있으면 절대 URL로 변환
-            if (companyData.sealImageUrl && !companyData.sealImageUrl.startsWith('http')) {
-                // 로고와 동일한 방식으로 처리
-                companyData.sealImageUrl = companyData.sealImageUrl.startsWith('/')
-                    ? `${API_BASE_URL}${companyData.sealImageUrl}`
-                    : `${API_BASE_URL}/${companyData.sealImageUrl}`;
-                console.log('🔐 처리된 도장 URL:', companyData.sealImageUrl);
+            // ✅ 도장 이미지 처리 - Base64로 변환
+            if (companyData.sealImageUrl) {
+                const sealUrl = companyData.sealImageUrl.startsWith('http')
+                    ? companyData.sealImageUrl
+                    : (companyData.sealImageUrl.startsWith('/')
+                        ? `${API_BASE_URL}${companyData.sealImageUrl}`
+                        : `${API_BASE_URL}/${companyData.sealImageUrl}`);
+                console.log('🔐 처리된 도장 URL:', sealUrl);
+
+                // 문서 출력을 위해 Base64로 변환
+                const base64Seal = await convertImageToBase64(sealUrl);
+                if (base64Seal) {
+                    console.log('✅ 도장 Base64 변환 성공');
+                    companyData.sealImageUrl = base64Seal;
+                } else {
+                    console.log('⚠️ 도장 Base64 변환 실패, 원본 URL 사용');
+                    companyData.sealImageUrl = sealUrl;
+                }
             }
 
             console.log('🏢 처리된 공급자 정보:', companyData);
