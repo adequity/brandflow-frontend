@@ -23,7 +23,7 @@ const Sidebar = React.memo(({ activePage, setActivePage }) => {
         <div className="w-72 bg-gradient-to-b from-white to-neutral-50 border-r border-neutral-200 shrink-0 h-full">
             <div className="p-6">
                 <div className="mb-12">
-                    <LogoDisplay size="medium" className="justify-start" />
+                    <LogoDisplay size="large" className="justify-center" />
                 </div>
                 <nav className="space-y-2">
                     {menus.map(menu => (
