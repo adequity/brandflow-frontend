@@ -35,11 +35,11 @@ export const fetchCompanyInfo = async () => {
         if (response.data && response.data.success && response.data.info) {
             const companyData = response.data.info;
 
-            // ✅ 도장 이미지 URL 처리
+            // ✅ 도장 이미지 URL 처리 (CompanyInfoSection과 동일한 방식)
             if (companyData.sealImageUrl && !companyData.sealImageUrl.startsWith('http')) {
-                companyData.sealImageUrl = companyData.sealImageUrl.startsWith('/')
-                    ? `${API_BASE_URL}${companyData.sealImageUrl}`
-                    : `${API_BASE_URL}/${companyData.sealImageUrl}`;
+                // DB에는 "images/filename.png" 형태로 저장되어 있음
+                // /uploads/ prefix를 명시적으로 추가 (CompanyInfoSection Line 48과 동일)
+                companyData.sealImageUrl = `${API_BASE_URL}/uploads/${companyData.sealImageUrl}`;
                 console.log('🔐 처리된 도장 URL:', companyData.sealImageUrl);
             }
 
