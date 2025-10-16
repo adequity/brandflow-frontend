@@ -441,7 +441,7 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
   );
 };
 
-const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) => {
+const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, showWarning }) => {
   const [isReviewModalOpen, setReviewModalOpen] = useState(false);
   const [isDetailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -559,15 +559,14 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus }) =
       </div>
 
       {isReviewModalOpen && (
-        <ReviewModal post={selectedPost} onClose={closeModals} onUpdate={onUpdatePostStatus} />
+        <ReviewModal post={selectedPost} onClose={closeModals} onUpdate={onUpdatePostStatus} showWarning={showWarning} />
       )}
       {isDetailModalOpen && <ContentDetailModal post={selectedPost} onClose={closeModals} />}
     </div>
   );
 };
 
-const ReviewModal = ({ post, onClose, onUpdate }) => {
-  const { showWarning } = useToast();
+const ReviewModal = ({ post, onClose, onUpdate, showWarning }) => {
   const [isRejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const status = post.outlineStatus || post.topicStatus;
@@ -664,6 +663,7 @@ export default function ClientUI({ user, onLogout }) {
   const [selectedCampaignId, setSelectedCampaignId] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showError, showSuccess, showWarning } = useToast(); // Hook을 컴포넌트 최상위로 이동
 
   useEffect(() => {
     if (!user?.id) {
@@ -675,7 +675,7 @@ export default function ClientUI({ user, onLogout }) {
       try {
         // JWT 인증을 통한 캠페인 데이터 로드
         const response = await api.get('/api/campaigns/');
-        
+
         // 백엔드 응답 구조 처리: { data: [...], pagination: {...} }
         const campaignData = response.data?.data || response.data || [];
         console.log('ClientUI: 캠페인 데이터 로드:', campaignData);
@@ -697,9 +697,11 @@ export default function ClientUI({ user, onLogout }) {
 
   // 승인/반려
   const handleUpdatePostStatus = async (postId, newStatus, rejectReason) => {
-    const { showError } = useToast();
     const target = campaigns.find((c) => (c.posts || []).some((p) => p.id === postId));
-    if (!target) return;
+    if (!target) {
+      showError('캠페인을 찾을 수 없습니다.');
+      return;
+    }
 
     const post = target.posts.find((p) => p.id === postId);
     const isTopic = (post.topicStatus || '').includes('주제');
@@ -708,12 +710,14 @@ export default function ClientUI({ user, onLogout }) {
       : { outlineStatus: newStatus, rejectReason: rejectReason || null };
 
     try {
-      await api.put(`/api/posts/${postId}/status`, payload);
+      // 백엔드 API: PUT /api/campaigns/{campaignId}/posts/{postId}
+      await api.put(`/api/campaigns/${target.id}/posts/${postId}`, payload);
       const updated = campaigns.map((c) => ({
         ...c,
         posts: (c.posts || []).map((p) => (p.id === postId ? { ...p, ...payload } : p)),
       }));
       setCampaigns(updated);
+      showSuccess(`${isTopic ? '주제' : '목차'} ${newStatus === '주제 승인' || newStatus === '목차 승인' ? '승인' : '반려'} 처리가 완료되었습니다.`);
     } catch (err) {
       console.error('상태 업데이트 실패:', err);
       showError('상태 업데이트에 실패했습니다.');
@@ -732,6 +736,7 @@ export default function ClientUI({ user, onLogout }) {
           campaign={campaign}
           setActivePage={setActive}
           onUpdatePostStatus={handleUpdatePostStatus}
+          showWarning={showWarning}
         />
       );
     }
