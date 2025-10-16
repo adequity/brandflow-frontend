@@ -4,6 +4,31 @@ import api, { API_BASE_URL } from '../api/client';
  * 문서 생성을 위한 유틸리티 함수들
  */
 
+// 이미지 URL을 Base64로 변환 (문서 출력용)
+const convertImageToBase64 = async (imageUrl) => {
+    try {
+        console.log('🖼️ Base64 변환 시작:', imageUrl);
+        const response = await fetch(imageUrl);
+        if (!response.ok) {
+            console.error('❌ 이미지 로드 실패:', response.status);
+            return null;
+        }
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                console.log('✅ Base64 변환 완료');
+                resolve(reader.result);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.error('❌ Base64 변환 실패:', error);
+        return null;
+    }
+};
+
 // 회사 로고 가져오기
 export const fetchCompanyLogo = async () => {
     try {
@@ -16,7 +41,16 @@ export const fetchCompanyLogo = async () => {
                 ? response.data.logoUrl
                 : `${API_BASE_URL}${response.data.logoUrl}`;
             console.log('🎨 처리된 로고 URL:', logoUrl);
-            return logoUrl;
+
+            // 문서 출력을 위해 Base64로 변환
+            const base64Logo = await convertImageToBase64(logoUrl);
+            if (base64Logo) {
+                console.log('✅ 로고 Base64 변환 성공');
+                return base64Logo;
+            } else {
+                console.log('⚠️ Base64 변환 실패, 원본 URL 반환');
+                return logoUrl;
+            }
         }
         return null;
     } catch (error) {
