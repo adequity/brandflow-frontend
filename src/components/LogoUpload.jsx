@@ -66,18 +66,31 @@ const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
 
         setIsUploading(true);
         try {
-            // API 호출로 로고 업로드
-            const response = await api.post('/api/company/logo', {
-                logoUrl: preview
+            // 현재 선택된 파일 가져오기
+            const file = fileInputRef.current?.files[0];
+            if (!file) {
+                alert('파일이 선택되지 않았습니다.');
+                return;
+            }
+
+            // FormData 생성
+            const formData = new FormData();
+            formData.append('logo', file);
+
+            // API 호출로 로고 업로드 (multipart/form-data)
+            const response = await api.post('/api/company/logo', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
             });
 
             const logoData = response.data;
-            
+
             // 현재 사용자의 회사 정보 가져오기
             const userData = localStorage.getItem('user');
             const user = userData ? JSON.parse(userData) : null;
             const companyName = user?.company || 'default';
-            
+
             // 회사별 localStorage에 저장하여 즉시 반영
             const companyLogoKey = `companyLogo_${companyName}`;
             localStorage.setItem(companyLogoKey, JSON.stringify({
@@ -85,13 +98,13 @@ const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
                 uploadedAt: logoData.uploadedAt,
                 companyId: logoData.companyId
             }));
-            
+
             onLogoUpdate?.({
                 logoUrl: logoData.logoUrl,
                 uploadedAt: logoData.uploadedAt
             });
             setPreview(null);
-            
+
             alert('로고가 성공적으로 업로드되었습니다!');
         } catch (error) {
             console.error('로고 업로드 실패:', error);
