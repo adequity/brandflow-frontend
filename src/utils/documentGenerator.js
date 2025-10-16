@@ -4,31 +4,6 @@ import api, { API_BASE_URL } from '../api/client';
  * 문서 생성을 위한 유틸리티 함수들
  */
 
-// 이미지 URL을 Base64로 변환 (문서 출력용)
-const convertImageToBase64 = async (imageUrl) => {
-    try {
-        console.log('🖼️ Base64 변환 시작:', imageUrl);
-        const response = await fetch(imageUrl);
-        if (!response.ok) {
-            console.error('❌ 이미지 로드 실패:', response.status);
-            return null;
-        }
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                console.log('✅ Base64 변환 완료');
-                resolve(reader.result);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        });
-    } catch (error) {
-        console.error('❌ Base64 변환 실패:', error);
-        return null;
-    }
-};
-
 // 회사 로고 가져오기
 export const fetchCompanyLogo = async () => {
     try {
@@ -41,16 +16,7 @@ export const fetchCompanyLogo = async () => {
                 ? response.data.logoUrl
                 : `${API_BASE_URL}${response.data.logoUrl}`;
             console.log('🎨 처리된 로고 URL:', logoUrl);
-
-            // 문서 출력을 위해 Base64로 변환
-            const base64Logo = await convertImageToBase64(logoUrl);
-            if (base64Logo) {
-                console.log('✅ 로고 Base64 변환 성공');
-                return base64Logo;
-            } else {
-                console.log('⚠️ Base64 변환 실패, 원본 URL 반환');
-                return logoUrl;
-            }
+            return logoUrl;
         }
         return null;
     } catch (error) {
@@ -69,24 +35,12 @@ export const fetchCompanyInfo = async () => {
         if (response.data && response.data.success && response.data.info) {
             const companyData = response.data.info;
 
-            // ✅ 도장 이미지 처리 - Base64로 변환
-            if (companyData.sealImageUrl) {
-                const sealUrl = companyData.sealImageUrl.startsWith('http')
-                    ? companyData.sealImageUrl
-                    : (companyData.sealImageUrl.startsWith('/')
-                        ? `${API_BASE_URL}${companyData.sealImageUrl}`
-                        : `${API_BASE_URL}/${companyData.sealImageUrl}`);
-                console.log('🔐 처리된 도장 URL:', sealUrl);
-
-                // 문서 출력을 위해 Base64로 변환
-                const base64Seal = await convertImageToBase64(sealUrl);
-                if (base64Seal) {
-                    console.log('✅ 도장 Base64 변환 성공');
-                    companyData.sealImageUrl = base64Seal;
-                } else {
-                    console.log('⚠️ 도장 Base64 변환 실패, 원본 URL 사용');
-                    companyData.sealImageUrl = sealUrl;
-                }
+            // ✅ 도장 이미지 URL 처리
+            if (companyData.sealImageUrl && !companyData.sealImageUrl.startsWith('http')) {
+                companyData.sealImageUrl = companyData.sealImageUrl.startsWith('/')
+                    ? `${API_BASE_URL}${companyData.sealImageUrl}`
+                    : `${API_BASE_URL}/${companyData.sealImageUrl}`;
+                console.log('🔐 처리된 도장 URL:', companyData.sealImageUrl);
             }
 
             console.log('🏢 처리된 공급자 정보:', companyData);
