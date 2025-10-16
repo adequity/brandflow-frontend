@@ -44,11 +44,11 @@ const CompanyInfoSection = ({ user }) => {
                     let previewUrl;
                     // 상대경로가 이미 category/filename 형태인지 확인
                     if (info.sealImageUrl.includes('/')) {
-                        // 이미 category/filename 형태: /api/files/view/category/filename
-                        previewUrl = `${API_BASE_URL}/api/files/view/${info.sealImageUrl}`;
+                        // 이미 category/filename 형태: /uploads/category/filename
+                        previewUrl = `${API_BASE_URL}/uploads/${info.sealImageUrl}`;
                     } else {
                         // filename만 있는 경우: images 카테고리 가정
-                        previewUrl = `${API_BASE_URL}/api/files/view/images/${info.sealImageUrl}`;
+                        previewUrl = `${API_BASE_URL}/uploads/images/${info.sealImageUrl}`;
                     }
                     console.log('🖼️ 상대경로 → 절대경로 변환:', {
                         원본: info.sealImageUrl,
@@ -167,7 +167,7 @@ const CompanyInfoSection = ({ user }) => {
                 }));
 
                 // ✅ 미리보기용으로만 절대 URL 생성
-                const previewUrl = `${API_BASE_URL}/api/files/view/${relativePath}`;
+                const previewUrl = `${API_BASE_URL}/uploads/${relativePath}`;
                 setSealPreview(previewUrl);
 
                 showSuccess('도장 이미지가 업로드되었습니다!');
@@ -454,7 +454,7 @@ const CompanyInfoSection = ({ user }) => {
                                         src={(() => {
                                             const finalUrl = companyInfo.sealImageUrl.startsWith('http')
                                                 ? companyInfo.sealImageUrl
-                                                : `${API_BASE_URL}/api/files/view/${companyInfo.sealImageUrl}`;
+                                                : `${API_BASE_URL}/uploads/${companyInfo.sealImageUrl}`;
                                             console.log('🖼️ 이미지 표시 URL:', {
                                                 원본: companyInfo.sealImageUrl,
                                                 최종URL: finalUrl,
