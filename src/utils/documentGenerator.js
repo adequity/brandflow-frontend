@@ -4,6 +4,27 @@ import api, { API_BASE_URL } from '../api/client';
  * 문서 생성을 위한 유틸리티 함수들
  */
 
+// 회사 로고 가져오기
+export const fetchCompanyLogo = async () => {
+    try {
+        console.log('🎨 회사 로고 API 호출 시작...');
+        const response = await api.get('/api/company/logo');
+        console.log('🎨 로고 API 응답:', response.data);
+
+        if (response.data?.logoUrl) {
+            const logoUrl = response.data.logoUrl.startsWith('http')
+                ? response.data.logoUrl
+                : `${API_BASE_URL}${response.data.logoUrl}`;
+            console.log('🎨 처리된 로고 URL:', logoUrl);
+            return logoUrl;
+        }
+        return null;
+    } catch (error) {
+        console.error('❌ 로고 로딩 실패:', error);
+        return null;
+    }
+};
+
 // 회사 정보 가져오기
 export const fetchCompanyInfo = async () => {
     try {
@@ -18,11 +39,11 @@ export const fetchCompanyInfo = async () => {
             if (companyData.sealImageUrl && !companyData.sealImageUrl.startsWith('http')) {
                 // 상대경로가 이미 category/filename 형태인지 확인
                 if (companyData.sealImageUrl.includes('/')) {
-                    // 이미 category/filename 형태: /api/files/view/category/filename
-                    companyData.sealImageUrl = `${API_BASE_URL}/api/files/view/${companyData.sealImageUrl}`;
+                    // 이미 category/filename 형태: /uploads/category/filename
+                    companyData.sealImageUrl = `${API_BASE_URL}${companyData.sealImageUrl.startsWith('/') ? '' : '/'}${companyData.sealImageUrl}`;
                 } else {
                     // filename만 있는 경우: images 카테고리 가정
-                    companyData.sealImageUrl = `${API_BASE_URL}/api/files/view/images/${companyData.sealImageUrl}`;
+                    companyData.sealImageUrl = `${API_BASE_URL}/uploads/images/${companyData.sealImageUrl}`;
                 }
             }
 
@@ -296,8 +317,9 @@ const getBasePriceByWorkType = (workType) => {
 };
 
 // 문서 HTML 생성
-export const generateDocumentHTML = (documentData, companyInfo, template = {}) => {
+export const generateDocumentHTML = (documentData, companyInfo, template = {}, companyLogo = null) => {
     console.log('📄 HTML 생성 시 공급자 정보:', companyInfo);
+    console.log('📄 HTML 생성 시 회사 로고:', companyLogo);
 
     // 공급자 정보가 없거나 비어있으면 기본값 사용
     const safeCompanyInfo = companyInfo && Object.keys(companyInfo).length > 0
@@ -338,6 +360,13 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
             margin-bottom: 30px;
             border-bottom: 2px solid ${styles.primaryColor};
             padding-bottom: 20px;
+        }
+
+        .company-logo {
+            max-height: 60px;
+            max-width: 200px;
+            margin-bottom: 15px;
+            object-fit: contain;
         }
 
         .document-title {
@@ -447,6 +476,7 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}) =
 </head>
 <body>
     <div class="document-header">
+        ${companyLogo ? `<img src="${companyLogo}" alt="회사 로고" class="company-logo" />` : ''}
         <div class="document-title">${documentData.header.title}</div>
         <div class="document-info">
             <div>문서번호: ${documentData.header.documentNumber}</div>

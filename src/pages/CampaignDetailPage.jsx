@@ -775,10 +775,13 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             showInfo('문서를 생성하고 있습니다...');
 
             // 동적 import로 문서 생성 유틸리티 로드
-            const { fetchCompanyInfo, transformCampaignToDocument, generateDocumentHTML } = await import('../utils/documentGenerator');
+            const { fetchCompanyInfo, fetchCompanyLogo, transformCampaignToDocument, generateDocumentHTML } = await import('../utils/documentGenerator');
 
-            // 회사 정보 가져오기
-            const companyInfo = await fetchCompanyInfo();
+            // 회사 정보와 로고 가져오기
+            const [companyInfo, companyLogo] = await Promise.all([
+                fetchCompanyInfo(),
+                fetchCompanyLogo()
+            ]);
 
             // 캠페인 데이터를 문서 데이터로 변환 (상품 목록도 전달)
             const documentData = transformCampaignToDocument(campaign, posts, selectedPostIds, type, products);
@@ -789,8 +792,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 return;
             }
 
-            // HTML 문서 생성
-            const documentHTML = generateDocumentHTML(documentData, companyInfo);
+            // HTML 문서 생성 (로고 포함)
+            const documentHTML = generateDocumentHTML(documentData, companyInfo, {}, companyLogo);
 
             // 새 창에서 문서 열기
             const printWindow = window.open('', '_blank');
