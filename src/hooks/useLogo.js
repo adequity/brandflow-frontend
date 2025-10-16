@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import api from '../api/client';
+import api, { API_BASE_URL } from '../api/client';
 
 const useLogo = () => {
     const [logo, setLogo] = useState(null);
@@ -60,13 +60,18 @@ const useLogo = () => {
 
     const getLogoDisplay = () => {
         if (logo?.logoUrl) {
+            // logoUrl이 상대경로면 API_BASE_URL 추가
+            const fullLogoUrl = logo.logoUrl.startsWith('http')
+                ? logo.logoUrl
+                : `${API_BASE_URL}${logo.logoUrl}`;
+
             return {
                 type: 'image',
-                src: logo.logoUrl,
+                src: fullLogoUrl,
                 alt: '회사 로고'
             };
         }
-        
+
         return {
             type: 'text',
             text: 'BrandFlow',
