@@ -77,12 +77,8 @@ const LogoUpload = ({ currentLogo, onLogoUpdate }) => {
             const formData = new FormData();
             formData.append('logo', file);
 
-            // API 호출로 로고 업로드 (multipart/form-data)
-            const response = await api.post('/api/company/logo', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            // API 호출로 로고 업로드 (axios가 자동으로 Content-Type 설정)
+            const response = await api.post('/api/company/logo', formData);
 
             const logoData = response.data;
 
