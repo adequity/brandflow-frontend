@@ -853,7 +853,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
                   <div
                     key={campaign.id}
                     className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md"
-                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                    onClick={() => navigate(`/admin/campaigns/${campaign.id}`)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
@@ -900,7 +900,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
                   <div
                     key={campaign.id}
                     className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md"
-                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                    onClick={() => navigate(`/admin/campaigns/${campaign.id}`)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
