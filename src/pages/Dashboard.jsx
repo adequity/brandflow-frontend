@@ -138,9 +138,9 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         };
         
         try {
-          // 발주 요청 데이터 조회 (order-requests API 사용)
-          console.log('[DASHBOARD] 발주 요청 데이터 로딩 시작...');
-          const orderRequestsResponse = await api.get('/api/campaigns/order-requests');
+          // 발주 요청 데이터 조회 (order-requests API 사용, 월간 필터 적용)
+          console.log('[DASHBOARD] 발주 요청 데이터 로딩 시작... (month:', selectedMonth, ')');
+          const orderRequestsResponse = await api.get(`/api/campaigns/order-requests?month=${selectedMonth}`);
           const orderRequests = orderRequestsResponse.data;
 
           console.log('[DASHBOARD] 발주 요청 전체 데이터:', orderRequests);
@@ -155,14 +155,8 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const approvedOrderList = orderRequests.filter(req => req.status === '승인');
           const totalAmount = approvedOrderList.reduce((sum, req) => sum + (req.cost_price || 0), 0);
 
-          // 선택된 월의 승인된 발주의 cost_price 합계
-          const [selectedYear, selectedMonthNum] = selectedMonth.split('-').map(Number);
-
-          const thisMonthApproved = approvedOrderList.filter(req => {
-            const createdDate = new Date(req.created_at);
-            return createdDate.getMonth() + 1 === selectedMonthNum && createdDate.getFullYear() === selectedYear;
-          });
-          const thisMonthAmount = thisMonthApproved.reduce((sum, req) => sum + (req.cost_price || 0), 0);
+          // 백엔드에서 이미 선택된 월로 필터링된 데이터를 받으므로, 클라이언트 사이드 필터링 불필요
+          const thisMonthAmount = totalAmount;
 
           realPurchaseStats = {
             totalRequests,
