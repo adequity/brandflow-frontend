@@ -1,5 +1,6 @@
 // frontend/src/pages/Dashboard.jsx
 import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   XCircle,
@@ -21,6 +22,8 @@ const colorStyles = {
 };
 
 export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
+  const navigate = useNavigate();
+
   // 월간 필터 상태
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
@@ -847,7 +850,11 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             <div className="space-y-2">
               {receivablesStatus.pending_invoices.campaigns && receivablesStatus.pending_invoices.campaigns.length > 0 ? (
                 receivablesStatus.pending_invoices.campaigns.map((campaign) => (
-                  <div key={campaign.id} className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors">
+                  <div
+                    key={campaign.id}
+                    className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md"
+                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                  >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-neutral-800 truncate">{campaign.name}</div>
@@ -890,7 +897,11 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             <div className="space-y-2">
               {receivablesStatus.pending_payments.campaigns && receivablesStatus.pending_payments.campaigns.length > 0 ? (
                 receivablesStatus.pending_payments.campaigns.map((campaign) => (
-                  <div key={campaign.id} className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors">
+                  <div
+                    key={campaign.id}
+                    className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md"
+                    onClick={() => navigate(`/campaigns/${campaign.id}`)}
+                  >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-neutral-800 truncate">{campaign.name}</div>
