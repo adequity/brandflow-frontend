@@ -21,6 +21,12 @@ const colorStyles = {
 };
 
 export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
+  // 월간 필터 상태
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+
   // 안전한 데이터 확인
   if (!user) {
     return (
@@ -149,14 +155,12 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const approvedOrderList = orderRequests.filter(req => req.status === '승인');
           const totalAmount = approvedOrderList.reduce((sum, req) => sum + (req.cost_price || 0), 0);
 
-          // 이번달 승인된 발주의 cost_price 합계
-          const currentDate = new Date();
-          const currentMonth = currentDate.getMonth() + 1;
-          const currentYear = currentDate.getFullYear();
+          // 선택된 월의 승인된 발주의 cost_price 합계
+          const [selectedYear, selectedMonthNum] = selectedMonth.split('-').map(Number);
 
           const thisMonthApproved = approvedOrderList.filter(req => {
             const createdDate = new Date(req.created_at);
-            return createdDate.getMonth() + 1 === currentMonth && createdDate.getFullYear() === currentYear;
+            return createdDate.getMonth() + 1 === selectedMonthNum && createdDate.getFullYear() === selectedYear;
           });
           const thisMonthAmount = thisMonthApproved.reduce((sum, req) => sum + (req.cost_price || 0), 0);
 
@@ -322,7 +326,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     };
 
     fetchAllStats();
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.role, selectedMonth, campaigns]);
   const {
     allPosts,
     inProgressCount,
@@ -557,26 +561,58 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     );
   };
 
+  // 월 목록 생성 (최근 12개월)
+  const generateMonthOptions = () => {
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+      months.push({ value, label });
+    }
+    return months;
+  };
+
   return (
     <div className="p-6 bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 space-y-6">
       {/* 환영 메시지 및 주요 알림 */}
       <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 rounded-2xl shadow-elegant">
-        <h2 className="text-2xl font-bold">
-          {user?.role === 'STAFF' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
-        </h2>
-        <p className="mt-2 opacity-90">
-          {user?.role === 'STAFF'
-            ? `안녕하세요! 오늘도 화이팅입니다! 💪`
-            : urgentTasks.length > 0 
-              ? `⚠️ 긴급 처리가 필요한 업무가 ${urgentTasks.length}건 있습니다!`
-              : `모든 업무가 원활하게 진행되고 있습니다. 👍`
-          }
-        </p>
-        {user?.role !== 'STAFF' && avgCompletionTime > 0 && (
-          <div className="mt-3 text-sm opacity-90">
-            평균 업무 완료 시간: <span className="font-bold">{avgCompletionTime}일</span>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold">
+              {user?.role === 'STAFF' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
+            </h2>
+            <p className="mt-2 opacity-90">
+              {user?.role === 'STAFF'
+                ? `안녕하세요! 오늘도 화이팅입니다! 💪`
+                : urgentTasks.length > 0
+                  ? `⚠️ 긴급 처리가 필요한 업무가 ${urgentTasks.length}건 있습니다!`
+                  : `모든 업무가 원활하게 진행되고 있습니다. 👍`
+              }
+            </p>
+            {user?.role !== 'STAFF' && avgCompletionTime > 0 && (
+              <div className="mt-3 text-sm opacity-90">
+                평균 업무 완료 시간: <span className="font-bold">{avgCompletionTime}일</span>
+              </div>
+            )}
           </div>
-        )}
+          {/* 월간 필터 */}
+          <div className="ml-4">
+            <label className="block text-sm font-medium text-white/80 mb-1">기준 월</label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-4 py-2 rounded-lg bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
+            >
+              {generateMonthOptions().map(option => (
+                <option key={option.value} value={option.value} className="text-neutral-800">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* 직원용 매출 데이터 또는 관리자용 재무 현황 */}
