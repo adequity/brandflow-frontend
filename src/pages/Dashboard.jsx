@@ -69,6 +69,11 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     pendingPayments: 0         // 미입금 캠페인 수
   });
 
+  const [receivablesStatus, setReceivablesStatus] = useState({
+    pending_invoices: { count: 0, total_amount: 0, campaigns: [] },
+    pending_payments: { count: 0, total_amount: 0, campaigns: [] }
+  });
+
   useEffect(() => {
     const fetchAllStats = async () => {
       if (!user?.id) return;
@@ -306,6 +311,16 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
             pendingInvoices: employeePendingInvoices,
             pendingPayments: employeePendingPayments
           });
+        }
+
+        // 미수금 현황 데이터 가져오기
+        try {
+          console.log('[DASHBOARD] 미수금 현황 로딩 시작...');
+          const receivablesResponse = await api.get('/api/campaigns/receivables-status');
+          setReceivablesStatus(receivablesResponse.data);
+          console.log('[DASHBOARD] 미수금 현황 로드 완료:', receivablesResponse.data);
+        } catch (error) {
+          console.error('미수금 현황 로딩 실패:', error);
         }
 
       } catch (error) {
@@ -802,23 +817,104 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         <MiniTable title="✅ 발행 대기" rows={previewPublishReady} />
       </div>
 
-      {/* 최신 활동 */}
+      {/* 미수금 현황 알림 */}
       <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-neutral-800">📋 최신 활동</h3>
-        </div>
-        {activities && activities.length > 0 ? (
-          <ul>
-            {activities.slice(0, 8).map((a, idx) => (
-              <ActivityItem key={idx} a={a} />
-            ))}
-          </ul>
-        ) : (
-          <div className="text-center py-8 text-neutral-500">
-            <div className="text-4xl mb-3">📝</div>
-            <p>최근 활동이 없습니다.</p>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-neutral-800">💰 미수금 현황 알림</h3>
+          <div className="flex items-center space-x-2 text-sm text-neutral-600">
+            <span className="px-3 py-1 bg-red-50 text-red-600 rounded-full font-medium">
+              총 {receivablesStatus.pending_invoices.count + receivablesStatus.pending_payments.count}건
+            </span>
           </div>
-        )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 미발행 계산서 */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-200">
+              <div>
+                <h4 className="text-base font-semibold text-red-800">🧾 미발행 계산서</h4>
+                <p className="text-sm text-red-600 mt-1">{receivablesStatus.pending_invoices.count}건 대기 중</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-red-600">
+                  {formatAmount(receivablesStatus.pending_invoices.total_amount)}
+                </div>
+                <p className="text-xs text-neutral-600 mt-1">합계 금액</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {receivablesStatus.pending_invoices.campaigns && receivablesStatus.pending_invoices.campaigns.length > 0 ? (
+                receivablesStatus.pending_invoices.campaigns.map((campaign) => (
+                  <div key={campaign.id} className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-neutral-800 truncate">{campaign.name}</div>
+                        <div className="text-sm text-neutral-600 mt-1">
+                          <span className="text-xs bg-neutral-200 px-2 py-0.5 rounded">{campaign.client}</span>
+                          <span className="ml-2 text-xs text-neutral-500">담당: {campaign.staff_name || '-'}</span>
+                        </div>
+                      </div>
+                      <div className="text-right ml-3">
+                        <div className="font-bold text-red-600">{formatAmount(campaign.budget)}</div>
+                        <div className="text-xs text-red-500 mt-1">{campaign.days_overdue}일 경과</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-neutral-500">
+                  <div className="text-3xl mb-2">✅</div>
+                  <p className="text-sm">모든 계산서가 발행되었습니다!</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 미입금 캠페인 */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-200">
+              <div>
+                <h4 className="text-base font-semibold text-amber-800">💸 미입금 캠페인</h4>
+                <p className="text-sm text-amber-600 mt-1">{receivablesStatus.pending_payments.count}건 대기 중</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-amber-600">
+                  {formatAmount(receivablesStatus.pending_payments.total_amount)}
+                </div>
+                <p className="text-xs text-neutral-600 mt-1">합계 금액</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              {receivablesStatus.pending_payments.campaigns && receivablesStatus.pending_payments.campaigns.length > 0 ? (
+                receivablesStatus.pending_payments.campaigns.map((campaign) => (
+                  <div key={campaign.id} className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-neutral-800 truncate">{campaign.name}</div>
+                        <div className="text-sm text-neutral-600 mt-1">
+                          <span className="text-xs bg-neutral-200 px-2 py-0.5 rounded">{campaign.client}</span>
+                          <span className="ml-2 text-xs text-neutral-500">담당: {campaign.staff_name || '-'}</span>
+                        </div>
+                      </div>
+                      <div className="text-right ml-3">
+                        <div className="font-bold text-amber-600">{formatAmount(campaign.budget)}</div>
+                        <div className="text-xs text-amber-500 mt-1">{campaign.days_overdue}일 경과</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 text-neutral-500">
+                  <div className="text-3xl mb-2">✅</div>
+                  <p className="text-sm">모든 입금이 완료되었습니다!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
