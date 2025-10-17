@@ -83,7 +83,9 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
         try {
           console.log('[DASHBOARD] 월간 캠페인 통계 로딩 시작... (month:', selectedMonth, ')');
-          const monthlyStatsResponse = await api.get(`/api/campaigns/monthly-stats?month=${selectedMonth}`);
+          // "전체" 선택 시 month 파라미터를 전달하지 않음
+          const monthParam = selectedMonth === 'all' ? '' : `?month=${selectedMonth}`;
+          const monthlyStatsResponse = await api.get(`/api/campaigns/monthly-stats${monthParam}`);
           const monthlyStats = monthlyStatsResponse.data;
 
           campaignTotalRevenue = monthlyStats.totalRevenue || 0;
@@ -130,7 +132,9 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         try {
           // 발주 요청 데이터 조회 (order-requests API 사용, 월간 필터 적용)
           console.log('[DASHBOARD] 발주 요청 데이터 로딩 시작... (month:', selectedMonth, ')');
-          const orderRequestsResponse = await api.get(`/api/campaigns/order-requests?month=${selectedMonth}`);
+          // "전체" 선택 시 month 파라미터를 전달하지 않음
+          const orderMonthParam = selectedMonth === 'all' ? '' : `?month=${selectedMonth}`;
+          const orderRequestsResponse = await api.get(`/api/campaigns/order-requests${orderMonthParam}`);
           const orderRequests = orderRequestsResponse.data;
 
           console.log('[DASHBOARD] 발주 요청 전체 데이터:', orderRequests);
@@ -545,9 +549,9 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     );
   };
 
-  // 월 목록 생성 (최근 12개월)
+  // 월 목록 생성 (전체 + 최근 12개월)
   const generateMonthOptions = () => {
-    const months = [];
+    const months = [{ value: 'all', label: '전체' }]; // 전체 옵션 추가
     const now = new Date();
     for (let i = 0; i < 12; i++) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
