@@ -74,10 +74,31 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       if (!user?.id) return;
       
       try {
-        // 최신 캠페인 데이터 다시 로드 (매출 데이터 포함)
+        // 월간 캠페인 통계 데이터 가져오기
+        let campaignTotalRevenue = 0;
+        let campaignTotalCost = 0;
+        let completedCampaigns = 0;
+        let pendingInvoices = 0;
+        let pendingPayments = 0;
+
+        try {
+          console.log('[DASHBOARD] 월간 캠페인 통계 로딩 시작... (month:', selectedMonth, ')');
+          const monthlyStatsResponse = await api.get(`/api/campaigns/monthly-stats?month=${selectedMonth}`);
+          const monthlyStats = monthlyStatsResponse.data;
+
+          campaignTotalRevenue = monthlyStats.totalRevenue || 0;
+          campaignTotalCost = monthlyStats.totalCost || 0;
+          completedCampaigns = monthlyStats.completedCampaigns || 0;
+          pendingInvoices = monthlyStats.pendingInvoices || 0;
+          pendingPayments = monthlyStats.pendingPayments || 0;
+
+          console.log('[DASHBOARD] 월간 캠페인 통계 로드 완료:', monthlyStats);
+        } catch (error) {
+          console.error('월간 캠페인 통계 로딩 실패:', error);
+        }
+
+        // 최신 캠페인 데이터 다시 로드 (posts는 대시보드에서 불필요하므로 제거)
         let latestCampaigns = campaigns;
-        
-        // 캠페인 데이터가 없으면 다시 로드 (posts는 대시보드에서 불필요하므로 제거)
         if (!campaigns || campaigns.length === 0) {
           try {
             const campaignsResponse = await api.get('/api/campaigns');
@@ -86,37 +107,6 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           } catch (error) {
             console.error('캠페인 데이터 재로딩 실패:', error);
           }
-        }
-        
-        // 실제 캠페인 데이터 기반으로 재무 정보 계산
-        let campaignTotalRevenue = 0;
-        let campaignTotalCost = 0;
-        let completedCampaigns = 0;
-        let pendingInvoices = 0;
-        let pendingPayments = 0;
-        
-        // 캠페인 기본 정보로 통계 계산 (financialSummary API 호출 제거로 성능 개선)
-        if (latestCampaigns && latestCampaigns.length > 0) {
-          console.log('[DASHBOARD] 캠페인 통계 계산 시작...');
-
-          latestCampaigns.forEach((campaign) => {
-            // 캠페인 예산을 매출로 계산 (실제 재무 데이터가 필요하면 별도 API 필요)
-            campaignTotalRevenue += campaign.budget || 0;
-
-            // 캠페인 지출 계산 (새로 추가된 cost 필드 사용)
-            campaignTotalCost += campaign.cost || 0;
-
-            // 완료된 캠페인 카운트
-            if (campaign.status === '완료' || campaign.status === 'COMPLETED') {
-              completedCampaigns++;
-            }
-
-            // 재무 상태 확인 (실제 필드명에 맞춰 수정 필요)
-            // if (!campaign.invoice_issued) pendingInvoices++;
-            // if (!campaign.payment_completed) pendingPayments++;
-          });
-
-          console.log('[DASHBOARD] 캠페인 통계 계산 완료 - 총 매출:', campaignTotalRevenue, ', 총 지출:', campaignTotalCost);
         }
         
         // 기존 order_requests cost_price 업데이트 (1회만 실행)
