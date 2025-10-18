@@ -46,7 +46,7 @@ const StatusDropdown = ({ post, field, onUpdate }) => {
 
   const handleApprove = () => {
     const newStatus = field === 'topic' ? '주제 승인' : '목차 승인';
-    onUpdate(post.id, newStatus, null);
+    onUpdate(post.id, newStatus, null, field);
     setIsOpen(false);
   };
 
@@ -56,7 +56,7 @@ const StatusDropdown = ({ post, field, onUpdate }) => {
       return;
     }
     const newStatus = field === 'topic' ? '주제 반려' : '목차 반려';
-    onUpdate(post.id, newStatus, rejectReason);
+    onUpdate(post.id, newStatus, rejectReason, field);
     setIsOpen(false);
     setRejectMode(false);
     setRejectReason('');
@@ -806,7 +806,7 @@ export default function ClientUI({ user, onLogout }) {
   };
 
   // 승인/반려
-  const handleUpdatePostStatus = async (postId, newStatus, rejectReason) => {
+  const handleUpdatePostStatus = async (postId, newStatus, rejectReason, field) => {
     const target = campaigns.find((c) => (c.posts || []).some((p) => p.id === postId));
     if (!target) {
       showError('캠페인을 찾을 수 없습니다.');
@@ -814,7 +814,9 @@ export default function ClientUI({ user, onLogout }) {
     }
 
     const post = target.posts.find((p) => p.id === postId);
-    const isTopic = (post.topicStatus || '').includes('주제');
+
+    // field가 전달되면 그것을 사용, 없으면 기존 로직 (ReviewModal 호환)
+    const isTopic = field ? field === 'topic' : (post.topicStatus || '').includes('주제');
     const payload = isTopic
       ? { topicStatus: newStatus, rejectReason: rejectReason || null }
       : { outlineStatus: newStatus, rejectReason: rejectReason || null };
