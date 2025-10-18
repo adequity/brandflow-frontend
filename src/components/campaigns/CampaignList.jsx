@@ -1,10 +1,11 @@
 // src/components/campaigns/CampaignList.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
-import { Plus, Search, Trash2, MessageSquare, FileText, Edit } from 'lucide-react';
+import { Plus, Search, Trash2, MessageSquare, FileText, Edit, Copy } from 'lucide-react';
 import NewCampaignModal from '../modals/NewCampaignModal';
 import CampaignEditModal from '../modals/CampaignEditModal';
 import ChatContentModal from '../modals/ChatContentModal';
+import CampaignDuplicateModal from '../modals/CampaignDuplicateModal';
 import ConfirmModal from '../ui/ConfirmModal';
 import { debugAuth, checkAuthToken } from '../../utils/tokenUtils';
 import { useToast } from '../../contexts/ToastContext';
@@ -21,6 +22,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const [deletingCampaignId, setDeletingCampaignId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, campaign: null });
   const [chatContentModal, setChatContentModal] = useState(null);
+  const [duplicatingCampaignId, setDuplicatingCampaignId] = useState(null);
+  const [duplicateModalData, setDuplicateModalData] = useState(null);
 
   // 클라이언트 정보에서 ID 추출하는 유틸리티 함수
   const extractClientId = (clientCompany) => {
@@ -212,35 +215,96 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
     console.log(`[MODAL] 삭제 모달 상태 설정 완료`);
   };
 
+  const handleDuplicateCampaign = (campaign) => {
+    console.log('[DUPLICATE] Opening duplicate modal for campaign:', campaign.id);
+
+    // 기본값 설정 (오늘 날짜 기준 + 30일)
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + 30);
+
+    setDuplicateModalData({
+      original: campaign,
+      newName: `${campaign.name} (사본)`,
+      startDate: today.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      staffId: currentUser.id,
+      budget: campaign.budget || 0
+    });
+  };
+
+  const confirmDuplicate = async (duplicateData) => {
+    const campaignId = duplicateData.original.id;
+    console.log('[DUPLICATE] Duplicating campaign:', campaignId, duplicateData);
+    setDuplicatingCampaignId(campaignId);
+
+    try {
+      const payload = {
+        new_name: duplicateData.newName,
+        start_date: new Date(duplicateData.startDate).toISOString(),
+        end_date: new Date(duplicateData.endDate).toISOString(),
+        staff_id: duplicateData.staffId,
+        budget: duplicateData.budget
+      };
+
+      console.log('[DUPLICATE] API 호출:', `/api/campaigns/${campaignId}/duplicate`, payload);
+      const response = await api.post(`/api/campaigns/${campaignId}/duplicate`, payload);
+
+      console.log('[DUPLICATE] 성공:', response.data);
+
+      // 새 캠페인을 목록에 추가
+      const newCampaign = response.data.campaign;
+      setCampaigns((prev) => [newCampaign, ...prev]);
+
+      setDuplicateModalData(null);
+      showSuccess('캠페인이 성공적으로 복사되었습니다.');
+
+    } catch (err) {
+      console.error('[DUPLICATE] 캠페인 복사 실패:', err);
+
+      if (err.response?.status === 403) {
+        showError('이 캠페인을 복사할 권한이 없습니다.');
+      } else if (err.response?.status === 404) {
+        showError('캠페인을 찾을 수 없습니다.');
+      } else if (err.response?.status === 400) {
+        showError(err.response?.data?.detail || '입력 정보를 확인해주세요.');
+      } else {
+        showError(err?.response?.data?.detail ?? err?.response?.data?.message ?? '캠페인 복사에 실패했습니다.');
+      }
+    } finally {
+      setDuplicatingCampaignId(null);
+    }
+  };
+
   const confirmDelete = async () => {
     console.log(`[CONFIRM] confirmDelete 함수 호출됨`);
     console.log(`[CONFIRM] deleteConfirm 상태:`, deleteConfirm);
-    
+
     if (!deleteConfirm.campaign) {
       console.error('[CONFIRM] deleteConfirm.campaign이 null입니다!');
       return;
     }
-    
+
     const { id: campaignId, name: campaignName } = deleteConfirm.campaign;
 
     console.log(`[DELETE] 캠페인 삭제 시작: ${campaignId}`);
     setDeletingCampaignId(campaignId);
-    
+
     try {
       // JWT 인증을 통한 캠페인 삭제
       console.log(`[DELETE] API 호출 - campaignId: ${campaignId}`);
-      
+
       const response = await api.delete(`/api/campaigns/${campaignId}`);
-      
+
       console.log(`[DELETE] 응답 수신 - Status: ${response.status}`, response);
-      
+
       // 성공 처리 - API 클라이언트가 에러를 throw하지 않았다면 성공
       console.log(`[DELETE] 성공 처리 시작`);
       // 캠페인 목록에서 제거
       setCampaigns((prev) => prev.filter(c => c.id !== campaignId));
       showSuccess('캠페인이 성공적으로 삭제되었습니다.');
       console.log(`[DELETE] 성공 완료`);
-      
+
     } catch (err) {
       console.error('[DELETE] 캠페인 삭제 실패:', err);
       console.error('[DELETE] 에러 상세:', {
@@ -249,8 +313,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         status: err.response?.status,
         data: err.response?.data
       });
-      
-      
+
+
       // 실제 에러 처리
       if (err.response?.status === 403) {
         showError('이 캠페인을 삭제할 권한이 없습니다.');
@@ -516,7 +580,24 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                         >
                           <Edit size={16} />
                         </button>
-                        
+
+                        {/* 복사 버튼 - 편집 권한과 동일하게 적용 */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDuplicateCampaign(campaign);
+                          }}
+                          disabled={duplicatingCampaignId === campaign.id}
+                          className="text-green-500 hover:text-green-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                          title="캠페인 복사"
+                        >
+                          {duplicatingCampaignId === campaign.id ? (
+                            <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Copy size={16} />
+                          )}
+                        </button>
+
                         {/* 삭제 버튼 - 편집 권한과 동일하게 적용 */}
                         {canEditCampaign(currentUser, campaign) && (
                           <button
@@ -640,11 +721,17 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       )}
 
       {isEditModalOpen && (
-        <CampaignEditModal 
-          campaign={editingCampaign} 
-          onSave={handleSaveEditedCampaign} 
+        <CampaignEditModal
+          campaign={editingCampaign}
+          onSave={handleSaveEditedCampaign}
           onClose={() => setEditModalOpen(false)}
           currentUser={currentUser}
+          onDuplicate={(campaign) => {
+            // 편집 모달을 닫고 복사 모달 열기
+            setEditModalOpen(false);
+            setEditingCampaign(null);
+            handleDuplicateCampaign(campaign);
+          }}
         />
       )}
 
@@ -673,6 +760,15 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         cancelText="취소"
         loading={deletingCampaignId !== null}
       />
+
+      {/* 캠페인 복사 모달 */}
+      {duplicateModalData && (
+        <CampaignDuplicateModal
+          duplicateData={duplicateModalData}
+          onConfirm={confirmDuplicate}
+          onClose={() => setDuplicateModalData(null)}
+        />
+      )}
     </div>
   );
 };

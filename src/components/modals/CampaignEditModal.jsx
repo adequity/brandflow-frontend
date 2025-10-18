@@ -3,9 +3,10 @@ import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 import { canEditCampaign } from '../../utils/permissions';
+import { Copy } from 'lucide-react';
 
 
-const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
+const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate }) => {
   const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -435,23 +436,42 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser }) => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
-            <button 
-              type="button" 
-              onClick={onClose} 
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+          <div className="flex justify-between items-center pt-4">
+            {/* 왼쪽: 복사 버튼 */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onDuplicate) {
+                  onDuplicate(campaign);
+                }
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
               disabled={isLoading}
+              title="이 캠페인을 복사합니다"
             >
-              취소
+              <Copy size={16} />
+              복사
             </button>
-            <button 
-              type="submit" 
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
-              disabled={isLoading}
-            >
-              {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-              {isLoading ? '수정 중...' : '수정'}
-            </button>
+
+            {/* 오른쪽: 취소/수정 버튼 */}
+            <div className="flex space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                disabled={isLoading}
+              >
+                취소
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                {isLoading ? '수정 중...' : '수정'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
