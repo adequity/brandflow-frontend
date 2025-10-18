@@ -8,7 +8,7 @@ import LogoDisplay from '../components/LogoDisplay';
 import { useToast } from '../contexts/ToastContext';
 
 /* ============ Helpers ============ */
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, onClick, clickable }) => {
   const base = 'px-2.5 py-1 text-xs font-medium rounded-full inline-block whitespace-nowrap';
   const styles = {
     '주제 승인 대기': 'bg-yellow-100 text-yellow-800',
@@ -19,7 +19,111 @@ const StatusBadge = ({ status }) => {
     '목차 반려': 'bg-red-100 text-red-800',
     '발행 완료': 'bg-blue-100 text-blue-800',
   };
-  return <span className={`${base} ${styles[status] || 'bg-gray-100 text-gray-800'}`}>{status}</span>;
+  const className = `${base} ${styles[status] || 'bg-gray-100 text-gray-800'} ${clickable ? 'cursor-pointer hover:opacity-80' : ''}`;
+
+  return (
+    <span
+      className={className}
+      onClick={clickable ? onClick : undefined}
+      title={clickable ? '클릭하여 상태 변경' : ''}
+    >
+      {status}
+    </span>
+  );
+};
+
+const StatusDropdown = ({ post, field, onUpdate }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isRejectMode, setRejectMode] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+
+  const currentStatus = field === 'topic' ? post.topicStatus : post.outlineStatus;
+  const isWaiting = currentStatus?.includes('대기');
+
+  if (!isWaiting) {
+    return <StatusBadge status={currentStatus} />;
+  }
+
+  const handleApprove = () => {
+    const newStatus = field === 'topic' ? '주제 승인' : '목차 승인';
+    onUpdate(post.id, newStatus, null);
+    setIsOpen(false);
+  };
+
+  const handleReject = () => {
+    if (!rejectReason.trim()) {
+      alert('반려 사유를 입력해주세요.');
+      return;
+    }
+    const newStatus = field === 'topic' ? '주제 반려' : '목차 반려';
+    onUpdate(post.id, newStatus, rejectReason);
+    setIsOpen(false);
+    setRejectMode(false);
+    setRejectReason('');
+  };
+
+  return (
+    <div className="relative inline-block">
+      <StatusBadge
+        status={currentStatus}
+        onClick={() => setIsOpen(!isOpen)}
+        clickable={true}
+      />
+
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => { setIsOpen(false); setRejectMode(false); setRejectReason(''); }}
+          />
+          <div className="absolute left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[200px]">
+            {!isRejectMode ? (
+              <div className="py-1">
+                <button
+                  onClick={handleApprove}
+                  className="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50 flex items-center"
+                >
+                  ✅ 승인
+                </button>
+                <button
+                  onClick={() => setRejectMode(true)}
+                  className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center"
+                >
+                  ❌ 반려
+                </button>
+              </div>
+            ) : (
+              <div className="p-3">
+                <p className="text-xs font-medium text-gray-700 mb-2">반려 사유</p>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="반려 사유를 입력하세요"
+                  className="w-full p-2 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-red-500 focus:border-red-500"
+                  rows="3"
+                  autoFocus
+                />
+                <div className="flex space-x-2 mt-2">
+                  <button
+                    onClick={() => { setRejectMode(false); setRejectReason(''); }}
+                    className="flex-1 px-3 py-1.5 text-xs bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleReject}
+                    className="flex-1 px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    반려 제출
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
 const formatUrl = (url) => {
@@ -501,9 +605,9 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
                       {post.title}
                     </td>
                     <td className="p-2">
-                      <StatusBadge status={post.topicStatus} />
+                      <StatusDropdown post={post} field="topic" onUpdate={onUpdatePostStatus} />
                     </td>
-                    <td 
+                    <td
                       onClick={() => openDetail(post)}
                       className="p-2 hover:text-blue-600 cursor-pointer"
                     >
@@ -513,7 +617,13 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
                         '-'
                       )}
                     </td>
-                    <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
+                    <td className="p-2">
+                      {post.outlineStatus ? (
+                        <StatusDropdown post={post} field="outline" onUpdate={onUpdatePostStatus} />
+                      ) : (
+                        '-'
+                      )}
+                    </td>
                     <td className="p-2"><ImagePreview images={post.images} /></td>
                     <td className="p-2">
                       {post.publishedUrl ? (
