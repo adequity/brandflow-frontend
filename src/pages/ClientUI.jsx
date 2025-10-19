@@ -40,17 +40,6 @@ const StatusDropdown = ({ post, field, onUpdate }) => {
   const currentStatus = field === 'topic'
     ? (post.topicStatus || post.topic_status)
     : (post.outlineStatus || post.outline_status);
-  const isWaiting = currentStatus?.includes('대기');
-
-  if (!isWaiting) {
-    return <StatusBadge status={currentStatus} />;
-  }
-
-  const handleApprove = () => {
-    const newStatus = field === 'topic' ? '주제 승인' : '목차 승인';
-    onUpdate(post.id, newStatus, null, field);
-    setIsOpen(false);
-  };
 
   const handleReject = () => {
     if (!rejectReason.trim()) {
@@ -63,6 +52,16 @@ const StatusDropdown = ({ post, field, onUpdate }) => {
     setRejectMode(false);
     setRejectReason('');
   };
+
+  const handleStatusChange = (newStatus) => {
+    onUpdate(post.id, newStatus, null, field);
+    setIsOpen(false);
+  };
+
+  // 상태 옵션 정의
+  const statusOptions = field === 'topic'
+    ? ['주제 승인 대기', '주제 승인', '주제 반려']
+    : ['목차 승인 대기', '목차 승인', '목차 반려'];
 
   return (
     <div className="relative inline-block">
@@ -81,18 +80,26 @@ const StatusDropdown = ({ post, field, onUpdate }) => {
           <div className="absolute left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[200px]">
             {!isRejectMode ? (
               <div className="py-1">
-                <button
-                  onClick={handleApprove}
-                  className="w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50 flex items-center"
-                >
-                  ✅ 승인
-                </button>
-                <button
-                  onClick={() => setRejectMode(true)}
-                  className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 flex items-center"
-                >
-                  ❌ 반려
-                </button>
+                {statusOptions.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => {
+                      if (status.includes('반려')) {
+                        setRejectMode(true);
+                      } else {
+                        handleStatusChange(status);
+                      }
+                    }}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center ${
+                      status.includes('승인 대기') ? 'text-yellow-700' :
+                      status.includes('승인') ? 'text-green-700' :
+                      'text-red-700'
+                    } ${currentStatus === status ? 'bg-gray-100 font-semibold' : ''}`}
+                  >
+                    {status.includes('승인 대기') ? '⏳' :
+                     status.includes('승인') ? '✅' : '❌'} {status}
+                  </button>
+                ))}
               </div>
             ) : (
               <div className="p-3">
