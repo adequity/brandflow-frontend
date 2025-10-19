@@ -211,7 +211,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     }
 
     try {
-      const { data: updated } = await api.put(`/api/posts/${postToUpdate.id}`, payload);
+      const { data: updated } = await api.put(`/api/campaigns/${campaign.id}/posts/${postToUpdate.id}`, payload);
       const next = posts.map((p) => (p.id === updated.id ? updated : p));
       setPosts(next);
       updateParentCampaign(next);
@@ -236,7 +236,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
             outlineStatus: POST_STATUSES.OUTLINE_PENDING,
             images: outlineData.images || []
           };
-      const { data: updated } = await api.put(`/api/posts/${postId}`, payload);
+      const { data: updated } = await api.put(`/api/campaigns/${campaign.id}/posts/${postId}`, payload);
       const next = posts.map((p) => (p.id === updated.id ? updated : p));
       setPosts(next);
       updateParentCampaign(next);
@@ -277,7 +277,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     const postId = selectedRows[0];
     if (!postId) return;
     try {
-      const { data: updated } = await api.put(`/api/posts/${postId}`, { publishedUrl: url });
+      const { data: updated } = await api.put(`/api/campaigns/${campaign.id}/posts/${postId}`, { publishedUrl: url });
       const next = posts.map((p) => (p.id === updated.id ? updated : p));
       setPosts(next);
       updateParentCampaign(next);
