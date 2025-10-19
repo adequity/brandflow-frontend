@@ -294,7 +294,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
   const handleConfirmDelete = async () => {
     if (!selectedPost) return;
     try {
-      await api.delete(`/api/posts/${selectedPost.id}`);
+      await api.delete(`/api/campaigns/${campaign.id}/posts/${selectedPost.id}`);
       const next = posts.filter((p) => p.id !== selectedPost.id);
       setPosts(next);
       updateParentCampaign(next);

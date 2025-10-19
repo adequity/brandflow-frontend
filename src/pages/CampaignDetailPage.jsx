@@ -429,16 +429,16 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const handleRegisterOutline = async (outlineData) => {
         const postId = selectedRows[0];
         try {
-            // Django API로 목차 등록
-            await api.put(`/api/posts/${postId}`, {
+            // FastAPI로 목차 등록 (올바른 엔드포인트 사용)
+            await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, {
                 outline: outlineData.outline,
-                outline_status: 'pending'
+                outlineStatus: '목차 승인 대기'
             });
             showSuccess('목차가 등록되었습니다!');
             fetchCampaignDetail();
-        } catch (error) { 
+        } catch (error) {
             console.error('목차 등록 실패:', error);
-            showError('목차 등록 실패'); 
+            showError('목차 등록 실패');
         }
         setOutlineModalOpen(false); setSelectedRows([]);
     };
