@@ -229,10 +229,10 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     const postId = selectedRows[0];
     if (!postId) return;
     try {
-      const payload = typeof outlineData === 'string' 
+      const payload = typeof outlineData === 'string'
         ? { outline: outlineData, outlineStatus: POST_STATUSES.OUTLINE_PENDING }
-        : { 
-            outline: outlineData.text, 
+        : {
+            outline: outlineData.outline,  // DB 필드명과 일치
             outlineStatus: POST_STATUSES.OUTLINE_PENDING,
             images: outlineData.images || []
           };

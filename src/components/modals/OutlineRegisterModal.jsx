@@ -19,7 +19,7 @@ const OutlineRegisterModal = ({ onSave, onClose }) => {
 
     const handleSave = () => {
         const data = {
-            text: outline,
+            outline: outline,  // DB 필드명과 일치
             images: images
         };
         onSave(data);
