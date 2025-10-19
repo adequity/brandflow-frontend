@@ -821,10 +821,12 @@ export default function ClientUI({ user, onLogout }) {
 
     try {
       // 백엔드 API: PUT /api/campaigns/{campaignId}/posts/{postId}
-      await api.put(`/api/campaigns/${target.id}/posts/${postId}`, payload);
+      const response = await api.put(`/api/campaigns/${target.id}/posts/${postId}`, payload);
+      const updatedPost = response.data;  // 백엔드에서 받은 실제 데이터 사용
+
       const updated = campaigns.map((c) => ({
         ...c,
-        posts: (c.posts || []).map((p) => (p.id === postId ? { ...p, ...payload } : p)),
+        posts: (c.posts || []).map((p) => (p.id === postId ? { ...p, ...updatedPost } : p)),
       }));
       setCampaigns(updated);
       showSuccess(`${isTopic ? '주제' : '목차'} ${newStatus === '주제 승인' || newStatus === '목차 승인' ? '승인' : '반려'} 처리가 완료되었습니다.`);
