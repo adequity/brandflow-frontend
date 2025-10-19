@@ -268,23 +268,23 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             );
         }
 
-        // 상태 필터 (승인 상태 기준) - 대기/승인/거절 3단계
+        // 상태 필터 (승인 상태 기준)
         if (filters.status !== 'all') {
             let statusFilter = filters.status;
             if (statusFilter === '대기') {
-                filtered = filtered.filter(post => 
-                    post.topicStatus === '대기' || 
-                    post.outlineStatus === '대기'
+                filtered = filtered.filter(post =>
+                    post.topicStatus?.includes('대기') ||
+                    post.outlineStatus?.includes('대기')
                 );
             } else if (statusFilter === '승인') {
-                filtered = filtered.filter(post => 
-                    post.topicStatus === '승인' || 
-                    post.outlineStatus === '승인'
+                filtered = filtered.filter(post =>
+                    post.topicStatus?.includes('승인') ||
+                    post.outlineStatus?.includes('승인')
                 );
-            } else if (statusFilter === '거절') {
-                filtered = filtered.filter(post => 
-                    post.topicStatus === '거절' || 
-                    post.outlineStatus === '거절'
+            } else if (statusFilter === '거절' || statusFilter === '반려') {
+                filtered = filtered.filter(post =>
+                    post.topicStatus?.includes('반려') ||
+                    post.outlineStatus?.includes('반려')
                 );
             }
         }
@@ -357,7 +357,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     quantity: updatedContent.quantity,
                     startDate: updatedContent.startDate,
                     dueDate: updatedContent.dueDate,
-                    topicStatus: '대기', // 수정 시 재승인 필요
+                    topicStatus: '주제 승인 대기', // 수정 시 재승인 필요
                     // 업무 수정 시 발주 요청 상태 초기화
                     orderRequestStatus: null,
                     orderRequestId: null
@@ -366,7 +366,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 // 기존 방식 호환성
                 payload = {
                     title: updatedContent,
-                    topicStatus: '대기',
+                    topicStatus: '주제 승인 대기',
                     outline: null,
                     outlineStatus: null,
                     // 업무 수정 시 발주 요청 상태 초기화
@@ -451,7 +451,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             const postPayload = {
                 title: topicData.title,
                 work_type: topicData.workType,
-                topic_status: topicData.skipApproval ? '승인' : '대기',
+                topic_status: topicData.skipApproval ? '주제 승인' : '주제 승인 대기',
                 outline: null,
                 outline_status: null,
                 images: topicData.images || [],
@@ -874,7 +874,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         setCampaignEditData({ name: '', description: '' });
     };
     
-    const canRegisterOutline = selectedRows.length === 1 && (filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.topicStatus === '승인' && !(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.outline;
+    const canRegisterOutline = selectedRows.length === 1 && (filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.topicStatus === '주제 승인' && !(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.outline;
     const canRegisterLink = selectedRows.length === 1;
 
     if (isLoading) {
@@ -1269,9 +1269,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                     }}
                                                     autoFocus
                                                 >
-                                                    <option value="대기">대기</option>
-                                                    <option value="승인">승인</option>
-                                                    <option value="거절">거절</option>
+                                                    <option value="주제 승인 대기">주제 승인 대기</option>
+                                                    <option value="주제 승인">주제 승인</option>
+                                                    <option value="주제 반려">주제 반려</option>
                                                 </select>
                                                 <button onClick={() => handleCellSave(post.id, 'topicStatus')} className="text-green-600 hover:text-green-800">✓</button>
                                                 <button onClick={handleCellCancel} className="text-red-600 hover:text-red-800">✗</button>
@@ -1305,9 +1305,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                         }}
                                                         autoFocus
                                                     >
-                                                        <option value="대기">대기</option>
-                                                        <option value="승인">승인</option>
-                                                        <option value="거절">거절</option>
+                                                        <option value="목차 승인 대기">목차 승인 대기</option>
+                                                        <option value="목차 승인">목차 승인</option>
+                                                        <option value="목차 반려">목차 반려</option>
                                                     </select>
                                                     <button onClick={() => handleCellSave(post.id, 'outlineStatus')} className="text-green-600 hover:text-green-800">✓</button>
                                                     <button onClick={handleCellCancel} className="text-red-600 hover:text-red-800">✗</button>
