@@ -620,11 +620,7 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
                       )}
                     </td>
                     <td className="p-2">
-                      {(post.outlineStatus || post.outline_status) ? (
-                        <StatusDropdown post={post} field="outline" onUpdate={onUpdatePostStatus} />
-                      ) : (
-                        '-'
-                      )}
+                      <StatusDropdown post={post} field="outline" onUpdate={onUpdatePostStatus} />
                     </td>
                     <td className="p-2"><ImagePreview images={post.images} /></td>
                     <td className="p-2">
