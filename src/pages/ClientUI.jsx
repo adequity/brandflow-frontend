@@ -37,7 +37,9 @@ const StatusDropdown = ({ post, field, onUpdate }) => {
   const [isRejectMode, setRejectMode] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
-  const currentStatus = field === 'topic' ? post.topicStatus : post.outlineStatus;
+  const currentStatus = field === 'topic'
+    ? (post.topicStatus || post.topic_status)
+    : (post.outlineStatus || post.outline_status);
   const isWaiting = currentStatus?.includes('대기');
 
   if (!isWaiting) {
@@ -218,8 +220,8 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
   
   // 상태별 통계
   const pendingTopics = allPosts.filter((p) => p.topicStatus === '주제 승인 대기').length;
-  const pendingOutlines = allPosts.filter((p) => p.outlineStatus === '목차 승인 대기').length;
-  const rejectedPosts = allPosts.filter((p) => p.topicStatus === '주제 반려' || p.outlineStatus === '목차 반려').length;
+  const pendingOutlines = allPosts.filter((p) => (p.outlineStatus || p.outline_status) === '목차 승인 대기').length;
+  const rejectedPosts = allPosts.filter((p) => (p.topicStatus || p.topic_status) === '주제 반려' || (p.outlineStatus || p.outline_status) === '목차 반려').length;
   const completedPosts = allPosts.filter((p) => p.publishedUrl).length;
   const totalPending = pendingTopics + pendingOutlines;
   
@@ -354,7 +356,7 @@ const ClientDashboard = ({ user, campaigns, setActivePage }) => {
                   const total = safePosts.length;
                   const completed = safePosts.filter((p) => p && p.publishedUrl).length;
                   const pending = safePosts.filter(
-                    (p) => p && (p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기'))
+                    (p) => p && ((p.topicStatus || p.topic_status)?.includes('대기') || (p.outlineStatus || p.outline_status)?.includes('대기'))
                   ).length;
                   const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
 
@@ -518,7 +520,7 @@ const ClientCampaignList = ({ campaigns, setActivePage }) => {
               const total = safePosts.length;
               const completed = safePosts.filter((p) => p && p.publishedUrl).length;
               const pending = safePosts.filter(
-                (p) => p && (p.topicStatus?.includes('대기') || p.outlineStatus?.includes('대기'))
+                (p) => p && ((p.topicStatus || p.topic_status)?.includes('대기') || (p.outlineStatus || p.outline_status)?.includes('대기'))
               ).length;
 
               return (
@@ -586,8 +588,8 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
             </thead>
             <tbody className="divide-y">
               {(campaign.posts || []).map((post) => {
-                const isPending = (post.topicStatus && post.topicStatus.includes('대기')) || 
-                                 (post.outlineStatus && post.outlineStatus.includes('대기'));
+                const isPending = ((post.topicStatus || post.topic_status) && (post.topicStatus || post.topic_status).includes('대기')) ||
+                                 ((post.outlineStatus || post.outline_status) && (post.outlineStatus || post.outline_status).includes('대기'));
                 const isPublished = !!post.publishedUrl;
                 const created = post.creationTime || post.createdAt;
 
@@ -618,7 +620,7 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
                       )}
                     </td>
                     <td className="p-2">
-                      {post.outlineStatus ? (
+                      {(post.outlineStatus || post.outline_status) ? (
                         <StatusDropdown post={post} field="outline" onUpdate={onUpdatePostStatus} />
                       ) : (
                         '-'
@@ -679,7 +681,7 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
 const ReviewModal = ({ post, onClose, onUpdate, showWarning }) => {
   const [isRejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  const status = post.outlineStatus || post.topicStatus;
+  const status = (post.outlineStatus || post.outline_status) || (post.topicStatus || post.topic_status);
   const isTopic = (status || '').includes('주제');
 
   const approve = () => { onUpdate(post.id, isTopic ? '주제 승인' : '목차 승인', null); onClose(); };
@@ -816,7 +818,7 @@ export default function ClientUI({ user, onLogout }) {
     const post = target.posts.find((p) => p.id === postId);
 
     // field가 전달되면 그것을 사용, 없으면 기존 로직 (ReviewModal 호환)
-    const isTopic = field ? field === 'topic' : (post.topicStatus || '').includes('주제');
+    const isTopic = field ? field === 'topic' : ((post.topicStatus || post.topic_status) || '').includes('주제');
     const payload = isTopic
       ? { topicStatus: newStatus, rejectReason: rejectReason || null }
       : { outlineStatus: newStatus, rejectReason: rejectReason || null };
