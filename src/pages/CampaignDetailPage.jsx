@@ -1087,6 +1087,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">승인 상태</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 검토</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 승인 상태</th>
+                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">반려 사유</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">첨부 이미지</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">결과물 링크</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">발주 요청</th>
@@ -1325,6 +1326,11 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                     <StatusBadge status={post.outlineStatus} />
                                                 </div>
                                             )
+                                        ) : '-'}
+                                    </td>
+                                    <td className="p-2">
+                                        {post.rejectReason ? (
+                                            <span className="text-xs text-red-600">{post.rejectReason}</span>
                                         ) : '-'}
                                     </td>
                                     <td className="p-2"><ImagePreview images={post.images} /></td>
