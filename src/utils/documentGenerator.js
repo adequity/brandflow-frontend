@@ -514,9 +514,8 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}, c
                 <th>시작일</th>
                 <th>마감일</th>
                 <th>품목 및 규격</th>
-                <th>원가</th>
                 <th>수량</th>
-                <th>단가</th>
+                <th>공급 단가</th>
                 <th>공급가액</th>
                 <th>세액</th>
             </tr>
@@ -527,7 +526,6 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}, c
                     <td>${item.startDate}</td>
                     <td>${item.dueDate}</td>
                     <td class="text-left">${item.itemName}</td>
-                    <td class="text-right">${formatCurrency(item.cost)}</td>
                     <td>${item.quantity}</td>
                     <td class="text-right">${formatCurrency(item.unitPrice)}</td>
                     <td class="text-right">${formatCurrency(item.supplyAmount)}</td>
@@ -535,7 +533,7 @@ export const generateDocumentHTML = (documentData, companyInfo, template = {}, c
                 </tr>
             `).join('')}
             <tr style="font-weight: bold; background-color: #f9f9f9;">
-                <td colspan="6">합계</td>
+                <td colspan="5">합계</td>
                 <td class="text-right">${formatCurrency(documentData.summary.totalSupplyAmount)}</td>
                 <td class="text-right">${formatCurrency(documentData.summary.totalTaxAmount)}</td>
             </tr>
