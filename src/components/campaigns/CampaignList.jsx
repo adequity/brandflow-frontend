@@ -25,6 +25,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const [duplicatingCampaignId, setDuplicatingCampaignId] = useState(null);
   const [duplicateModalData, setDuplicateModalData] = useState(null);
 
+  // 필터링 상태
+  const [filters, setFilters] = useState({
+    invoiceIssued: 'all',      // 'all', 'issued', 'not_issued'
+    paymentCompleted: 'all',    // 'all', 'completed', 'not_completed'
+    staffId: 'all'              // 'all' 또는 특정 staff ID
+  });
+
   // 클라이언트 정보에서 ID 추출하는 유틸리티 함수
   const extractClientId = (clientCompany) => {
     const match = clientCompany?.match(/ \(ID: (\d+)\)$/);
@@ -330,25 +337,120 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
     }
   };
 
-  const filteredCampaigns = ensureArray(campaigns).filter((c) =>
-    (c.name || '').toLowerCase().includes((searchTerm || '').toLowerCase())
-  );
+  // 필터링 로직
+  const filteredCampaigns = ensureArray(campaigns).filter((c) => {
+    // 검색어 필터
+    const matchesSearch = (c.name || '').toLowerCase().includes((searchTerm || '').toLowerCase());
+
+    // 계산서 발행 필터
+    const matchesInvoice = filters.invoiceIssued === 'all' ||
+      (filters.invoiceIssued === 'issued' && c.invoiceIssued === true) ||
+      (filters.invoiceIssued === 'not_issued' && c.invoiceIssued === false);
+
+    // 입금 완료 필터
+    const matchesPayment = filters.paymentCompleted === 'all' ||
+      (filters.paymentCompleted === 'completed' && c.paymentCompleted === true) ||
+      (filters.paymentCompleted === 'not_completed' && c.paymentCompleted === false);
+
+    // STAFF 필터 (creator_id 또는 managerId로 매칭)
+    const matchesStaff = filters.staffId === 'all' ||
+      c.creator_id === parseInt(filters.staffId) ||
+      c.managerId === parseInt(filters.staffId);
+
+    return matchesSearch && matchesInvoice && matchesPayment && matchesStaff;
+  });
+
+  // STAFF 목록 생성 (캠페인을 가진 STAFF만)
+  const staffList = React.useMemo(() => {
+    const staffIds = new Set();
+    ensureArray(campaigns).forEach(c => {
+      if (c.creator_id) staffIds.add(c.creator_id);
+      if (c.managerId) staffIds.add(c.managerId);
+    });
+
+    return Array.from(staffIds)
+      .map(id => users?.find(u => u.id === id))
+      .filter(Boolean)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }, [campaigns, users]);
 
   // 클라이언트는 신규 캠페인 생성 버튼 숨김(정책에 맞게 조정 가능)
   const canCreate = currentUser?.role && currentUser.role !== 'CLIENT';
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="캠페인명 검색..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg"
-          />
+      {/* 검색 & 필터 영역 */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex flex-col gap-4">
+          {/* 검색창 */}
+          <div className="relative">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="캠페인명 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg"
+            />
+          </div>
+
+          {/* 필터 영역 */}
+          <div className="flex gap-3 items-center">
+            {/* 계산서 발행 필터 */}
+            <select
+              value={filters.invoiceIssued}
+              onChange={(e) => setFilters({ ...filters, invoiceIssued: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">📄 계산서: 전체</option>
+              <option value="issued">📄 계산서 발행 완료</option>
+              <option value="not_issued">📄 계산서 미발행</option>
+            </select>
+
+            {/* 입금 완료 필터 */}
+            <select
+              value={filters.paymentCompleted}
+              onChange={(e) => setFilters({ ...filters, paymentCompleted: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">💰 입금: 전체</option>
+              <option value="completed">💰 입금 완료</option>
+              <option value="not_completed">💰 미입금</option>
+            </select>
+
+            {/* STAFF 필터 */}
+            <select
+              value={filters.staffId}
+              onChange={(e) => setFilters({ ...filters, staffId: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">👤 담당자: 전체</option>
+              {staffList.map(staff => (
+                <option key={staff.id} value={staff.id}>
+                  👤 {staff.name || staff.username}
+                </option>
+              ))}
+            </select>
+
+            {/* 필터 초기화 버튼 */}
+            {(filters.invoiceIssued !== 'all' || filters.paymentCompleted !== 'all' || filters.staffId !== 'all') && (
+              <button
+                onClick={() => setFilters({
+                  invoiceIssued: 'all',
+                  paymentCompleted: 'all',
+                  staffId: 'all'
+                })}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                ✕ 필터 초기화
+              </button>
+            )}
+          </div>
+
+          {/* 필터 결과 요약 */}
+          <div className="text-sm text-gray-600">
+            전체 {ensureArray(campaigns).length}개 중 <span className="font-semibold text-blue-600">{filteredCampaigns.length}개</span> 표시
+          </div>
         </div>
 
         {canCreate && (
