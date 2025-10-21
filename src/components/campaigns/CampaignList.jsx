@@ -352,10 +352,11 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       (filters.paymentCompleted === 'completed' && c.paymentCompleted === true) ||
       (filters.paymentCompleted === 'not_completed' && c.paymentCompleted === false);
 
-    // STAFF 필터 (creator_id 또는 managerId로 매칭)
+    // STAFF 필터 (creator_id, managerId, staff_id로 매칭)
     const matchesStaff = filters.staffId === 'all' ||
       c.creator_id === parseInt(filters.staffId) ||
-      c.managerId === parseInt(filters.staffId);
+      c.managerId === parseInt(filters.staffId) ||
+      c.staff_id === parseInt(filters.staffId);
 
     return matchesSearch && matchesInvoice && matchesPayment && matchesStaff;
   });
@@ -364,9 +365,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const staffList = React.useMemo(() => {
     const staffIds = new Set();
     ensureArray(campaigns).forEach(c => {
-      // creator_id, managerId, User.id 모두 확인
+      // 모든 가능한 STAFF ID 필드 확인
       if (c.creator_id) staffIds.add(c.creator_id);
       if (c.managerId) staffIds.add(c.managerId);
+      if (c.staff_id) staffIds.add(c.staff_id);  // ⭐ DB의 실제 담당 직원 ID
       if (c.User?.id) staffIds.add(c.User.id);
     });
 
