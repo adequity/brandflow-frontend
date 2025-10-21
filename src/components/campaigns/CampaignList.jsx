@@ -364,14 +364,28 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const staffList = React.useMemo(() => {
     const staffIds = new Set();
     ensureArray(campaigns).forEach(c => {
+      // creator_id, managerId, User.id 모두 확인
       if (c.creator_id) staffIds.add(c.creator_id);
       if (c.managerId) staffIds.add(c.managerId);
+      if (c.User?.id) staffIds.add(c.User.id);
     });
 
-    return Array.from(staffIds)
-      .map(id => users?.find(u => u.id === id))
+    console.log('[STAFF-FILTER] Found staff IDs:', Array.from(staffIds));
+
+    const staffMembers = Array.from(staffIds)
+      .map(id => {
+        const user = users?.find(u => u.id === id);
+        if (!user) {
+          console.warn(`[STAFF-FILTER] No user found for ID ${id}`);
+        }
+        return user;
+      })
       .filter(Boolean)
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+    console.log('[STAFF-FILTER] Final staff list:', staffMembers.map(s => ({ id: s.id, name: s.name })));
+
+    return staffMembers;
   }, [campaigns, users]);
 
   // 클라이언트는 신규 캠페인 생성 버튼 숨김(정책에 맞게 조정 가능)
