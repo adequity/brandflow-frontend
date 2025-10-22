@@ -214,6 +214,21 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   };
 
   const handleDeleteCampaign = async (campaignId, campaignName) => {
+    // 디버깅: 캠페인 상세 정보 출력
+    const campaign = campaigns.find(c => c.id === campaignId);
+    console.log(`[DELETE-DEBUG] 캠페인 정보:`, {
+      id: campaignId,
+      name: campaignName,
+      creator_id: campaign?.creator_id,
+      staff_id: campaign?.staff_id,
+      managerId: campaign?.managerId,
+      currentUser: {
+        id: currentUser?.id,
+        role: currentUser?.role,
+        company: currentUser?.company
+      }
+    });
+
     console.log(`[MODAL] 삭제 모달 열기 - campaignId: ${campaignId}, name: ${campaignName}`);
     setDeleteConfirm({
       isOpen: true,
