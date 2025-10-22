@@ -47,11 +47,12 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const [campaignEditData, setCampaignEditData] = useState({ name: '', description: '' });
     const [filters, setFilters] = useState({
         workType: 'all',
-        status: 'all', 
+        status: 'all',
         manager: 'all',
         dateRange: 'all',
         stage: 'all'
     });
+    const [rejectReasonModal, setRejectReasonModal] = useState({ isOpen: false, reason: '' });
 
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
@@ -1347,8 +1348,15 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                     </td>
                                     <td className="p-2">
                                         {post.rejectReason ? (
-                                            <span className="text-xs text-red-600">{post.rejectReason}</span>
-                                        ) : '-'}
+                                            <button
+                                                onClick={() => setRejectReasonModal({ isOpen: true, reason: post.rejectReason })}
+                                                className="px-3 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                                            >
+                                                상세보기
+                                            </button>
+                                        ) : (
+                                            <span className="text-gray-400">-</span>
+                                        )}
                                     </td>
                                     <td className="p-4 text-center">
                                         <span className="text-sm text-neutral-700">
@@ -1533,6 +1541,26 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                 disabled={!campaignEditData.name.trim()}
                             >
                                 저장
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 반려 사유 상세보기 모달 */}
+            {rejectReasonModal.isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                        <h3 className="text-lg font-semibold mb-4 text-red-600">반려 사유</h3>
+                        <div className="mb-6">
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{rejectReasonModal.reason}</p>
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setRejectReasonModal({ isOpen: false, reason: '' })}
+                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                            >
+                                닫기
                             </button>
                         </div>
                     </div>
