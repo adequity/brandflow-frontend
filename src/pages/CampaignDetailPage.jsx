@@ -11,7 +11,6 @@ import { approvalAPI } from '../api/client';
 // 필요한 컴포넌트들을 import 합니다.
 import StatusBadge from '../components/common/StatusBadge';
 import AdvancedFilter from '../components/common/AdvancedFilter';
-import ImagePreview from '../components/common/ImagePreview';
 import EditModal from '../components/modals/EditModal';
 import DeleteModal from '../components/modals/DeleteModal';
 import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
@@ -1088,7 +1087,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 검토</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 승인 상태</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">반려 사유</th>
-                                        <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">첨부 이미지</th>
+                                        <th className="p-4 text-center text-xs font-semibold text-purple-700 uppercase tracking-wider bg-purple-50">매출</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">결과물 링크</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">발주 요청</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">작성 시간</th>
@@ -1333,7 +1332,15 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             <span className="text-xs text-red-600">{post.rejectReason}</span>
                                         ) : '-'}
                                     </td>
-                                    <td className="p-2"><ImagePreview images={post.images} /></td>
+                                    <td className="p-4 text-center bg-purple-50">
+                                        <span className="text-sm font-semibold text-purple-600">
+                                            {post.budget && post.budget > 0 ? (
+                                                `${post.budget.toLocaleString()}원`
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </span>
+                                    </td>
                                     <td className="p-2">
                                         {post.publishedUrl ? (
                                             <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
