@@ -50,7 +50,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         status: 'all',
         manager: 'all',
         dateRange: 'all',
-        stage: 'all'
+        stage: 'all',
+        invoiceIssued: 'all',
+        paymentCompleted: 'all'
     });
     const [rejectReasonModal, setRejectReasonModal] = useState({ isOpen: false, reason: '' });
     const [outlineDetailModal, setOutlineDetailModal] = useState({ isOpen: false, post: null, outline: '' });
@@ -320,15 +322,33 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         // 진행 단계 필터
         if (filters.stage !== 'all') {
             if (filters.stage === 'work_only') {
-                filtered = filtered.filter(post => 
+                filtered = filtered.filter(post =>
                     !post.outline && !post.publishedUrl
                 );
             } else if (filters.stage === 'has_details') {
-                filtered = filtered.filter(post => 
+                filtered = filtered.filter(post =>
                     post.outline && !post.publishedUrl
                 );
             } else if (filters.stage === 'has_result') {
                 filtered = filtered.filter(post => post.publishedUrl);
+            }
+        }
+
+        // 계산서 발행 필터
+        if (filters.invoiceIssued !== 'all') {
+            if (filters.invoiceIssued === 'issued') {
+                filtered = filtered.filter(post => post.invoiceIssued === true);
+            } else if (filters.invoiceIssued === 'not_issued') {
+                filtered = filtered.filter(post => post.invoiceIssued === false || !post.invoiceIssued);
+            }
+        }
+
+        // 입금 완료 필터
+        if (filters.paymentCompleted !== 'all') {
+            if (filters.paymentCompleted === 'completed') {
+                filtered = filtered.filter(post => post.paymentCompleted === true);
+            } else if (filters.paymentCompleted === 'not_completed') {
+                filtered = filtered.filter(post => post.paymentCompleted === false || !post.paymentCompleted);
             }
         }
 
@@ -362,7 +382,12 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     topicStatus: '주제 승인 대기', // 수정 시 재승인 필요
                     // 업무 수정 시 발주 요청 상태 초기화
                     orderRequestStatus: null,
-                    orderRequestId: null
+                    orderRequestId: null,
+                    // 재무 관련 필드 추가
+                    invoice_issued: updatedContent.invoiceIssued || false,
+                    payment_completed: updatedContent.paymentCompleted || false,
+                    invoice_due_date: updatedContent.invoiceDueDate || null,
+                    payment_due_date: updatedContent.paymentDueDate || null
                 };
             } else {
                 // 기존 방식 호환성
@@ -464,7 +489,12 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 due_date: topicData.dueDate,
                 product_id: topicData.productId,
                 quantity: topicData.quantity || 1,
-                budget: topicData.budget || 0
+                budget: topicData.budget || 0,
+                // 재무 관련 필드 추가
+                invoice_issued: topicData.invoiceIssued || false,
+                payment_completed: topicData.paymentCompleted || false,
+                invoice_due_date: topicData.invoiceDueDate || null,
+                payment_due_date: topicData.paymentDueDate || null
             };
 
             console.log('API 호출 페이로드:', postPayload);

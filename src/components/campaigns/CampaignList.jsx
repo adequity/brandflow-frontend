@@ -27,8 +27,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
   // 필터링 상태
   const [filters, setFilters] = useState({
-    invoiceIssued: 'all',      // 'all', 'issued', 'not_issued'
-    paymentCompleted: 'all',    // 'all', 'completed', 'not_completed'
     staffId: 'all'              // 'all' 또는 특정 staff ID
   });
 
@@ -110,10 +108,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
           username: manager?.username || '담당자'
         },
         // 추가 필드들을 프론트엔드 형식으로 매핑
-        invoiceIssued: created.invoiceIssued,
-        paymentCompleted: created.paymentCompleted,
-        invoiceDueDate: created.invoiceDueDate,
-        paymentDueDate: created.paymentDueDate,
         managerId: managerId,
         updatedAt: created.updatedAt
       };
@@ -357,23 +351,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
     // 검색어 필터
     const matchesSearch = (c.name || '').toLowerCase().includes((searchTerm || '').toLowerCase());
 
-    // 계산서 발행 필터
-    const matchesInvoice = filters.invoiceIssued === 'all' ||
-      (filters.invoiceIssued === 'issued' && c.invoiceIssued === true) ||
-      (filters.invoiceIssued === 'not_issued' && c.invoiceIssued === false);
-
-    // 입금 완료 필터
-    const matchesPayment = filters.paymentCompleted === 'all' ||
-      (filters.paymentCompleted === 'completed' && c.paymentCompleted === true) ||
-      (filters.paymentCompleted === 'not_completed' && c.paymentCompleted === false);
-
     // STAFF 필터 (creator_id, managerId, staff_id로 매칭)
     const matchesStaff = filters.staffId === 'all' ||
       c.creator_id === parseInt(filters.staffId) ||
       c.managerId === parseInt(filters.staffId) ||
       c.staff_id === parseInt(filters.staffId);
 
-    return matchesSearch && matchesInvoice && matchesPayment && matchesStaff;
+    return matchesSearch && matchesStaff;
   });
 
   // STAFF 목록 생성 (캠페인을 가진 STAFF만)
@@ -427,28 +411,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
           {/* 필터 영역 */}
           <div className="flex gap-3 items-center">
-            {/* 계산서 발행 필터 */}
-            <select
-              value={filters.invoiceIssued}
-              onChange={(e) => setFilters({ ...filters, invoiceIssued: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">📄 계산서: 전체</option>
-              <option value="issued">📄 계산서 발행 완료</option>
-              <option value="not_issued">📄 계산서 미발행</option>
-            </select>
-
-            {/* 입금 완료 필터 */}
-            <select
-              value={filters.paymentCompleted}
-              onChange={(e) => setFilters({ ...filters, paymentCompleted: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="all">💰 입금: 전체</option>
-              <option value="completed">💰 입금 완료</option>
-              <option value="not_completed">💰 미입금</option>
-            </select>
-
             {/* STAFF 필터 */}
             <select
               value={filters.staffId}
@@ -464,11 +426,9 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
             </select>
 
             {/* 필터 초기화 버튼 */}
-            {(filters.invoiceIssued !== 'all' || filters.paymentCompleted !== 'all' || filters.staffId !== 'all') && (
+            {(filters.staffId !== 'all') && (
               <button
                 onClick={() => setFilters({
-                  invoiceIssued: 'all',
-                  paymentCompleted: 'all',
                   staffId: 'all'
                 })}
                 className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -504,7 +464,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               <th className="px-6 py-3">담당자</th>
               <th className="px-6 py-3">진행률 (완료/총)</th>
               <th className="px-6 py-3">매출 현황</th>
-              <th className="px-6 py-3">재무 상태</th>
               <th className="px-6 py-3">종료일</th>
               <th className="px-6 py-3">최근 업데이트</th>
               {/* 카톡 관리 - CLIENT 역할에게는 보이지 않음 */}
@@ -579,7 +538,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                       </div>
                     </div>
                   </td>
-                  <td 
+                  <td
                     className="px-6 py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
@@ -591,56 +550,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                       {/* 간단화: budget만 표시 */}
                     </div>
                   </td>
-                  
-                  {/* 재무 상태 */}
-                  <td 
-                    className="px-6 py-4 cursor-pointer"
-                    onClick={() => onSelectCampaign(campaign.id)}
-                  >
-                    <div className="flex flex-col space-y-1">
-                      <div className="flex items-center space-x-1">
-                        <span className={`w-2 h-2 rounded-full ${campaign.invoiceIssued ? 'bg-blue-500' : 'bg-gray-300'}`}></span>
-                        <span className="text-xs">
-                          {campaign.invoiceIssued ? (
-                            <span className="text-blue-600">📄 계산서 발행</span>
-                          ) : (
-                            <span className="text-gray-500">📄 계산서 미발행</span>
-                          )}
-                        </span>
-                        {campaign.invoiceDueDate && (
-                          <div className={`text-xs ml-1 ${
-                            !campaign.invoiceIssued && new Date(campaign.invoiceDueDate) < new Date() 
-                              ? 'text-red-600 font-medium' 
-                              : 'text-gray-500'
-                          }`}>
-                            {!campaign.invoiceIssued && new Date(campaign.invoiceDueDate) < new Date() && '⚠️ '}
-                            ({new Date(campaign.invoiceDueDate).toLocaleDateString()})
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <span className={`w-2 h-2 rounded-full ${campaign.paymentCompleted ? 'bg-green-500' : 'bg-gray-300'}`}></span>
-                        <span className="text-xs">
-                          {campaign.paymentCompleted ? (
-                            <span className="text-green-600">💰 입금 완료</span>
-                          ) : (
-                            <span className="text-gray-500">💰 입금 대기</span>
-                          )}
-                        </span>
-                        {campaign.paymentDueDate && (
-                          <div className={`text-xs ml-1 ${
-                            !campaign.paymentCompleted && new Date(campaign.paymentDueDate) < new Date() 
-                              ? 'text-red-600 font-medium' 
-                              : 'text-gray-500'
-                          }`}>
-                            {!campaign.paymentCompleted && new Date(campaign.paymentDueDate) < new Date() && '⚠️ '}
-                            ({new Date(campaign.paymentDueDate).toLocaleDateString()})
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  
+
                   {/* 종료일 */}
                   <td
                     className="px-6 py-4 cursor-pointer"

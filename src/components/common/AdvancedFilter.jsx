@@ -8,7 +8,9 @@ const AdvancedFilter = React.memo(({ onFilterChange, users = [] }) => {
     status: 'all',
     manager: 'all',
     dateRange: 'all',
-    stage: 'all'
+    stage: 'all',
+    invoiceIssued: 'all',      // 'all', 'issued', 'not_issued'
+    paymentCompleted: 'all'    // 'all', 'completed', 'not_completed'
   });
 
   const workTypes = [
@@ -43,6 +45,18 @@ const AdvancedFilter = React.memo(({ onFilterChange, users = [] }) => {
     { value: 'has_result', label: '결과물 있음' }
   ];
 
+  const invoiceOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'issued', label: '계산서 발행 완료' },
+    { value: 'not_issued', label: '계산서 미발행' }
+  ];
+
+  const paymentOptions = [
+    { value: 'all', label: '전체' },
+    { value: 'completed', label: '입금 완료' },
+    { value: 'not_completed', label: '미입금' }
+  ];
+
   const managerOptions = [
     { value: 'all', label: '전체 담당자' },
     ...users.filter(u => u.role !== 'CLIENT').map(u => ({
@@ -63,7 +77,9 @@ const AdvancedFilter = React.memo(({ onFilterChange, users = [] }) => {
       status: 'all',
       manager: 'all',
       dateRange: 'all',
-      stage: 'all'
+      stage: 'all',
+      invoiceIssued: 'all',
+      paymentCompleted: 'all'
     };
     setFilters(resetFilters);
     onFilterChange(resetFilters);
@@ -178,6 +194,38 @@ const AdvancedFilter = React.memo(({ onFilterChange, users = [] }) => {
                 className="w-full p-2 text-sm border border-gray-300 rounded"
               >
                 {stageOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 계산서 발행 */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">📄 계산서 발행</label>
+              <select
+                value={filters.invoiceIssued}
+                onChange={(e) => handleFilterChange('invoiceIssued', e.target.value)}
+                className="w-full p-2 text-sm border border-gray-300 rounded"
+              >
+                {invoiceOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 입금 완료 */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">💰 입금 완료</label>
+              <select
+                value={filters.paymentCompleted}
+                onChange={(e) => handleFilterChange('paymentCompleted', e.target.value)}
+                className="w-full p-2 text-sm border border-gray-300 rounded"
+              >
+                {paymentOptions.map(option => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>

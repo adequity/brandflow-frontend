@@ -19,6 +19,12 @@ const EditModal = ({ post, type, onSave, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [workTypes, setWorkTypes] = useState([]);
 
+    // 재무 관련 상태
+    const [invoiceIssued, setInvoiceIssued] = useState(post?.invoiceIssued || false);
+    const [paymentCompleted, setPaymentCompleted] = useState(post?.paymentCompleted || false);
+    const [invoiceDueDate, setInvoiceDueDate] = useState(post?.invoiceDueDate || '');
+    const [paymentDueDate, setPaymentDueDate] = useState(post?.paymentDueDate || '');
+
     // workTypeCategoryMap 제거 - 실제 백엔드 데이터와 직접 매칭
 
     // 선택된 업무타입에 따라 필터링된 상품 목록 (category 필드 기준)
@@ -147,7 +153,12 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                 quantity: quantity || 1,
                 budget: budget || 0,
                 startDate: startDate || null,
-                dueDate: dueDate || null
+                dueDate: dueDate || null,
+                // 재무 관련 필드 추가
+                invoiceIssued: invoiceIssued,
+                paymentCompleted: paymentCompleted,
+                invoiceDueDate: invoiceDueDate || null,
+                paymentDueDate: paymentDueDate || null
             };
             onSave(data);
         } else {
@@ -263,7 +274,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                     {/* 업무 일정 섹션 */}
                     <div className="border-t pt-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-3">📅 업무 일정</h4>
-                        
+
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">시작일</label>
@@ -274,7 +285,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                                     className="w-full p-2 border border-gray-300 rounded-lg text-sm"
                                 />
                             </div>
-                            
+
                             <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">마감일</label>
                                 <input
@@ -287,7 +298,64 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                             </div>
                         </div>
                     </div>
-                    
+
+                    {/* 재무 상태 섹션 */}
+                    <div className="border-t pt-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-3">💰 재무 상태 (선택사항)</h4>
+
+                        <div className="space-y-3">
+                            {/* 계산서 발행 */}
+                            <div className="bg-blue-50 p-3 rounded-lg">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <input
+                                        type="checkbox"
+                                        id="invoiceIssued"
+                                        checked={invoiceIssued}
+                                        onChange={(e) => setInvoiceIssued(e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="invoiceIssued" className="text-sm font-medium text-gray-700">
+                                        📄 계산서 발행 완료
+                                    </label>
+                                </div>
+                                <div className="ml-6">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">계산서 발행 마감일</label>
+                                    <input
+                                        type="date"
+                                        value={invoiceDueDate}
+                                        onChange={(e) => setInvoiceDueDate(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm bg-white"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 입금 완료 */}
+                            <div className="bg-green-50 p-3 rounded-lg">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <input
+                                        type="checkbox"
+                                        id="paymentCompleted"
+                                        checked={paymentCompleted}
+                                        onChange={(e) => setPaymentCompleted(e.target.checked)}
+                                        className="w-4 h-4 text-green-600 bg-white border-gray-300 rounded focus:ring-green-500"
+                                    />
+                                    <label htmlFor="paymentCompleted" className="text-sm font-medium text-gray-700">
+                                        💰 입금 완료
+                                    </label>
+                                </div>
+                                <div className="ml-6">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">입금 마감일</label>
+                                    <input
+                                        type="date"
+                                        value={paymentDueDate}
+                                        onChange={(e) => setPaymentDueDate(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm bg-white"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">업무 내용</label>
                         <div 
