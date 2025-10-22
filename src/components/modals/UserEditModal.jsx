@@ -166,15 +166,15 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
             const response = await api.get('/api/users');
             const usersData = response.data.results || response.data;
 
-            // 해당 회사의 STAFF만 필터링
+            // 해당 회사의 STAFF와 TEAM_LEADER 필터링 (둘 다 CLIENT 담당 가능)
             const staff = usersData.filter(u =>
-                u.role === 'STAFF' && u.company === company
+                (u.role === 'STAFF' || u.role === 'TEAM_LEADER') && u.company === company
             );
 
-            console.log('STAFF 목록:', staff);
+            console.log('STAFF/TEAM_LEADER 목록:', staff);
             setStaffMembers(staff);
         } catch (error) {
-            console.error('STAFF 목록 로딩 실패:', error);
+            console.error('STAFF/TEAM_LEADER 목록 로딩 실패:', error);
         } finally {
             setIsLoadingStaff(false);
         }
@@ -518,11 +518,11 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                             {/* 담당 STAFF 선택 */}
                             <div>
                                 <label htmlFor="assignedStaffId" className="block text-sm font-medium text-gray-700 mb-1">
-                                    담당 STAFF {(loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && <span className="text-gray-500">(변경 가능)</span>}
+                                    담당 STAFF/팀 리더 {(loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && <span className="text-gray-500">(변경 가능)</span>}
                                 </label>
                                 {isLoadingStaff ? (
                                     <div className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-lg text-gray-500">
-                                        STAFF 목록 로딩 중...
+                                        담당자 목록 로딩 중...
                                     </div>
                                 ) : staffMembers.length > 0 ? (
                                     <>
@@ -534,15 +534,16 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                             disabled={loggedInUser?.role === 'STAFF'}
                                         >
-                                            <option value="">담당 STAFF를 선택하세요...</option>
+                                            <option value="">담당자를 선택하세요...</option>
                                             {staffMembers.map((staff) => (
                                                 <option key={staff.id} value={staff.id}>
+                                                    {staff.role === 'TEAM_LEADER' ? '👔 ' : '👨‍💼 '}
                                                     {staff.name} {staff.team_name || staff.teamName ? `(${staff.team_name || staff.teamName})` : ''}
                                                 </option>
                                             ))}
                                         </select>
                                         <p className="text-xs text-gray-500 mt-1">
-                                            💡 이 클라이언트를 담당할 STAFF를 선택하세요. {loggedInUser?.role === 'STAFF' ? '(STAFF가 생성 시 자동 할당됨)' : '(ADMIN은 변경 가능)'}
+                                            💡 이 클라이언트를 담당할 STAFF 또는 팀 리더를 선택하세요. {loggedInUser?.role === 'STAFF' ? '(STAFF가 생성 시 자동 할당됨)' : '(ADMIN은 변경 가능)'}
                                         </p>
 
                                         {/* 선택한 STAFF의 팀 정보 표시 */}
