@@ -1087,7 +1087,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 검토</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 승인 상태</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">반려 사유</th>
-                                        <th className="p-4 text-center text-xs font-semibold text-purple-700 uppercase tracking-wider bg-purple-50">매출</th>
+                                        <th className="p-4 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">매출</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">결과물 링크</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">발주 요청</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">작성 시간</th>
@@ -1332,8 +1332,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             <span className="text-xs text-red-600">{post.rejectReason}</span>
                                         ) : '-'}
                                     </td>
-                                    <td className="p-4 text-center bg-purple-50">
-                                        <span className="text-sm font-semibold text-purple-600">
+                                    <td className="p-4 text-center">
+                                        <span className="text-sm text-neutral-700">
                                             {post.budget && post.budget > 0 ? (
                                                 `${post.budget.toLocaleString()}원`
                                             ) : (
