@@ -90,6 +90,11 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
         }
       };
 
+      // STAFF와 TEAM_LEADER는 담당자가 없으면 본인 ID를 기본값으로 설정
+      const defaultStaffId = (currentUser.role === 'STAFF' || currentUser.role === 'TEAM_LEADER') && !campaign.staff_id
+        ? currentUser.id
+        : (campaign.staff_id || '');
+
       const formattedData = {
         name: campaign.name || '',
         description: campaign.description || '',
@@ -100,7 +105,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
         status: campaign.status || '초안',
         invoice_issued: campaign.invoice_issued || false,
         payment_completed: campaign.payment_completed || false,
-        UserId: campaign.staff_id || ''
+        UserId: defaultStaffId
       };
       setFormData(formattedData);
     }
