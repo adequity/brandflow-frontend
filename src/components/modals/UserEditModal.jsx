@@ -13,6 +13,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         // 팀 정보 (TEAM_LEADER, STAFF용)
         teamName: user?.teamName || '',
         teamLeaderId: user?.teamLeaderId || null,
+        // CLIENT의 담당 STAFF
+        assignedStaffId: user?.assignedStaffId || null,
         // 클라이언트 실제 회사 정보
         clientCompanyName: user?.clientCompanyName || '',
         clientBusinessNumber: user?.clientBusinessNumber || '',
@@ -37,6 +39,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 // 팀 정보
                 teamName: user.teamName || '',
                 teamLeaderId: user.teamLeaderId || null,
+                // CLIENT의 담당 STAFF
+                assignedStaffId: user.assignedStaffId || null,
                 // 클라이언트 실제 회사 정보
                 clientCompanyName: user.clientCompanyName || '',
                 clientBusinessNumber: user.clientBusinessNumber || '',
@@ -66,6 +70,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 // 팀 정보 초기값
                 teamName: '',
                 teamLeaderId: null,
+                assignedStaffId: null,
                 // 클라이언트 실제 회사 정보 초기값
                 clientCompanyName: '',
                 clientBusinessNumber: '',
@@ -81,6 +86,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
     const [teamLeaders, setTeamLeaders] = useState([]);
     const [isLoadingTeamLeaders, setIsLoadingTeamLeaders] = useState(false);
+    const [staffMembers, setStaffMembers] = useState([]);
+    const [isLoadingStaff, setIsLoadingStaff] = useState(false);
 
     // 기존 회사 목록 로드 (슈퍼 어드민만)
     useEffect(() => {
@@ -96,6 +103,16 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         } else if (formData.role !== 'STAFF') {
             // STAFF가 아닌 역할로 변경되면 팀 리더 목록 초기화
             setTeamLeaders([]);
+        }
+    }, [formData.role, formData.company]);
+
+    // STAFF 목록 로드 (CLIENT 역할 선택 시)
+    useEffect(() => {
+        if (formData.role === 'CLIENT' && formData.company) {
+            fetchStaffMembers(formData.company);
+        } else if (formData.role !== 'CLIENT') {
+            // CLIENT가 아닌 역할로 변경되면 STAFF 목록 초기화
+            setStaffMembers([]);
         }
     }, [formData.role, formData.company]);
 
@@ -140,6 +157,26 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
             console.error('팀 리더 목록 로딩 실패:', error);
         } finally {
             setIsLoadingTeamLeaders(false);
+        }
+    };
+
+    const fetchStaffMembers = async (company) => {
+        setIsLoadingStaff(true);
+        try {
+            const response = await api.get('/api/users');
+            const usersData = response.data.results || response.data;
+
+            // 해당 회사의 STAFF만 필터링
+            const staff = usersData.filter(u =>
+                u.role === 'STAFF' && u.company === company
+            );
+
+            console.log('STAFF 목록:', staff);
+            setStaffMembers(staff);
+        } catch (error) {
+            console.error('STAFF 목록 로딩 실패:', error);
+        } finally {
+            setIsLoadingStaff(false);
         }
     };
 
@@ -475,6 +512,67 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         {formData.role === 'CLIENT' ? (
                             <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                                👤 담당 STAFF 정보
+                            </h3>
+
+                            {/* 담당 STAFF 선택 */}
+                            <div>
+                                <label htmlFor="assignedStaffId" className="block text-sm font-medium text-gray-700 mb-1">
+                                    담당 STAFF {(loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && <span className="text-gray-500">(변경 가능)</span>}
+                                </label>
+                                {isLoadingStaff ? (
+                                    <div className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-lg text-gray-500">
+                                        STAFF 목록 로딩 중...
+                                    </div>
+                                ) : staffMembers.length > 0 ? (
+                                    <>
+                                        <select
+                                            name="assignedStaffId"
+                                            id="assignedStaffId"
+                                            value={formData.assignedStaffId || ''}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            disabled={loggedInUser?.role === 'STAFF'}
+                                        >
+                                            <option value="">담당 STAFF를 선택하세요...</option>
+                                            {staffMembers.map((staff) => (
+                                                <option key={staff.id} value={staff.id}>
+                                                    {staff.name} {staff.team_name || staff.teamName ? `(${staff.team_name || staff.teamName})` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            💡 이 클라이언트를 담당할 STAFF를 선택하세요. {loggedInUser?.role === 'STAFF' ? '(STAFF가 생성 시 자동 할당됨)' : '(ADMIN은 변경 가능)'}
+                                        </p>
+
+                                        {/* 선택한 STAFF의 팀 정보 표시 */}
+                                        {formData.assignedStaffId && staffMembers.length > 0 && (() => {
+                                            const selectedStaff = staffMembers.find(s => s.id === parseInt(formData.assignedStaffId));
+                                            if (selectedStaff && (selectedStaff.team_name || selectedStaff.teamName)) {
+                                                return (
+                                                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                        <p className="text-xs text-blue-800 font-medium mb-1">👔 소속 팀 정보</p>
+                                                        <p className="text-sm text-blue-700">
+                                                            <span className="font-medium">{selectedStaff.team_name || selectedStaff.teamName}</span>
+                                                        </p>
+                                                        <p className="text-xs text-blue-600 mt-1">
+                                                            ℹ️ 이 클라이언트는 담당 STAFF를 통해 자동으로 팀과 연결됩니다.
+                                                        </p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+                                    </>
+                                ) : (
+                                    <div className="w-full px-4 py-3 border border-yellow-300 bg-yellow-50 rounded-lg text-yellow-700">
+                                        <p className="font-medium">⚠️ STAFF가 없습니다</p>
+                                        <p className="text-xs mt-1">해당 회사에 STAFF 역할의 사용자를 먼저 생성해주세요.</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2 mt-6">
                                 🏢 실제 거래 회사 정보
                             </h3>
                             <p className="text-sm text-gray-600 mb-4">

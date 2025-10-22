@@ -52,6 +52,7 @@ const UserManagement = ({ loggedInUser }) => {
         teamId: user.team_id || null,
         teamName: user.team_name || null,
         teamLeaderId: user.team_leader_id || null,
+        assignedStaffId: user.assigned_staff_id || null,
 
         // 클라이언트 실제 회사 정보 (snake_case → camelCase 변환)
         clientCompanyName: user.client_company_name || '',
@@ -129,6 +130,7 @@ const UserManagement = ({ loggedInUser }) => {
       // 팀 정보 (camelCase → snake_case 변환)
       team_name: userData.teamName || null,
       team_leader_id: userData.teamLeaderId || null,
+      assigned_staff_id: userData.assignedStaffId || null,
 
       // 클라이언트 실제 회사 정보 (camelCase → snake_case 변환)
       client_company_name: userData.clientCompanyName,
@@ -493,6 +495,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                 <th className="px-6 py-3">사용자 정보</th>
                 <th className="px-6 py-3">연락처</th>
                 <th className="px-6 py-3">소속/역할</th>
+                <th className="px-6 py-3">팀 정보</th>
                 {activeTab === 'staff' && <th className="px-6 py-3">인센티브율</th>}
                 <th className="px-6 py-3">상태</th>
                 <th className="px-6 py-3">가입일</th>
@@ -521,6 +524,47 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                         {user.role}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {(() => {
+                      // TEAM_LEADER: 본인이 리더인 팀
+                      if (user.role === 'TEAM_LEADER' && user.teamName) {
+                        return (
+                          <div className="flex items-center space-x-1">
+                            <span className="text-indigo-600 font-medium">👔 {user.teamName}</span>
+                            <span className="text-xs text-gray-500">(리더)</span>
+                          </div>
+                        );
+                      }
+                      // STAFF: 소속 팀
+                      if (user.role === 'STAFF' && user.teamName) {
+                        return (
+                          <div className="flex items-center space-x-1">
+                            <span className="text-green-600">👥 {user.teamName}</span>
+                          </div>
+                        );
+                      }
+                      // CLIENT: 담당 STAFF의 팀 (assignedStaffId를 통해)
+                      if (user.role === 'CLIENT' && user.assignedStaffId) {
+                        const assignedStaff = users.find(u => u.id === user.assignedStaffId);
+                        if (assignedStaff && assignedStaff.teamName) {
+                          return (
+                            <div className="flex flex-col">
+                              <span className="text-orange-600">🤝 {assignedStaff.teamName}</span>
+                              <span className="text-xs text-gray-500">담당: {assignedStaff.name}</span>
+                            </div>
+                          );
+                        } else if (assignedStaff) {
+                          return (
+                            <div className="flex flex-col">
+                              <span className="text-gray-500">팀 미배정</span>
+                              <span className="text-xs text-gray-500">담당: {assignedStaff.name}</span>
+                            </div>
+                          );
+                        }
+                      }
+                      return <span className="text-gray-400">-</span>;
+                    })()}
                   </td>
                   {activeTab === 'staff' && (
                     <td className="px-6 py-4">
