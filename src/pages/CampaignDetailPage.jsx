@@ -460,7 +460,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 start_date: topicData.startDate,
                 due_date: topicData.dueDate,
                 product_id: topicData.productId,
-                quantity: topicData.quantity || 1
+                quantity: topicData.quantity || 1,
+                budget: topicData.budget || 0
             };
 
             console.log('API 호출 페이로드:', postPayload);
