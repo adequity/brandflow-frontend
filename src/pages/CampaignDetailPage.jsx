@@ -1026,7 +1026,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             </div>
             {/* Main Content Section */}
             <div className="max-w-[95%] mx-auto px-4 py-6">
-                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl overflow-hidden">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl overflow-visible">
                     {/* Control Panel Header */}
                     <div className="bg-gradient-to-r from-neutral-50 to-neutral-100/80 border-b border-neutral-200/70 p-6">
                         <div className="flex justify-between items-center">
@@ -1115,7 +1115,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                         </div>
                     </div>
                     {/* Table Section */}
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto overflow-y-visible">
                         <table className="w-full text-sm">
                             <thead className="bg-white/50 border-b border-neutral-200">
                                     <tr>
@@ -1461,9 +1461,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             <span className="text-gray-400">-</span>
                                         )}
                                     </td>
-                                    <td className="p-2">
+                                    <td className="p-2 relative z-10">
                                         {post.orderRequestStatus ? (
-                                            <div className="flex items-center space-x-2">
+                                            <div className="flex items-center space-x-2 relative z-20">
                                                 <span className={`px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm border transition-all duration-200 ${
                                                     post.orderRequestStatus === '승인완료' || post.orderRequestStatus === '발주 승인' ?
                                                         'bg-gradient-to-r from-green-50 to-green-100 text-green-700 border-green-200' :
