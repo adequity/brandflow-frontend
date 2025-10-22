@@ -354,6 +354,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     images: updatedContent.images,
                     productId: updatedContent.productId,
                     quantity: updatedContent.quantity,
+                    budget: updatedContent.budget,
                     startDate: updatedContent.startDate,
                     dueDate: updatedContent.dueDate,
                     topicStatus: '주제 승인 대기', // 수정 시 재승인 필요

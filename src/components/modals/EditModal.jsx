@@ -13,6 +13,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
     const [products, setProducts] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState(post?.productId || '');
     const [quantity, setQuantity] = useState(post?.quantity || 1);
+    const [budget, setBudget] = useState(post?.budget || 0);
     const [startDate, setStartDate] = useState(post?.startDate || '');
     const [dueDate, setDueDate] = useState(post?.dueDate || '');
     const [loading, setLoading] = useState(false);
@@ -144,6 +145,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                 images: images,
                 productId: selectedProductId || null,
                 quantity: quantity || 1,
+                budget: budget || 0,
                 startDate: startDate || null,
                 dueDate: dueDate || null
             };
@@ -204,7 +206,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                                 </span>
                             )}
                         </h4>
-                        
+
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">상품 선택</label>
@@ -227,7 +229,7 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                                     )}
                                 </select>
                             </div>
-                            
+
                             <div>
                                 <label className="block text-xs font-medium text-gray-600 mb-1">수량</label>
                                 <input
@@ -240,7 +242,22 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                                 />
                             </div>
                         </div>
-                        
+
+                        <div className="mt-3">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">💵 업무 매출 (선택사항)</label>
+                            <input
+                                type="number"
+                                value={budget}
+                                onChange={(e) => setBudget(Math.max(0, parseFloat(e.target.value) || 0))}
+                                min="0"
+                                step="1000"
+                                className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                                placeholder="이 업무의 매출을 입력하세요 (원)"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                캠페인의 총 매출은 모든 업무의 매출 합계로 계산됩니다
+                            </p>
+                        </div>
                     </div>
                     
                     {/* 업무 일정 섹션 */}
