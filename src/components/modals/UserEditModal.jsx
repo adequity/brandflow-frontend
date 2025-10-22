@@ -337,31 +337,44 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                             </div>
                         )}
 
-                        {/* 팀 리더 선택 - STAFF만 표시 */}
-                        {formData.role === 'STAFF' && teamLeaders.length > 0 && (
+                        {/* 팀 리더 선택 - STAFF만 표시 (필수) */}
+                        {formData.role === 'STAFF' && (
                             <div>
                                 <label htmlFor="teamLeaderId" className="block text-sm font-medium text-gray-700 mb-1">
-                                    소속 팀 리더
+                                    소속 팀 리더 * <span className="text-red-500">(필수)</span>
                                 </label>
-                                <select
-                                    name="teamLeaderId"
-                                    id="teamLeaderId"
-                                    value={formData.teamLeaderId || ''}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                >
-                                    <option value="">팀 리더 선택...</option>
-                                    {teamLeaders.map((leader) => (
-                                        <option key={leader.id} value={leader.id}>
-                                            {leader.name} ({leader.team_name || leader.teamName || '팀 미지정'})
-                                        </option>
-                                    ))}
-                                </select>
-                                <p className="text-xs text-gray-500 mt-1">이 직원이 소속될 팀 리더를 선택하세요.</p>
+                                {isLoadingTeamLeaders ? (
+                                    <div className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-lg text-gray-500">
+                                        팀 리더 목록 로딩 중...
+                                    </div>
+                                ) : teamLeaders.length > 0 ? (
+                                    <>
+                                        <select
+                                            name="teamLeaderId"
+                                            id="teamLeaderId"
+                                            value={formData.teamLeaderId || ''}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            required
+                                        >
+                                            <option value="">팀 리더를 선택하세요...</option>
+                                            {teamLeaders.map((leader) => (
+                                                <option key={leader.id} value={leader.id}>
+                                                    {leader.name} ({leader.team_name || leader.teamName || '팀 미지정'})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            💡 이 직원이 소속될 팀 리더를 선택하세요. CLIENT 생성 시 자동으로 팀 정보가 상속됩니다.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <div className="w-full px-4 py-3 border border-red-300 bg-red-50 rounded-lg text-red-700">
+                                        <p className="font-medium">⚠️ 팀 리더가 없습니다</p>
+                                        <p className="text-xs mt-1">먼저 해당 회사에 TEAM_LEADER 역할의 사용자를 생성해주세요.</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        {formData.role === 'STAFF' && isLoadingTeamLeaders && (
-                            <p className="text-xs text-gray-500">팀 리더 목록 로딩 중...</p>
                         )}
 
                         {/* 인센티브율 필드 - STAFF/TEAM_LEADER/AGENCY_ADMIN 표시 */}
