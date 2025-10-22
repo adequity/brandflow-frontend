@@ -496,7 +496,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               {currentUser?.role !== 'CLIENT' && (
                 <th className="px-6 py-3">카톡 관리</th>
               )}
-              {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'STAFF') && (
+              {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'TEAM_LEADER' || currentUser?.role === 'STAFF') && (
                 <th className="px-6 py-3">관리</th>
               )}
             </tr>

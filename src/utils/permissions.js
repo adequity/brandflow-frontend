@@ -2,6 +2,7 @@
 export const ROLES = {
   SUPER_ADMIN: 'SUPER_ADMIN',
   AGENCY_ADMIN: 'AGENCY_ADMIN',
+  TEAM_LEADER: 'TEAM_LEADER',
   EMPLOYEE: 'STAFF',
   CLIENT: 'CLIENT'
 };
@@ -10,6 +11,7 @@ export const ROLES = {
 export const ROLE_MAPPING = {
   'SUPER_ADMIN': ROLES.SUPER_ADMIN,
   'AGENCY_ADMIN': ROLES.AGENCY_ADMIN,
+  'TEAM_LEADER': ROLES.TEAM_LEADER,
   'STAFF': ROLES.EMPLOYEE,
   'CLIENT': ROLES.CLIENT
 };
@@ -75,31 +77,51 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.EDIT_USER,
     PERMISSIONS.DELETE_USER,
     PERMISSIONS.VIEW_COMPANY_USERS,
-    
+
     PERMISSIONS.CREATE_CAMPAIGN,
     PERMISSIONS.EDIT_CAMPAIGN,
     PERMISSIONS.DELETE_CAMPAIGN,
     PERMISSIONS.VIEW_COMPANY_CAMPAIGNS,
-    
+
     PERMISSIONS.CREATE_POST,
     PERMISSIONS.EDIT_POST,
     PERMISSIONS.DELETE_POST,
     PERMISSIONS.VIEW_COMPANY_POSTS,
-    
+
     PERMISSIONS.CREATE_PURCHASE_REQUEST,
     PERMISSIONS.EDIT_PURCHASE_REQUEST,
     PERMISSIONS.DELETE_PURCHASE_REQUEST,
     PERMISSIONS.APPROVE_PURCHASE_REQUEST, // 핵심 권한
     PERMISSIONS.VIEW_ALL_PURCHASE_REQUESTS,
-    
+
     PERMISSIONS.CALCULATE_INCENTIVES,
     PERMISSIONS.APPROVE_INCENTIVES, // 핵심 권한
     PERMISSIONS.VIEW_ALL_INCENTIVES,
-    
+
     PERMISSIONS.VIEW_FINANCIAL_OVERVIEW,
     PERMISSIONS.VIEW_COMPANY_FINANCIAL
   ],
-  
+
+  [ROLES.TEAM_LEADER]: [
+    PERMISSIONS.CREATE_CLIENT,
+
+    PERMISSIONS.CREATE_CAMPAIGN,
+    PERMISSIONS.EDIT_CAMPAIGN,
+    PERMISSIONS.DELETE_CAMPAIGN,
+    PERMISSIONS.VIEW_COMPANY_CAMPAIGNS,
+
+    PERMISSIONS.CREATE_POST,
+    PERMISSIONS.EDIT_POST,
+    PERMISSIONS.DELETE_POST,
+    PERMISSIONS.VIEW_COMPANY_POSTS,
+
+    PERMISSIONS.CREATE_PURCHASE_REQUEST,
+    PERMISSIONS.EDIT_PURCHASE_REQUEST,
+
+    PERMISSIONS.VIEW_ALL_INCENTIVES,
+    PERMISSIONS.VIEW_COMPANY_FINANCIAL
+  ],
+
   [ROLES.EMPLOYEE]: [
     PERMISSIONS.CREATE_CLIENT,
     
@@ -381,31 +403,45 @@ export const canAccessCampaign = (user, campaign) => {
  */
 export const canEditCampaign = (user, campaign) => {
   if (!user || !campaign) return false;
-  
+
   // SUPER_ADMIN: 모든 캠페인 수정 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
-  
+
   // AGENCY_ADMIN: 자신이 관리하는 캠페인 수정 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
     if (!user.company) return false;
     // 같은 회사의 캠페인이거나, 본인이 매니저인 캠페인
-    return campaign.User?.company === user.company || 
+    return campaign.User?.company === user.company ||
            campaign.Client?.company === user.company ||
            campaign.managerId === user.id ||
            campaign.creator_id === user.id;
   }
-  
+
+  // TEAM_LEADER: 본인 캠페인 + 팀 캠페인 수정 가능
+  if (user.role === ROLES.TEAM_LEADER) {
+    // 본인이 생성하거나 담당하는 캠페인
+    if (campaign.creator_id === user.id || campaign.staff_id === user.id || campaign.managerId === user.id) {
+      return true;
+    }
+
+    // 팀 STAFF가 생성하거나 담당하는 캠페인 (추후 users 배열을 통해 확인 가능)
+    // 현재는 같은 회사 내 캠페인으로 확인
+    if (!user.company) return false;
+    return campaign.User?.company === user.company ||
+           campaign.Client?.company === user.company;
+  }
+
   // STAFF: 배정받은 캠페인 수정 가능 (담당자이거나 생성자인 경우)
   if (user.role === ROLES.EMPLOYEE) {
-    return campaign.managerId === user.id || campaign.creator_id === user.id;
+    return campaign.managerId === user.id || campaign.creator_id === user.id || campaign.staff_id === user.id;
   }
-  
+
   // CLIENT: 자신의 회사 캠페인 수정 가능
   if (user.role === ROLES.CLIENT) {
-    return campaign.userId === user.id || 
+    return campaign.userId === user.id ||
            (campaign.Client?.company === user.company);
   }
-  
+
   return false;
 };
 
