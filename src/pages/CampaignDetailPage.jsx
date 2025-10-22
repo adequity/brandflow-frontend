@@ -53,6 +53,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         stage: 'all'
     });
     const [rejectReasonModal, setRejectReasonModal] = useState({ isOpen: false, reason: '' });
+    const [outlineDetailModal, setOutlineDetailModal] = useState({ isOpen: false, post: null, outline: '' });
 
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
@@ -1309,7 +1310,18 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             </div>
                                         )}
                                     </td>
-                                    <td className="p-2">{post.outline ? <div className="flex items-center justify-between"><span className="text-xs truncate max-w-xs">{post.outline}</span><button onClick={() => openEditModal(post, 'outline')} className="text-gray-400 hover:text-blue-600 ml-2 shrink-0"><Edit size={14} /></button></div> : '-'}</td>
+                                    <td className="p-2">
+                                        {post.outline ? (
+                                            <button
+                                                onClick={() => setOutlineDetailModal({ isOpen: true, post: post, outline: post.outline })}
+                                                className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                                            >
+                                                상세보기
+                                            </button>
+                                        ) : (
+                                            <span className="text-gray-400">-</span>
+                                        )}
+                                    </td>
                                     <td className="p-2">
                                         {post.outlineStatus ? (
                                             editingCell?.postId === post.id && editingCell?.field === 'outlineStatus' ? (
@@ -1561,6 +1573,89 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                 className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                             >
                                 닫기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 목차 상세보기 및 수정 모달 */}
+            {outlineDetailModal.isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-hidden flex flex-col">
+                        {/* Modal Header */}
+                        <div className="px-8 py-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <h3 className="text-2xl font-bold text-gray-900 flex items-center">
+                                <svg className="w-7 h-7 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                세부사항 검토
+                            </h3>
+                            {outlineDetailModal.post && (
+                                <p className="text-sm text-gray-600 mt-2 ml-10">
+                                    업무: <span className="font-medium text-gray-900">{outlineDetailModal.post.title}</span>
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Modal Body - Scrollable */}
+                        <div className="flex-1 overflow-y-auto px-8 py-6">
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                        목차 내용
+                                    </label>
+                                    <textarea
+                                        value={outlineDetailModal.outline}
+                                        onChange={(e) => setOutlineDetailModal(prev => ({ ...prev, outline: e.target.value }))}
+                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none font-mono text-sm leading-relaxed"
+                                        placeholder="목차 내용을 입력하세요..."
+                                        rows="12"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-2 ml-1">
+                                        수정 후 "저장하여 재요청" 버튼을 클릭하면 '목차 승인 대기' 상태로 변경됩니다
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="px-8 py-5 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
+                            <button
+                                onClick={() => setOutlineDetailModal({ isOpen: false, post: null, outline: '' })}
+                                className="px-5 py-2.5 text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium transition-all duration-200 shadow-sm"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (!outlineDetailModal.post) return;
+
+                                    try {
+                                        // API 호출로 목차 수정 및 상태 변경
+                                        await api.put(`/api/campaigns/${campaignId}/posts/${outlineDetailModal.post.id}`, {
+                                            outline: outlineDetailModal.outline,
+                                            outlineStatus: '목차 승인 대기'
+                                        });
+
+                                        showSuccess('목차가 수정되었고 재승인 요청되었습니다.');
+
+                                        // 데이터 새로고침
+                                        await fetchCampaignDetail();
+
+                                        // 모달 닫기
+                                        setOutlineDetailModal({ isOpen: false, post: null, outline: '' });
+                                    } catch (error) {
+                                        console.error('목차 수정 실패:', error);
+                                        showError(`목차 수정에 실패했습니다: ${error.response?.data?.detail || error.message}`);
+                                    }
+                                }}
+                                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>저장하여 재요청</span>
                             </button>
                         </div>
                     </div>
