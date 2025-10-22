@@ -984,7 +984,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                 <div className="ml-4">
                                     <p className="text-sm font-medium text-neutral-500">총 매출</p>
                                     <p className="text-2xl font-bold text-neutral-900">
-                                        {posts.reduce((sum, post) => sum + (post.budget || 0), 0).toLocaleString()}원
+                                        {(campaign?.budget || 0).toLocaleString()}원
                                     </p>
                                 </div>
                             </div>
