@@ -323,8 +323,8 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
               </select>
             ) : (
               <div className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-gray-100 rounded-md text-gray-700">
-                {formData.UserId ?
-                  staffMembers.find(s => s.id === parseInt(formData.UserId))?.name || '담당자 정보 없음' :
+                {formData.UserId && parseInt(formData.UserId) === currentUser.id ?
+                  `${currentUser.name} (담당자)` :
                   '담당자 정보 없음'
                 } (수정 권한 없음)
               </div>
