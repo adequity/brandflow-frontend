@@ -1138,6 +1138,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">세부사항 승인 상태</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">반려 사유</th>
                                         <th className="p-4 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">매출</th>
+                                        <th className="p-4 text-center text-xs font-semibold text-neutral-700 uppercase tracking-wider">재무 상태</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">결과물 링크</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">발주 요청</th>
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">작성 시간</th>
@@ -1409,6 +1410,48 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             )}
                                         </span>
                                     </td>
+
+                                    {/* 재무 상태 */}
+                                    <td className="p-4 text-center">
+                                        <div className="flex flex-col items-center space-y-1">
+                                            {/* 계산서 발행 */}
+                                            <div className="flex items-center space-x-1">
+                                                <span className={`w-2 h-2 rounded-full ${post.invoiceIssued ? 'bg-blue-500' : 'bg-gray-300'}`}></span>
+                                                <span className={`text-xs font-medium ${post.invoiceIssued ? 'text-blue-600' : 'text-gray-500'}`}>
+                                                    {post.invoiceIssued ? '📄 발행' : '📄 미발행'}
+                                                </span>
+                                            </div>
+                                            {post.invoiceDueDate && (
+                                                <div className={`text-xs ${
+                                                    !post.invoiceIssued && new Date(post.invoiceDueDate) < new Date()
+                                                        ? 'text-red-600 font-medium'
+                                                        : 'text-gray-500'
+                                                }`}>
+                                                    {!post.invoiceIssued && new Date(post.invoiceDueDate) < new Date() && '⚠️ '}
+                                                    {new Date(post.invoiceDueDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                                                </div>
+                                            )}
+
+                                            {/* 입금 완료 */}
+                                            <div className="flex items-center space-x-1 pt-1">
+                                                <span className={`w-2 h-2 rounded-full ${post.paymentCompleted ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                                                <span className={`text-xs font-medium ${post.paymentCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+                                                    {post.paymentCompleted ? '💰 완료' : '💰 대기'}
+                                                </span>
+                                            </div>
+                                            {post.paymentDueDate && (
+                                                <div className={`text-xs ${
+                                                    !post.paymentCompleted && new Date(post.paymentDueDate) < new Date()
+                                                        ? 'text-red-600 font-medium'
+                                                        : 'text-gray-500'
+                                                }`}>
+                                                    {!post.paymentCompleted && new Date(post.paymentDueDate) < new Date() && '⚠️ '}
+                                                    {new Date(post.paymentDueDate).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+
                                     <td className="p-2">
                                         {post.publishedUrl ? (
                                             <a href={post.publishedUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
