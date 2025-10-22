@@ -7,7 +7,6 @@ import { safeFormatCurrency, safeFormatDate } from '../../utils/dataUtils';
 
 import StatusBadge from '../common/StatusBadge';
 import AdvancedFilter from '../common/AdvancedFilter';
-import ImagePreview from '../common/ImagePreview';
 import EditModal from '../modals/EditModal';
 import DeleteModal from '../modals/DeleteModal';
 import OutlineRegisterModal from '../modals/OutlineRegisterModal';
@@ -426,7 +425,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                 <th className="p-2">승인 상태</th>
                 <th className="p-2">세부사항 검토</th>
                 <th className="p-2">세부사항 승인 상태</th>
-                <th className="p-2">첨부 이미지</th>
+                <th className="p-2 bg-purple-50">매출</th>
                 <th className="p-2">결과물 링크</th>
                 <th className="p-2">작성 시간</th>
                 <th className="p-2 bg-yellow-50">원가</th>
@@ -472,7 +471,13 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                       )}
                     </td>
                     <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
-                    <td className="p-2"><ImagePreview images={post.images} /></td>
+                    <td className="p-2 text-xs font-semibold text-purple-600 bg-purple-50">
+                      {post.budget && post.budget > 0 ? (
+                        <span>{safeFormatCurrency(post.budget)}</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
                     <td className="p-2">
                       {post.publishedUrl ? (
                         <a
