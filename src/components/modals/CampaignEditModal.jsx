@@ -113,7 +113,11 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
 
   // 직원 목록과 클라이언트 목록 불러오기
   useEffect(() => {
-    fetchStaffMembers();
+    // AGENCY_ADMIN과 SUPER_ADMIN만 직원 목록 조회 (담당자 변경 가능)
+    // STAFF와 TEAM_LEADER는 본인 ID로 고정되므로 조회 불필요
+    if (currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'SUPER_ADMIN') {
+      fetchStaffMembers();
+    }
     fetchClientMembers();
   }, [currentUser]);
 
