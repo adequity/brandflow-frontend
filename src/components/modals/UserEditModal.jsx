@@ -306,6 +306,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         <div className="grid grid-cols-1 gap-3">
                             {[
                                 { value: 'STAFF', label: '직원', desc: '업무 처리 및 클라이언트 지원', icon: '👨‍💼', color: 'green' },
+                                { value: 'TEAM_LEADER', label: '팀 리더', desc: '팀원 관리 및 이익 배분 (인센티브 대상)', icon: '👔', color: 'indigo' },
                                 { value: 'AGENCY_ADMIN', label: '대행사 어드민', desc: '팀 관리 및 전체 업무 감독', icon: '👨‍💼', color: 'blue' },
                                 { value: 'CLIENT', label: '클라이언트', desc: '업무 의뢰 및 결과 확인', icon: '🤝', color: 'orange' },
                                 { value: 'SUPER_ADMIN', label: '슈퍼 어드민', desc: '시스템 전체 관리 권한', icon: '⚡', color: 'purple' }
@@ -336,6 +337,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                         className={`block p-4 rounded-lg border-2 cursor-pointer transition-all ${
                                             formData.role === role.value
                                                 ? role.value === 'STAFF' ? 'border-green-500 bg-green-50' :
+                                                  role.value === 'TEAM_LEADER' ? 'border-indigo-500 bg-indigo-50' :
                                                   role.value === 'AGENCY_ADMIN' ? 'border-blue-500 bg-blue-50' :
                                                   role.value === 'CLIENT' ? 'border-orange-500 bg-orange-50' :
                                                   'border-purple-500 bg-purple-50'
