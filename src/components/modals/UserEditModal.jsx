@@ -96,6 +96,9 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     useEffect(() => {
         if (formData.role === 'STAFF' && formData.company) {
             fetchTeamLeaders(formData.company);
+        } else if (formData.role !== 'STAFF') {
+            // STAFF가 아닌 역할로 변경되면 팀 리더 목록 초기화
+            setTeamLeaders([]);
         }
     }, [formData.role, formData.company]);
 
