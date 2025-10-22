@@ -324,6 +324,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
   const staffUsers = users.filter(user =>
     user.role === 'AGENCY_ADMIN' ||
     user.role === 'SUPER_ADMIN' ||
+    user.role === 'TEAM_LEADER' ||
     user.role === 'STAFF'
   );
   const clientUsers = users.filter(user => user.role === 'CLIENT');
@@ -334,6 +335,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
     switch(role) {
       case 'SUPER_ADMIN': return 'bg-purple-100 text-purple-800';
       case 'AGENCY_ADMIN': return 'bg-blue-100 text-blue-800';
+      case 'TEAM_LEADER': return 'bg-indigo-100 text-indigo-800';
       case 'STAFF': return 'bg-green-100 text-green-800';
       case 'CLIENT': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -522,7 +524,7 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
                   </td>
                   {activeTab === 'staff' && (
                     <td className="px-6 py-4">
-                      {(user.role === 'STAFF' || user.role === 'AGENCY_ADMIN') ? (
+                      {(user.role === 'STAFF' || user.role === 'TEAM_LEADER' || user.role === 'AGENCY_ADMIN') ? (
                         <span className="text-sm font-medium text-blue-600">
                           {user.incentiveRate || 0}%
                         </span>
