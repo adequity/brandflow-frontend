@@ -97,12 +97,14 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const monthlyStats = monthlyStatsResponse.data;
 
           campaignTotalRevenue = monthlyStats.totalRevenue || 0;
+          const collectedRevenue = monthlyStats.collectedRevenue || 0;  // 실제 수금액
           campaignTotalCost = monthlyStats.totalCost || 0;
           completedCampaigns = monthlyStats.completedCampaigns || 0;
           pendingInvoices = monthlyStats.pendingInvoices || 0;
           pendingPayments = monthlyStats.pendingPayments || 0;
 
           console.log('[DASHBOARD] 월간 캠페인 통계 로드 완료:', monthlyStats);
+          console.log('[DASHBOARD] 총 매출:', campaignTotalRevenue, '/ 실제 수금액:', collectedRevenue);
         } catch (error) {
           console.error('월간 캠페인 통계 로딩 실패:', error);
         }
@@ -256,6 +258,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
         setFinancialOverview({
           totalRevenue: totalRevenue,
+          collectedRevenue: collectedRevenue,  // 실제 수금액 추가
           totalExpenses: totalExpenses,
           netProfit: netProfit,
           totalIncentives: totalIncentives,
@@ -668,7 +671,12 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="text-center p-4 bg-primary-50 rounded-xl border border-primary-200">
               <div className="text-3xl font-bold text-primary-600">{formatAmount(financialOverview.totalRevenue)}</div>
-              <div className="text-sm text-primary-700 mt-1">총 매출</div>
+              <div className="text-sm text-primary-700 mt-1">
+                총 매출
+                <span className="text-xs text-green-600 ml-1 font-medium">
+                  (수금: {formatAmount(financialOverview.collectedRevenue || 0)})
+                </span>
+              </div>
               <div className="text-xs text-neutral-600 mt-1">Sales + Campaigns</div>
             </div>
             <div className="text-center p-4 bg-red-50 rounded-xl border border-red-200">
