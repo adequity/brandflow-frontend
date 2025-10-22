@@ -127,7 +127,6 @@ const UserManagement = ({ loggedInUser }) => {
       incentive_rate: userData.incentiveRate || 0,
 
       // 팀 정보 (camelCase → snake_case 변환)
-      team_id: userData.teamId || null,
       team_name: userData.teamName || null,
       team_leader_id: userData.teamLeaderId || null,
 

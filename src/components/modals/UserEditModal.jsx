@@ -11,7 +11,6 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         role: user?.role || 'CLIENT',
         incentiveRate: user?.incentiveRate || 0,
         // 팀 정보 (TEAM_LEADER, STAFF용)
-        teamId: user?.teamId || '',
         teamName: user?.teamName || '',
         teamLeaderId: user?.teamLeaderId || null,
         // 클라이언트 실제 회사 정보
@@ -36,7 +35,6 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 role: user.role || 'CLIENT',
                 incentiveRate: user.incentiveRate || 0,
                 // 팀 정보
-                teamId: user.teamId || '',
                 teamName: user.teamName || '',
                 teamLeaderId: user.teamLeaderId || null,
                 // 클라이언트 실제 회사 정보
@@ -66,7 +64,6 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 role: defaultRole,
                 incentiveRate: 0,
                 // 팀 정보 초기값
-                teamId: '',
                 teamName: '',
                 teamLeaderId: null,
                 // 클라이언트 실제 회사 정보 초기값
@@ -322,41 +319,22 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
 
                         {/* 팀 정보 필드 - TEAM_LEADER만 표시 */}
                         {formData.role === 'TEAM_LEADER' && (
-                            <>
-                                <div>
-                                    <label htmlFor="teamId" className="block text-sm font-medium text-gray-700 mb-1">
-                                        팀 ID *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="teamId"
-                                        id="teamId"
-                                        value={formData.teamId}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="예: 1"
-                                        required={formData.role === 'TEAM_LEADER'}
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">팀을 식별하는 고유 번호입니다.</p>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
-                                        팀 이름 *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="teamName"
-                                        id="teamName"
-                                        value={formData.teamName}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                        placeholder="예: 마케팅 1팀"
-                                        required={formData.role === 'TEAM_LEADER'}
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">팀의 표시 이름입니다.</p>
-                                </div>
-                            </>
+                            <div>
+                                <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
+                                    팀 이름 *
+                                </label>
+                                <input
+                                    type="text"
+                                    name="teamName"
+                                    id="teamName"
+                                    value={formData.teamName}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="예: 마케팅 1팀"
+                                    required={formData.role === 'TEAM_LEADER'}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">이 팀 리더가 관리하는 팀의 이름입니다.</p>
+                            </div>
                         )}
 
                         {/* 팀 리더 선택 - STAFF만 표시 */}
@@ -669,8 +647,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 </h3>
                                 <div className="text-center py-8 text-indigo-600">
                                     <div className="text-4xl mb-2">👔</div>
-                                    <p className="font-medium">팀 리더는 왼쪽에서 팀 ID와 팀 이름을 입력해주세요.</p>
-                                    <p className="text-sm text-gray-500 mt-2">팀원들이 이 팀 리더에게 배정될 수 있습니다.</p>
+                                    <p className="font-medium">팀 리더는 왼쪽에서 팀 이름을 입력해주세요.</p>
+                                    <p className="text-sm text-gray-500 mt-2">STAFF를 생성할 때 이 팀 리더를 선택할 수 있습니다.</p>
                                 </div>
                             </div>
                         ) : (
