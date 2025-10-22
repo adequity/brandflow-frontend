@@ -10,6 +10,10 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         company: user?.company || '',
         role: user?.role || 'CLIENT',
         incentiveRate: user?.incentiveRate || 0,
+        // 팀 정보 (TEAM_LEADER, STAFF용)
+        teamId: user?.teamId || '',
+        teamName: user?.teamName || '',
+        teamLeaderId: user?.teamLeaderId || null,
         // 클라이언트 실제 회사 정보
         clientCompanyName: user?.clientCompanyName || '',
         clientBusinessNumber: user?.clientBusinessNumber || '',
@@ -18,7 +22,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         clientBusinessType: user?.clientBusinessType || '',
         clientBusinessItem: user?.clientBusinessItem || '',
     });
-    
+
     // 사용자 정보가 변경되면 formData 업데이트
     useEffect(() => {
         if (user) {
@@ -31,6 +35,10 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 company: user.company || '',
                 role: user.role || 'CLIENT',
                 incentiveRate: user.incentiveRate || 0,
+                // 팀 정보
+                teamId: user.teamId || '',
+                teamName: user.teamName || '',
+                teamLeaderId: user.teamLeaderId || null,
                 // 클라이언트 실제 회사 정보
                 clientCompanyName: user.clientCompanyName || '',
                 clientBusinessNumber: user.clientBusinessNumber || '',
@@ -48,7 +56,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
             } else if (loggedInUser?.role === 'STAFF') {
                 defaultRole = 'CLIENT'; // 직원은 클라이언트만 생성 가능
             }
-            
+
             setFormData({
                 name: '',
                 email: '',
@@ -57,6 +65,10 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 company: (loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') ? loggedInUser.company : '',
                 role: defaultRole,
                 incentiveRate: 0,
+                // 팀 정보 초기값
+                teamId: '',
+                teamName: '',
+                teamLeaderId: null,
                 // 클라이언트 실제 회사 정보 초기값
                 clientCompanyName: '',
                 clientBusinessNumber: '',
@@ -67,8 +79,12 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
             });
         }
     }, [user]);
+
     const [existingCompanies, setExistingCompanies] = useState([]);
     const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+    const [teamLeaders, setTeamLeaders] = useState([]);
+    const [isLoadingTeamLeaders, setIsLoadingTeamLeaders] = useState(false);
+
     // 기존 회사 목록 로드 (슈퍼 어드민만)
     useEffect(() => {
         if (loggedInUser?.role === 'SUPER_ADMIN' && !user) {
@@ -76,27 +92,54 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         }
     }, [loggedInUser, user]);
 
+    // 팀 리더 목록 로드 (STAFF 역할 선택 시)
+    useEffect(() => {
+        if (formData.role === 'STAFF' && formData.company) {
+            fetchTeamLeaders(formData.company);
+        }
+    }, [formData.role, formData.company]);
+
     const fetchExistingCompanies = async () => {
         setIsLoadingCompanies(true);
         try {
             const response = await api.get('/api/users');
-            
+
             // API 응답 데이터 구조에 맞게 수정
             const usersData = response.data.results || response.data;
             console.log('회사 목록을 위한 사용자 데이터:', usersData);
-            
+
             // 회사명만 추출하고 중복 제거
             const companies = [...new Set(
                 usersData.filter(u => u.company && u.company.trim())
                     .map(u => u.company.trim())
             )].sort();
-            
+
             console.log('추출된 회사 목록:', companies);
             setExistingCompanies(companies);
         } catch (error) {
             console.error('회사 목록 로딩 실패:', error);
         } finally {
             setIsLoadingCompanies(false);
+        }
+    };
+
+    const fetchTeamLeaders = async (company) => {
+        setIsLoadingTeamLeaders(true);
+        try {
+            const response = await api.get('/api/users');
+            const usersData = response.data.results || response.data;
+
+            // 해당 회사의 TEAM_LEADER만 필터링
+            const leaders = usersData.filter(u =>
+                u.role === 'TEAM_LEADER' && u.company === company
+            );
+
+            console.log('팀 리더 목록:', leaders);
+            setTeamLeaders(leaders);
+        } catch (error) {
+            console.error('팀 리더 목록 로딩 실패:', error);
+        } finally {
+            setIsLoadingTeamLeaders(false);
         }
     };
 
@@ -114,8 +157,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
         onSave(formData);
     };
 
-    const isStaffRole = formData.role === 'AGENCY_ADMIN' || formData.role === 'STAFF';
-    
+    const isStaffRole = formData.role === 'AGENCY_ADMIN' || formData.role === 'STAFF' || formData.role === 'TEAM_LEADER';
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -143,57 +186,57 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">이름 *</label>
-                                <input 
-                                    type="text" 
-                                    name="name" 
-                                    id="name" 
-                                    value={formData.name} 
-                                    onChange={handleChange} 
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                <input
+                                    type="text"
+                                    name="name"
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="홍길동"
-                                    required 
+                                    required
                                 />
                             </div>
                             <div>
                                 <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">연락처</label>
-                                <input 
-                                    type="text" 
-                                    name="contact" 
-                                    id="contact" 
-                                    value={formData.contact} 
-                                    onChange={handleChange} 
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                <input
+                                    type="text"
+                                    name="contact"
+                                    id="contact"
+                                    value={formData.contact}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="010-1234-5678"
                                 />
                             </div>
                         </div>
-                        
+
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">이메일 (로그인 ID) *</label>
-                            <input 
-                                type="email" 
-                                name="email" 
-                                id="email" 
-                                value={formData.email} 
-                                onChange={handleChange} 
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                            <input
+                                type="email"
+                                name="email"
+                                id="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 placeholder="example@company.com"
-                                required 
+                                required
                             />
                         </div>
-                        
+
                         <div>
                             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                                비밀번호 {user && '*'}
+                                비밀번호 {!user && '*'}
                             </label>
-                            <input 
-                                type="password" 
-                                name="password" 
-                                id="password" 
-                                value={formData.password} 
-                                onChange={handleChange} 
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-                                placeholder={user ? "변경할 경우에만 입력하세요" : "임시 비밀번호를 입력하세요"} 
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder={user ? "변경할 경우에만 입력하세요" : "임시 비밀번호를 입력하세요"}
                                 required={!user}
                             />
                             {user && (
@@ -218,7 +261,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                     <span className="text-blue-600 text-xs ml-2">(새로운 대행사)</span>
                                 )}
                             </label>
-                            
+
                             {/* 직원/대행사 관리자가 사용자 생성 시에는 본인 회사로 고정 */}
                             {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && !user ? (
                                 <div className="w-full px-4 py-3 border border-gray-300 bg-gray-100 rounded-lg text-gray-700">
@@ -227,7 +270,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 </div>
                             ) : /* 슈퍼 어드민이 직원/클라이언트 생성 시에만 드롭다운 표시 */
                             loggedInUser?.role === 'SUPER_ADMIN' && !user &&
-                             (formData.role === 'STAFF' || formData.role === 'CLIENT') && 
+                             (formData.role === 'STAFF' || formData.role === 'TEAM_LEADER' || formData.role === 'CLIENT') &&
                              existingCompanies.length > 0 ? (
                                 <select
                                     value={formData.company}
@@ -242,52 +285,118 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                     ))}
                                 </select>
                             ) : (
-                                <input 
-                                    type="text" 
-                                    name="company" 
-                                    id="company" 
-                                    value={formData.company} 
-                                    onChange={handleChange} 
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                <input
+                                    type="text"
+                                    name="company"
+                                    id="company"
+                                    value={formData.company}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder={
-                                        formData.role === 'AGENCY_ADMIN' 
-                                            ? "새 대행사명을 입력하세요" 
+                                        formData.role === 'AGENCY_ADMIN'
+                                            ? "새 대행사명을 입력하세요"
                                             : "회사명 또는 부서명"
                                     }
                                 />
                             )}
-                            
+
                             {isLoadingCompanies && (
                                 <p className="text-xs text-gray-500 mt-1">기존 대행사 목록 로딩 중...</p>
                             )}
-                            
+
                             {formData.role === 'AGENCY_ADMIN' && (
                                 <p className="text-xs text-gray-500 mt-1">
                                     💡 대행사 어드민 계정은 새로운 대행사를 만듭니다. 회사명을 정확히 입력해주세요.
                                 </p>
                             )}
-                            
-                            {(formData.role === 'STAFF' || formData.role === 'CLIENT') && existingCompanies.length > 0 && (
+
+                            {(formData.role === 'STAFF' || formData.role === 'TEAM_LEADER' || formData.role === 'CLIENT') && existingCompanies.length > 0 && (
                                 <p className="text-xs text-gray-500 mt-1">
-                                    💡 기존 대행사에 소속시킬 직원/클라이언트입니다.
+                                    💡 기존 대행사에 소속시킬 직원/팀리더/클라이언트입니다.
                                 </p>
                             )}
                         </div>
 
-                        {/* 인센티브율 필드 - 직원/대행사 어드민만 표시 */}
+                        {/* 팀 정보 필드 - TEAM_LEADER만 표시 */}
+                        {formData.role === 'TEAM_LEADER' && (
+                            <>
+                                <div>
+                                    <label htmlFor="teamId" className="block text-sm font-medium text-gray-700 mb-1">
+                                        팀 ID *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        name="teamId"
+                                        id="teamId"
+                                        value={formData.teamId}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="예: 1"
+                                        required={formData.role === 'TEAM_LEADER'}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">팀을 식별하는 고유 번호입니다.</p>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
+                                        팀 이름 *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="teamName"
+                                        id="teamName"
+                                        value={formData.teamName}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        placeholder="예: 마케팅 1팀"
+                                        required={formData.role === 'TEAM_LEADER'}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">팀의 표시 이름입니다.</p>
+                                </div>
+                            </>
+                        )}
+
+                        {/* 팀 리더 선택 - STAFF만 표시 */}
+                        {formData.role === 'STAFF' && teamLeaders.length > 0 && (
+                            <div>
+                                <label htmlFor="teamLeaderId" className="block text-sm font-medium text-gray-700 mb-1">
+                                    소속 팀 리더
+                                </label>
+                                <select
+                                    name="teamLeaderId"
+                                    id="teamLeaderId"
+                                    value={formData.teamLeaderId || ''}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                >
+                                    <option value="">팀 리더 선택...</option>
+                                    {teamLeaders.map((leader) => (
+                                        <option key={leader.id} value={leader.id}>
+                                            {leader.name} ({leader.team_name || leader.teamName || '팀 미지정'})
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">이 직원이 소속될 팀 리더를 선택하세요.</p>
+                            </div>
+                        )}
+                        {formData.role === 'STAFF' && isLoadingTeamLeaders && (
+                            <p className="text-xs text-gray-500">팀 리더 목록 로딩 중...</p>
+                        )}
+
+                        {/* 인센티브율 필드 - STAFF/TEAM_LEADER/AGENCY_ADMIN 표시 */}
                         {isStaffRole && (
                             <div>
                                 <label htmlFor="incentiveRate" className="block text-sm font-medium text-gray-700 mb-1">
                                     인센티브율 (%)
                                 </label>
                                 <div className="relative">
-                                    <input 
-                                        type="number" 
-                                        name="incentiveRate" 
-                                        id="incentiveRate" 
-                                        value={formData.incentiveRate} 
-                                        onChange={handleChange} 
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                    <input
+                                        type="number"
+                                        name="incentiveRate"
+                                        id="incentiveRate"
+                                        value={formData.incentiveRate}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                         placeholder="0"
                                         min="0"
                                         max="100"
@@ -368,7 +477,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                         </div>
                         </div>
 
-                        {/* 오른쪽: 회사 정보 - 모든 역할에서 표시 */}
+                        {/* 오른쪽: 회사 정보 - 역할별 표시 */}
                         {formData.role === 'CLIENT' ? (
                             <div className="space-y-4">
                             <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
@@ -550,6 +659,17 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 </div>
                             </div>
                             </div>
+                        ) : formData.role === 'TEAM_LEADER' ? (
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
+                                    👔 팀 정보
+                                </h3>
+                                <div className="text-center py-8 text-indigo-600">
+                                    <div className="text-4xl mb-2">👔</div>
+                                    <p className="font-medium">팀 리더는 왼쪽에서 팀 ID와 팀 이름을 입력해주세요.</p>
+                                    <p className="text-sm text-gray-500 mt-2">팀원들이 이 팀 리더에게 배정될 수 있습니다.</p>
+                                </div>
+                            </div>
                         ) : (
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold text-gray-400 border-b border-gray-200 pb-2">
@@ -565,18 +685,18 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
 
                     {/* 액션 버튼 */}
                     <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                        <button 
-                            type="button" 
-                            onClick={onClose} 
+                        <button
+                            type="button"
+                            onClick={onClose}
                             className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                         >
                             취소
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             className={`px-6 py-3 text-white rounded-lg transition-colors ${
-                                isStaffRole 
-                                    ? 'bg-green-600 hover:bg-green-700' 
+                                isStaffRole
+                                    ? 'bg-green-600 hover:bg-green-700'
                                     : 'bg-orange-600 hover:bg-orange-700'
                             }`}
                         >

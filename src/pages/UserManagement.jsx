@@ -48,6 +48,11 @@ const UserManagement = ({ loggedInUser }) => {
         agencyAdminId: user.agencyAdminId || user.agency_admin,
         createdAt: user.createdAt || user.created_at,
 
+        // 팀 정보 (snake_case → camelCase 변환)
+        teamId: user.team_id || null,
+        teamName: user.team_name || null,
+        teamLeaderId: user.team_leader_id || null,
+
         // 클라이언트 실제 회사 정보 (snake_case → camelCase 변환)
         clientCompanyName: user.client_company_name || '',
         clientBusinessNumber: user.client_business_number || '',
@@ -120,6 +125,11 @@ const UserManagement = ({ loggedInUser }) => {
       company: userData.company || ((loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') ? loggedInUser.company : ''),
       contact: userData.contact,
       incentive_rate: userData.incentiveRate || 0,
+
+      // 팀 정보 (camelCase → snake_case 변환)
+      team_id: userData.teamId || null,
+      team_name: userData.teamName || null,
+      team_leader_id: userData.teamLeaderId || null,
 
       // 클라이언트 실제 회사 정보 (camelCase → snake_case 변환)
       client_company_name: userData.clientCompanyName,
