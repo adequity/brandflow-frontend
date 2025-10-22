@@ -11,6 +11,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
     const [products, setProducts] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState('');
     const [quantity, setQuantity] = useState(1);
+    const [budget, setBudget] = useState(0);
     const [startDate, setStartDate] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [skipApproval, setSkipApproval] = useState(false);
@@ -161,6 +162,7 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
             images: images,
             productId: selectedProductId || null,
             quantity: quantity || 1,
+            budget: budget || 0,
             startDate: startDate || null,
             dueDate: dueDate || null,
             skipApproval: skipApproval,
@@ -212,39 +214,57 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                             )}
                         </h4>
                         
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">상품 선택</label>
-                                <select
-                                    value={selectedProductId}
-                                    onChange={(e) => setSelectedProductId(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg text-sm"
-                                >
-                                    <option value="">상품 선택 안함</option>
-                                    {filteredProducts && filteredProducts.length > 0 ? (
-                                        filteredProducts.map((product) => (
-                                            <option key={product.id} value={product.id}>
-                                                {product.name} - {(product.costPrice || product.price)?.toLocaleString()}원
-                                            </option>
-                                        ))
-                                    ) : workType ? (
-                                        <option value="" disabled>"{workType}" 업무타입에 해당하는 상품이 없습니다</option>
-                                    ) : (
-                                        <option value="" disabled>업무타입을 먼저 선택해주세요</option>
-                                    )}
-                                </select>
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">상품 선택</label>
+                                    <select
+                                        value={selectedProductId}
+                                        onChange={(e) => setSelectedProductId(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                                    >
+                                        <option value="">상품 선택 안함</option>
+                                        {filteredProducts && filteredProducts.length > 0 ? (
+                                            filteredProducts.map((product) => (
+                                                <option key={product.id} value={product.id}>
+                                                    {product.name} - {(product.costPrice || product.price)?.toLocaleString()}원
+                                                </option>
+                                            ))
+                                        ) : workType ? (
+                                            <option value="" disabled>"{workType}" 업무타입에 해당하는 상품이 없습니다</option>
+                                        ) : (
+                                            <option value="" disabled>업무타입을 먼저 선택해주세요</option>
+                                        )}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">수량</label>
+                                    <input
+                                        type="number"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                        min="1"
+                                        className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+                                        disabled={!selectedProductId}
+                                    />
+                                </div>
                             </div>
-                            
+
                             <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">수량</label>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">💵 업무 매출 (선택사항)</label>
                                 <input
                                     type="number"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                                    min="1"
+                                    value={budget}
+                                    onChange={(e) => setBudget(Math.max(0, parseFloat(e.target.value) || 0))}
+                                    min="0"
+                                    step="1000"
                                     className="w-full p-2 border border-gray-300 rounded-lg text-sm"
-                                    disabled={!selectedProductId}
+                                    placeholder="이 업무의 매출을 입력하세요 (원)"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    캠페인의 총 매출은 모든 업무의 매출 합계로 계산됩니다
+                                </p>
                             </div>
                         </div>
                         
