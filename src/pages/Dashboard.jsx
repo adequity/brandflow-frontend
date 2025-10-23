@@ -84,6 +84,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       try {
         // 월간 캠페인 통계 데이터 가져오기
         let campaignTotalRevenue = 0;
+        let collectedRevenue = 0;  // 실제 수금액 - 상위 스코프로 이동
         let campaignTotalCost = 0;
         let completedCampaigns = 0;
         let pendingInvoices = 0;
@@ -97,7 +98,7 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           const monthlyStats = monthlyStatsResponse.data;
 
           campaignTotalRevenue = monthlyStats.totalRevenue || 0;
-          const collectedRevenue = monthlyStats.collectedRevenue || 0;  // 실제 수금액
+          collectedRevenue = monthlyStats.collectedRevenue || 0;  // 값 할당
           campaignTotalCost = monthlyStats.totalCost || 0;
           completedCampaigns = monthlyStats.completedCampaigns || 0;
           pendingInvoices = monthlyStats.pendingInvoices || 0;
