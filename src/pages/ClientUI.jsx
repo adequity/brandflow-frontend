@@ -598,8 +598,8 @@ const ClientCampaignDetail = ({ campaign, setActivePage, onUpdatePostStatus, sho
           </p>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-gray-200/50 shadow-sm">
-          <table className="w-full text-sm text-left text-gray-500">
+        <div className="rounded-xl border border-gray-200/50 shadow-sm" style={{ overflow: 'visible' }}>
+          <table className="w-full text-sm text-left text-gray-500" style={{ position: 'relative', zIndex: 1 }}>
             <thead className="text-xs text-gray-700 uppercase bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
               <tr>
                 <th className="px-3 py-4 font-semibold">업무 타입</th>
