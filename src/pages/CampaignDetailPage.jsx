@@ -1115,8 +1115,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                         </div>
                     </div>
                     {/* Table Section */}
-                    <div className="overflow-x-auto overflow-y-visible">
-                        <table className="w-full text-sm">
+                    <div className="overflow-x-auto" style={{ overflowY: 'visible' }}>
+                        <table className="w-full text-sm" style={{ position: 'relative', zIndex: 1 }}>
                             <thead className="bg-white/50 border-b border-neutral-200">
                                     <tr>
                                         <th className="p-4 w-12">
@@ -1145,9 +1145,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         <th className="p-4 text-left text-xs font-semibold text-neutral-700 uppercase tracking-wider">관리</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-neutral-200 bg-white">
+                                <tbody className="divide-y divide-neutral-200 bg-white" style={{ overflow: 'visible' }}>
                                     {filteredPosts.map(post => (
-                                        <tr key={post.id} className="hover:bg-neutral-50/50 transition-colors duration-150">
+                                        <tr key={post.id} className="hover:bg-neutral-50/50 transition-colors duration-150" style={{ overflow: 'visible' }}>
                                             <td className="p-4">
                                                 <input
                                                     type="checkbox"
