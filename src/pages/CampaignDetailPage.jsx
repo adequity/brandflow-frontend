@@ -1307,13 +1307,13 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             </span>
                                         )}
                                     </td>
-                                    <td className="p-2">
+                                    <td className="p-2 relative z-20">
                                         {editingCell?.postId === post.id && editingCell?.field === 'topicStatus' ? (
-                                            <div className="flex items-center space-x-1">
+                                            <div className="flex items-center space-x-1 relative z-30">
                                                 <select
                                                     value={editingValue}
                                                     onChange={(e) => setEditingValue(e.target.value)}
-                                                    className="text-sm border border-blue-300 rounded px-2 py-1"
+                                                    className="text-sm border border-blue-300 rounded px-2 py-1 relative z-40"
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') handleCellSave(post.id, 'topicStatus');
                                                         if (e.key === 'Escape') handleCellCancel();
@@ -1353,14 +1353,14 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                             <span className="text-gray-400">-</span>
                                         )}
                                     </td>
-                                    <td className="p-2">
+                                    <td className="p-2 relative z-20">
                                         {post.outlineStatus ? (
                                             editingCell?.postId === post.id && editingCell?.field === 'outlineStatus' ? (
-                                                <div className="flex items-center space-x-1">
+                                                <div className="flex items-center space-x-1 relative z-30">
                                                     <select
                                                         value={editingValue}
                                                         onChange={(e) => setEditingValue(e.target.value)}
-                                                        className="text-sm border border-blue-300 rounded px-2 py-1"
+                                                        className="text-sm border border-blue-300 rounded px-2 py-1 relative z-40"
                                                         onKeyDown={(e) => {
                                                             if (e.key === 'Enter') handleCellSave(post.id, 'outlineStatus');
                                                             if (e.key === 'Escape') handleCellCancel();
