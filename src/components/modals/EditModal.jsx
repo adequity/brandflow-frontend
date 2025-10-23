@@ -109,8 +109,8 @@ const EditModal = ({ post, type, onSave, onClose }) => {
 
                 if (token) {
                     try {
-                        // JWT 기반 API 호출 - 초기에는 업무타입만 로드
-                        console.log('EditModal JWT: 업무타입 목록 로드');
+                        // JWT 기반 API 호출 - 업무타입과 상품 목록 모두 로드
+                        console.log('EditModal JWT: 업무타입 및 상품 목록 로드');
 
                         const workTypesResponse = await api.get('/api/work-types');
                         const workTypesData = workTypesResponse.data || [];
@@ -120,6 +120,9 @@ const EditModal = ({ post, type, onSave, onClose }) => {
                         console.log('EditModal: 업무타입 로드 성공');
                         console.log('EditModal 업무타입 목록:', Array.isArray(workTypesData) ? workTypesData.length : 'undefined', '개');
                         console.log('EditModal 전체 업무타입 데이터:', workTypesData?.map(wt => ({ id: wt.id, name: wt.name })));
+
+                        // 상품 목록도 함께 로드 (기존 업무타입이 선택되어 있는 경우를 위해)
+                        await loadProducts();
                     } catch (apiError) {
                         console.error('EditModal: API 호출 실패', apiError);
                         setProducts([]);
