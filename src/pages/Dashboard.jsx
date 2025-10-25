@@ -628,9 +628,16 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       {/* 직원용 매출 데이터 또는 관리자용 재무 현황 */}
       {user?.role === 'STAFF' ? (
         <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-          <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
-            📊 내 매출 데이터
-          </h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-neutral-800 flex items-center">
+              📊 내 매출 데이터
+            </h3>
+            <div className="px-4 py-2 bg-primary-100 rounded-lg border-2 border-primary-300">
+              <span className="text-sm font-medium text-primary-700">
+                📅 {selectedMonth === 'all' ? '전체 기간' : `${selectedMonth.split('-')[0]}년 ${selectedMonth.split('-')[1]}월`}
+              </span>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-6 bg-primary-50 rounded-xl border border-primary-200">
               <div className="text-4xl font-bold text-primary-600">{formatAmount(employeeStats.thisMonthRevenue)}</div>
@@ -666,9 +673,16 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         </div>
       ) : (
         <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-          <h3 className="text-xl font-bold text-neutral-800 mb-6 flex items-center">
-            💰 재무 현황 (원장 데이터)
-          </h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-neutral-800 flex items-center">
+              💰 재무 현황 (원장 데이터)
+            </h3>
+            <div className="px-4 py-2 bg-primary-100 rounded-lg border-2 border-primary-300">
+              <span className="text-sm font-medium text-primary-700">
+                📅 {selectedMonth === 'all' ? '전체 기간' : `${selectedMonth.split('-')[0]}년 ${selectedMonth.split('-')[1]}월`}
+              </span>
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="text-center p-4 bg-primary-50 rounded-xl border border-primary-200">
               <div className="text-3xl font-bold text-primary-600">{formatAmount(financialOverview.totalRevenue)}</div>
