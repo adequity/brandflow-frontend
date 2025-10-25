@@ -269,20 +269,16 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           salesRevenue: campaignTotalRevenue
         });
 
-        // 직원인 경우 실제 데이터 기반 개별 통계
+        // 직원인 경우 월간 통계 API 데이터 사용 (Post 레벨 필터링)
         if (user.role === 'STAFF') {
-          // 직원이 담당하는 캠페인들만 필터링 (백엔드 필드명 사용: creator_id, staff_id)
+          // campaignTotalRevenue는 이미 월 필터링된 Post budget 합계 (백엔드 계산)
+          const employeeRevenue = campaignTotalRevenue;
+
+          // 담당 캠페인의 계산서/입금 상태 계산 (false만 카운트)
           const employeeCampaigns = latestCampaigns.filter(c =>
             c.creator_id === user.id || c.staff_id === user.id
           );
 
-          // 담당 캠페인의 budget 합계 계산
-          const employeeRevenue = employeeCampaigns.reduce((sum, campaign) => {
-            return sum + (campaign.budget || 0);
-          }, 0);
-
-          // 담당 캠페인의 계산서/입금 상태 계산 (false만 카운트)
-          // 백엔드는 camelCase로 반환: invoiceIssued, paymentCompleted
           const employeePendingInvoices = employeeCampaigns.filter(c =>
             c.invoiceIssued === false
           ).length;
@@ -293,20 +289,12 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
           console.log('[STAFF-DASHBOARD] 담당 캠페인 통계:', {
             userId: user.id,
+            selectedMonth: selectedMonth,
             totalCampaigns: latestCampaigns.length,
             employeeCampaigns: employeeCampaigns.length,
-            totalRevenue: employeeRevenue,
+            monthlyRevenue: employeeRevenue,
             pendingInvoices: employeePendingInvoices,
-            pendingPayments: employeePendingPayments,
-            campaigns: employeeCampaigns.map(c => ({
-              id: c.id,
-              name: c.name,
-              creator_id: c.creator_id,
-              staff_id: c.staff_id,
-              budget: c.budget,
-              invoiceIssued: c.invoiceIssued,
-              paymentCompleted: c.paymentCompleted
-            }))
+            pendingPayments: employeePendingPayments
           });
 
           // 사용자 인센티브율 가져오기
