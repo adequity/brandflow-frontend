@@ -5,6 +5,7 @@ import api from '../api/client';
 import PurchaseRequestModal from '../components/modals/PurchaseRequestModal';
 import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
+import { RESOURCE_TYPES } from '../constants/purchaseRequestTypes';
 
 const PurchaseRequestsPage = ({ loggedInUser }) => {
   const { showSuccess, showError, showInfo } = useToast();
@@ -37,14 +38,18 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
       
       if (token) {
         try {
-          // 실제 API 호출 - 비품 구매 요청만 필터링
-          const response = await api.get('/api/purchase-requests', {
-            params: {
-              viewerId: loggedInUser.id,
-              viewerRole: loggedInUser.role,
-              resourceType: '비품 구매' // 비품 구매 요청만 가져오기
-            }
-          });
+          // 실제 API 호출 - 필터링된 구매요청 가져오기
+          const params = {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role
+          };
+
+          // 지출 카테고리 필터가 있으면 추가
+          if (filters.resourceType) {
+            params.resourceType = filters.resourceType;
+          }
+
+          const response = await api.get('/api/purchase-requests', { params });
           const requestsData = response.data.requests || response.data.results || response.data;
           
           // 프론트엔드 형식에 맞게 데이터 변환
@@ -388,19 +393,16 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">리소스 종류</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">지출 카테고리</label>
             <select
               value={filters.resourceType}
               onChange={(e) => setFilters(prev => ({ ...prev, resourceType: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체</option>
-              <option value="광고비">광고비</option>
-              <option value="콘텐츠 제작비">콘텐츠 제작비</option>
-              <option value="도구 구독료">도구 구독료</option>
-              <option value="외부 용역비">외부 용역비</option>
-              <option value="소재 구매비">소재 구매비</option>
-              <option value="기타">기타</option>
+              {RESOURCE_TYPES.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
             </select>
           </div>
         </div>
