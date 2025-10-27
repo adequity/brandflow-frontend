@@ -7,11 +7,17 @@ import { RESOURCE_TYPES } from '../../constants/purchaseRequestTypes';
 
 const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, request = null, initialData = null }) => {
   const { showError } = useToast();
+
+  // RESOURCE_TYPES 안전하게 초기화
+  const defaultResourceType = Array.isArray(RESOURCE_TYPES) && RESOURCE_TYPES.length > 0
+    ? RESOURCE_TYPES[0]
+    : '기자재 구매';
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     amount: '',
-    resourceType: RESOURCE_TYPES[0], // 기자재 구매
+    resourceType: defaultResourceType,
     priority: '보통',
     dueDate: '',
     campaignId: '',
