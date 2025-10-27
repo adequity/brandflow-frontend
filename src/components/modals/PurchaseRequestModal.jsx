@@ -29,6 +29,26 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
 
 
   useEffect(() => {
+    // 캠페인 목록 로드 (모달 열릴 때 한 번만)
+    if (isOpen && loggedInUser?.id) {
+      const loadCampaigns = async () => {
+        try {
+          const { data } = await api.get('/api/campaigns/', {
+            params: {
+              viewerId: loggedInUser.id,
+              viewerRole: loggedInUser.role
+            }
+          });
+          setCampaigns(data || []);
+        } catch (error) {
+          console.error('캠페인 목록 로딩 실패:', error);
+        }
+      };
+      loadCampaigns();
+    }
+  }, [isOpen, loggedInUser?.id, loggedInUser?.role]);
+
+  useEffect(() => {
     if (request) {
       const dueDate = request.dueDate ? new Date(request.dueDate).toISOString().split('T')[0] : '';
       const today = new Date().toISOString().split('T')[0];
@@ -67,24 +87,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       // 새 요청인 경우 초기화
       setIsUrgentRequest(false);
     }
-
-    // 캠페인 목록 로드
-    fetchCampaigns();
   }, [request, initialData]);
-
-  const fetchCampaigns = async () => {
-    try {
-      const { data } = await api.get('/api/campaigns/', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      setCampaigns(data || []);
-    } catch (error) {
-      console.error('캠페인 목록 로딩 실패:', error);
-    }
-  };
 
   const fetchCampaignCosts = async (campaignId) => {
     if (!campaignId) return 0;
