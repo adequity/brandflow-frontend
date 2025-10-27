@@ -599,32 +599,28 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
       </div>
 
       {/* 모달들 */}
-      {isCreateModalOpen && (
-        <PurchaseRequestModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setCreateModalOpen(false)}
-          onSuccess={() => {
-            fetchRequests();
-            fetchStats();
-            setCreateModalOpen(false);
-          }}
-          loggedInUser={loggedInUser}
-        />
-      )}
+      <PurchaseRequestModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSuccess={() => {
+          fetchRequests();
+          fetchStats();
+          setCreateModalOpen(false);
+        }}
+        loggedInUser={loggedInUser}
+      />
 
-      {isEditModalOpen && selectedRequest && (
-        <PurchaseRequestModal
-          isOpen={isEditModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          onSuccess={() => {
-            fetchRequests();
-            fetchStats();
-            setEditModalOpen(false);
-          }}
-          loggedInUser={loggedInUser}
-          request={selectedRequest}
-        />
-      )}
+      <PurchaseRequestModal
+        isOpen={isEditModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={() => {
+          fetchRequests();
+          fetchStats();
+          setEditModalOpen(false);
+        }}
+        loggedInUser={loggedInUser}
+        request={selectedRequest}
+      />
 
       {/* 삭제 확인 모달 */}
       <ConfirmModal
