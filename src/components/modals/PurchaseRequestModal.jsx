@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
+import { RESOURCE_TYPES } from '../../constants/purchaseRequestTypes';
 
 const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, request = null, initialData = null }) => {
   const { showError } = useToast();
@@ -10,7 +11,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     title: '',
     description: '',
     amount: '',
-    resourceType: '비품 구매',
+    resourceType: RESOURCE_TYPES[0], // 기자재 구매
     priority: '보통',
     dueDate: '',
     campaignId: '',
@@ -254,7 +255,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
 
   if (!isOpen) return null;
 
-  console.log('[PurchaseRequestModal] Rendering - isOpen:', isOpen, 'request:', request);
+  console.log('[PurchaseRequestModal] Rendering - isOpen:', isOpen, 'request:', request, 'campaigns:', campaigns?.length);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
@@ -288,12 +289,9 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 required
               >
-                <option value="비품 구매">비품 구매</option>
-                <option value="사무용품">사무용품</option>
-                <option value="컴퓨터/주변기기">컴퓨터/주변기기</option>
-                <option value="소프트웨어">소프트웨어</option>
-                <option value="사무기기">사무기기</option>
-                <option value="기타">기타</option>
+                {RESOURCE_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
               </select>
             </div>
 
