@@ -1,0 +1,2 @@
+Force rebuild timestamp: 2025-10-27 22:45:00
+This file forces Netlify to rebuild and redeploy all assets.
