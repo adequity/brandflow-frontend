@@ -124,8 +124,11 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   }, [loggedInUser, filters]);
 
   const handleCreateRequest = () => {
+    console.log('[handleCreateRequest] 구매요청 작성 버튼 클릭됨');
+    console.log('[handleCreateRequest] loggedInUser:', loggedInUser);
     setSelectedRequest(null);
     setCreateModalOpen(true);
+    console.log('[handleCreateRequest] isCreateModalOpen 상태를 true로 설정함');
   };
 
   const handleEditRequest = (request) => {

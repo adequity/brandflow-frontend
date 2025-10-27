@@ -58,7 +58,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         title: request.title || '',
         description: request.description || '',
         amount: request.amount ? formatNumberWithCommas(request.amount.toString()) : '',
-        resourceType: request.resourceType || '광고비',
+        resourceType: request.resourceType || RESOURCE_TYPES[0],
         priority: request.priority || '보통',
         dueDate: dueDate,
         campaignId: request.campaignId || '',
@@ -256,6 +256,46 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
   if (!isOpen) return null;
 
   console.log('[PurchaseRequestModal] Rendering - isOpen:', isOpen, 'request:', request, 'campaigns:', campaigns?.length);
+  console.log('[PurchaseRequestModal] loggedInUser:', loggedInUser);
+  console.log('[PurchaseRequestModal] RESOURCE_TYPES:', RESOURCE_TYPES);
+  console.log('[PurchaseRequestModal] formData:', formData);
+
+  // 안전성 체크
+  if (!loggedInUser || !loggedInUser.id) {
+    console.error('[PurchaseRequestModal] loggedInUser 없음!');
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
+        <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md">
+          <h3 className="text-xl font-bold text-red-600 mb-4">오류</h3>
+          <p className="text-gray-700 mb-4">사용자 정보를 불러올 수 없습니다.</p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!Array.isArray(RESOURCE_TYPES) || RESOURCE_TYPES.length === 0) {
+    console.error('[PurchaseRequestModal] RESOURCE_TYPES 오류!', RESOURCE_TYPES);
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
+        <div className="bg-white p-8 rounded-xl shadow-2xl max-w-md">
+          <h3 className="text-xl font-bold text-red-600 mb-4">오류</h3>
+          <p className="text-gray-700 mb-4">리소스 타입을 불러올 수 없습니다.</p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">

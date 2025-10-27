@@ -4,6 +4,7 @@ import { AlertCircle, DollarSign, Calendar, Package, FileText } from 'lucide-rea
 import api from '../../api/client';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
+import { RESOURCE_TYPES } from '../../constants/purchaseRequestTypes';
 
 const EnhancedPurchaseRequestModal = ({ 
   isOpen, 
@@ -20,7 +21,7 @@ const EnhancedPurchaseRequestModal = ({
     title: '',
     description: '',
     amount: '',
-    resourceType: '광고비',
+    resourceType: mode === 'order_request' ? '광고비' : RESOURCE_TYPES[0],
     priority: '보통',
     dueDate: '',
     campaignId: '',
@@ -91,77 +92,69 @@ const EnhancedPurchaseRequestModal = ({
     }
   }, [request, linkedSale, initialData]);
 
-  // 캠페인 목록 조회
-  const fetchCampaigns = async () => {
-    try {
-      const { data } = await api.get('/api/campaigns/', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      setCampaigns(data || []);
-    } catch (error) {
-      console.error('캠페인 목록 로딩 실패:', error);
-    }
-  };
+  // 캠페인 목록 및 대행사 어드민 조회
+  useEffect(() => {
+    if (!isOpen || !loggedInUser?.id) return;
 
-  // 대행사 어드민 목록 조회 (발주요청용)
-  const fetchAgencyAdmins = async () => {
-    if (mode !== 'order_request') return;
-    
-    try {
-      const { data } = await api.get('/api/users/agency-admins', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role,
-          company: loggedInUser.company // 같은 회사의 대행사 어드민만
+    const loadData = async () => {
+      try {
+        // 캠페인 목록 조회
+        const { data: campaignsData } = await api.get('/api/campaigns/', {
+          params: {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role
+          }
+        });
+        setCampaigns(campaignsData || []);
+
+        // 발주요청 모드일 경우 대행사 어드민 조회
+        if (mode === 'order_request') {
+          const { data: adminsData } = await api.get('/api/users/agency-admins', {
+            params: {
+              viewerId: loggedInUser.id,
+              viewerRole: loggedInUser.role,
+              company: loggedInUser.company
+            }
+          });
+          setAgencyAdmins(adminsData || []);
+
+          // 기본값으로 첫 번째 대행사 어드민 선택
+          if (adminsData.length > 0 && !formData.agencyAdminId) {
+            setFormData(prev => ({ ...prev, agencyAdminId: adminsData[0].id }));
+          }
         }
-      });
-      setAgencyAdmins(data || []);
-      
-      // 기본값으로 첫 번째 대행사 어드민 선택
-      if (data.length > 0 && !formData.agencyAdminId) {
-        setFormData(prev => ({ ...prev, agencyAdminId: data[0].id }));
+      } catch (error) {
+        console.error('데이터 로딩 실패:', error);
       }
-    } catch (error) {
-      console.error('대행사 어드민 목록 로딩 실패:', error);
-    }
-  };
+    };
+
+    loadData();
+  }, [isOpen, mode, loggedInUser?.id, loggedInUser?.role, loggedInUser?.company]);
 
   // 캠페인 포스트 조회
-  const fetchCampaignPosts = async (campaignId) => {
-    if (!campaignId) {
+  useEffect(() => {
+    if (!formData.campaignId || !loggedInUser?.id) {
       setCampaignPosts([]);
       return;
     }
 
-    try {
-      const { data } = await api.get(`/api/campaigns/${campaignId}/posts`, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      setCampaignPosts(data || []);
-    } catch (error) {
-      console.error('캠페인 포스트 로딩 실패:', error);
-      setCampaignPosts([]);
-    }
-  };
+    const loadPosts = async () => {
+      try {
+        const { data } = await api.get(`/api/campaigns/${formData.campaignId}/posts`, {
+          params: {
+            viewerId: loggedInUser.id,
+            viewerRole: loggedInUser.role
+          }
+        });
+        setCampaignPosts(data || []);
+      } catch (error) {
+        console.error('캠페인 포스트 로딩 실패:', error);
+        setCampaignPosts([]);
+      }
+    };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchCampaigns();
-      fetchAgencyAdmins();
-    }
-  }, [isOpen, mode]);
-
-  useEffect(() => {
-    if (formData.campaignId) {
-      fetchCampaignPosts(formData.campaignId);
-    }
-  }, [formData.campaignId]);
+    loadPosts();
+  }, [formData.campaignId, loggedInUser?.id, loggedInUser?.role]);
 
   // 폼 제출
   const handleSubmit = async (e) => {
@@ -326,12 +319,9 @@ const EnhancedPurchaseRequestModal = ({
                   </>
                 ) : (
                   <>
-                    <option value="광고비">광고비</option>
-                    <option value="콘텐츠 제작비">콘텐츠 제작비</option>
-                    <option value="도구 구독료">도구 구독료</option>
-                    <option value="외부 용역비">외부 용역비</option>
-                    <option value="소재 구매비">소재 구매비</option>
-                    <option value="기타">기타</option>
+                    {RESOURCE_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </>
                 )}
               </select>
