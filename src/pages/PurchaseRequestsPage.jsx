@@ -278,18 +278,40 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   };
 
   const canEditRequest = (request) => {
+    // SUPER_ADMIN: 모든 요청 수정 가능
     if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+
+    // AGENCY_ADMIN: 본인 company의 모든 요청 수정 가능 (백엔드에서 체크)
     if (loggedInUser?.role === 'AGENCY_ADMIN') return true;
-    if (loggedInUser?.role === 'STAFF' && request.requesterId === loggedInUser.id && request.status === '승인 대기') return true;
+
+    // TEAM_LEADER: 조회만 가능, 수정 불가
+    if (loggedInUser?.role === 'TEAM_LEADER') return false;
+
+    // STAFF: 자신이 생성한 요청만 수정 가능
+    if (loggedInUser?.role === 'STAFF' && request.requesterId === loggedInUser.id) return true;
+
     return false;
   };
 
   const canDeleteRequest = (request) => {
-    // 직원은 삭제 불가 (본사가 취소하는 형태로 로그를 남겨야 함)
-    if (loggedInUser?.role === 'STAFF') return false;
+    // SUPER_ADMIN: 모든 요청 삭제 가능
     if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+
+    // AGENCY_ADMIN: 본인 company의 모든 요청 삭제 가능 (백엔드에서 체크)
     if (loggedInUser?.role === 'AGENCY_ADMIN') return true;
+
+    // TEAM_LEADER: 조회만 가능, 삭제 불가
+    if (loggedInUser?.role === 'TEAM_LEADER') return false;
+
+    // STAFF: 삭제 불가 (본사가 취소하는 형태로 로그를 남겨야 함)
+    if (loggedInUser?.role === 'STAFF') return false;
+
     return false;
+  };
+
+  const canApproveRequest = () => {
+    // 승인/반려는 AGENCY_ADMIN과 SUPER_ADMIN만 가능
+    return loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN';
   };
 
   if (isLoading) {
@@ -307,7 +329,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
             💡 <strong>Tip:</strong> 승인된 요청은 거래명세서/견적서를 PDF+JPG로 생성하여 카카오톡으로 드래그 전송할 수 있습니다!
           </div>
         </div>
-        {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && (
+        {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && (
           <button
             onClick={handleCreateRequest}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -414,7 +436,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
           <div className="text-center py-12">
             <div className="text-4xl mb-4">💰</div>
             <p className="text-gray-500 mb-4">등록된 구매요청이 없습니다.</p>
-            {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && (
+            {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && (
               <button
                 onClick={handleCreateRequest}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -525,8 +547,8 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
-                      {/* 대행사 어드민 전용 승인/완료 버튼 */}
-                      {loggedInUser?.role === 'AGENCY_ADMIN' && (
+                      {/* AGENCY_ADMIN과 SUPER_ADMIN 전용 승인/완료 버튼 */}
+                      {canApproveRequest() && (
                         <>
                           {request.status === '승인 대기' && (
                             <button
