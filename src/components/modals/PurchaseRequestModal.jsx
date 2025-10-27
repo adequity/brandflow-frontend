@@ -23,13 +23,16 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
   const [campaigns, setCampaigns] = useState([]);
   const [campaignPosts, setCampaignPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [receiptFile, setReceiptFile] = useState(null);
+  const [receiptPreview, setReceiptPreview] = useState(null);
+  const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
 
 
   useEffect(() => {
     if (request) {
       const dueDate = request.dueDate ? new Date(request.dueDate).toISOString().split('T')[0] : '';
       const today = new Date().toISOString().split('T')[0];
-      
+
       setFormData({
         title: request.title || '',
         description: request.description || '',
@@ -43,7 +46,12 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         approverComment: request.approverComment || '',
         rejectReason: request.rejectReason || ''
       });
-      
+
+      // 기존 영수증 미리보기 설정
+      if (request.receiptFileUrl) {
+        setReceiptPreview(request.receiptFileUrl);
+      }
+
       // 기존 요청의 완료일이 오늘 날짜와 같으면 당일요청으로 설정
       setIsUrgentRequest(dueDate === today);
     } else if (initialData) {
@@ -59,7 +67,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       // 새 요청인 경우 초기화
       setIsUrgentRequest(false);
     }
-    
+
     // 캠페인 목록 로드
     fetchCampaigns();
   }, [request, initialData]);
@@ -165,7 +173,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
   const handleUrgentRequestChange = (e) => {
     const isChecked = e.target.checked;
     setIsUrgentRequest(isChecked);
-    
+
     if (isChecked) {
       // 당일요청 체크 시 오늘 날짜로 설정
       const today = new Date().toISOString().split('T')[0];
@@ -173,6 +181,69 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     } else {
       // 당일요청 해제 시 날짜 초기화
       setFormData(prev => ({ ...prev, dueDate: '' }));
+    }
+  };
+
+  const handleReceiptFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    // 파일 타입 검증
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      showError('jpg, jpeg, png 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    // 파일 크기 검증 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      showError('파일 크기는 10MB 이하여야 합니다.');
+      return;
+    }
+
+    setReceiptFile(file);
+
+    // 미리보기 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReceiptPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadReceipt = async () => {
+    if (!receiptFile || !request) {
+      showError('영수증 파일을 선택해주세요.');
+      return;
+    }
+
+    setIsUploadingReceipt(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', receiptFile);
+
+      const response = await api.post(
+        `/api/purchase-requests/${request.id}/upload-receipt`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setReceiptPreview(response.data.fileUrl);
+        setReceiptFile(null);
+        alert('영수증이 업로드되었습니다.');
+      }
+    } catch (error) {
+      console.error('영수증 업로드 실패:', error);
+      showError('영수증 업로드에 실패했습니다.');
+    } finally {
+      setIsUploadingReceipt(false);
     }
   };
 
@@ -312,6 +383,60 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                 placeholder="구매요청에 대한 상세한 설명을 입력하세요"
               />
             </div>
+
+            {/* 영수증 업로드 */}
+            {request && (
+              <div className="md:col-span-2 border-t pt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  📸 영수증 파일 (jpg, jpeg, png)
+                </label>
+
+                <div className="space-y-3">
+                  {/* 파일 선택 */}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      capture="environment"
+                      onChange={handleReceiptFileChange}
+                      className="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-lg file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100
+                        cursor-pointer"
+                    />
+                    {receiptFile && (
+                      <button
+                        type="button"
+                        onClick={handleUploadReceipt}
+                        disabled={isUploadingReceipt}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {isUploadingReceipt ? '업로드 중...' : '업로드'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* 미리보기 */}
+                  {receiptPreview && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600 mb-2">미리보기:</p>
+                      <img
+                        src={receiptPreview}
+                        alt="영수증 미리보기"
+                        className="max-w-full h-auto max-h-64 rounded-lg border border-gray-300"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 모바일에서 카메라로 바로 촬영하여 업로드할 수 있습니다
+                </p>
+              </div>
+            )}
           </div>
 
           {/* 관리자 전용 필드 */}
