@@ -65,7 +65,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         title: request.title || '',
         description: request.description || '',
         amount: request.amount ? formatNumberWithCommas(request.amount.toString()) : '',
-        resourceType: request.resourceType || RESOURCE_TYPES[0],
+        resourceType: request.resourceType || defaultResourceType,
         priority: request.priority || '보통',
         dueDate: dueDate,
         campaignId: request.campaignId || '',
@@ -95,7 +95,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       // 새 요청인 경우 초기화
       setIsUrgentRequest(false);
     }
-  }, [request, initialData]);
+  }, [request, initialData, defaultResourceType]);
 
   const fetchCampaignCosts = async (campaignId) => {
     if (!campaignId) return 0;
