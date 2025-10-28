@@ -1,6 +1,7 @@
 // src/components/modals/PurchaseRequestModal.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
+import purchaseRequestApi from '../../api/purchaseRequestApi';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 import { RESOURCE_TYPES } from '../../constants/purchaseRequestTypes';
@@ -130,25 +131,20 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         dueDate: formData.dueDate || null
       };
 
+      const params = {
+        viewerId: loggedInUser.id,
+        viewerRole: loggedInUser.role
+      };
+
       if (request) {
-        await api.put(`/api/purchase-requests/${request.id}`, submitData, {
-          params: {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          }
-        });
+        await purchaseRequestApi.update(request.id, submitData, params);
       } else {
-        await api.post('/api/purchase-requests', submitData, {
-          params: {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          }
-        });
+        await purchaseRequestApi.create(submitData, params);
       }
 
       onSuccess();
     } catch (error) {
-      console.error('구매요청 저장 실패:', error);
+      console.error('[PurchaseRequestModal] 구매요청 저장 실패:', error);
       showError('저장에 실패했습니다.');
     } finally {
       setIsLoading(false);
@@ -231,26 +227,25 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     setIsUploadingReceipt(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', receiptFile);
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', receiptFile);
 
-      const response = await api.post(
-        `/api/purchase-requests/${request.id}/upload-receipt`,
-        formData,
+      const data = await purchaseRequestApi.uploadReceipt(
+        request.id,
+        uploadFormData,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          viewerId: loggedInUser.id,
+          viewerRole: loggedInUser.role
         }
       );
 
-      if (response.data.success) {
-        setReceiptPreview(response.data.fileUrl);
+      if (data.success) {
+        setReceiptPreview(data.fileUrl);
         setReceiptFile(null);
         alert('영수증이 업로드되었습니다.');
       }
     } catch (error) {
-      console.error('영수증 업로드 실패:', error);
+      console.error('[PurchaseRequestModal] 영수증 업로드 실패:', error);
       showError('영수증 업로드에 실패했습니다.');
     } finally {
       setIsUploadingReceipt(false);

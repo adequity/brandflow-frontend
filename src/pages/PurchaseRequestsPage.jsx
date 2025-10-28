@@ -1,7 +1,7 @@
 // src/pages/PurchaseRequestsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Download, FileImage } from 'lucide-react';
-import api from '../api/client';
+import purchaseRequestApi from '../api/purchaseRequestApi';
 import PurchaseRequestModal from '../components/modals/PurchaseRequestModal';
 import { useToast } from '../contexts/ToastContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
@@ -30,62 +30,45 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
 
   const fetchRequests = async () => {
     if (!loggedInUser?.id) return;
-    
+
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
-      console.log('PurchaseRequestsPage: 토큰 상태:', token ? '존재' : '없음');
-      
-      if (token) {
-        try {
-          // 실제 API 호출 - 필터링된 구매요청 가져오기
-          const params = {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          };
+      const params = {
+        viewerId: loggedInUser.id,
+        viewerRole: loggedInUser.role
+      };
 
-          // 지출 카테고리 필터가 있으면 추가
-          if (filters.resourceType) {
-            params.resourceType = filters.resourceType;
-          }
-
-          const response = await api.get('/api/purchase-requests', { params });
-          const requestsData = response.data.requests || response.data.results || response.data;
-          
-          // 프론트엔드 형식에 맞게 데이터 변환
-          const transformedRequests = requestsData.map(request => ({
-            id: request.id,
-            title: request.title,
-            description: request.description,
-            amount: parseInt(request.amount),
-            resourceType: request.resourceType || '구매요청',
-            priority: request.priority || '보통',
-            status: request.status,
-            requesterId: request.requesterId,
-            requester: request.requester || { 
-              name: request.requester_name || '요청자', 
-              email: request.requester_email || '' 
-            },
-            requestedDate: request.requestedDate || request.createdAt,
-            dueDate: request.dueDate,
-            campaign: request.campaign
-          }));
-          
-          console.log('PurchaseRequestsPage: 실제 API 데이터 로드 성공');
-          console.log('구매요청:', transformedRequests.length, '개');
-          setRequests(transformedRequests);
-        } catch (apiError) {
-          console.warn('PurchaseRequestsPage: API 호출 실패', apiError);
-          // API 실패시 빈 배열로 설정
-          setRequests([]);
-        }
-      } else {
-        console.warn('PurchaseRequestsPage: 인증 토큰이 없음');
-        // 토큰이 없으면 빈 배열로 설정
-        setRequests([]);
+      // 지출 카테고리 필터가 있으면 추가
+      if (filters.resourceType) {
+        params.resourceType = filters.resourceType;
       }
+
+      const data = await purchaseRequestApi.list(params);
+      const requestsData = data.requests || data.results || data;
+
+      // 프론트엔드 형식에 맞게 데이터 변환
+      const transformedRequests = requestsData.map(request => ({
+        id: request.id,
+        title: request.title,
+        description: request.description,
+        amount: parseInt(request.amount),
+        resourceType: request.resourceType || '구매요청',
+        priority: request.priority || '보통',
+        status: request.status,
+        requesterId: request.requesterId,
+        requester: request.requester || {
+          name: request.requester_name || '요청자',
+          email: request.requester_email || ''
+        },
+        requestedDate: request.requestedDate || request.createdAt,
+        dueDate: request.dueDate,
+        campaign: request.campaign
+      }));
+
+      console.log('[PurchaseRequestsPage] 구매요청 목록 로드 성공:', transformedRequests.length, '개');
+      setRequests(transformedRequests);
     } catch (error) {
-      console.error('구매요청 목록 로딩 실패:', error);
+      console.error('[PurchaseRequestsPage] 구매요청 목록 로딩 실패:', error);
       setRequests([]);
     } finally {
       setIsLoading(false);
@@ -94,27 +77,23 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
 
   const fetchStats = async () => {
     if (!loggedInUser?.id) return;
-    
+
     try {
-      // 실제 통계 API 호출
-      const response = await api.get('/api/purchase-requests/summary/stats', {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
+      const data = await purchaseRequestApi.getStats({
+        viewerId: loggedInUser.id,
+        viewerRole: loggedInUser.role
       });
-      setStats(response.data);
+      setStats(data);
     } catch (error) {
-      console.error('구매요청 통계 로딩 실패:', error);
+      console.error('[PurchaseRequestsPage] 구매요청 통계 로딩 실패:', error);
       // API 실패 시 기본값
-      const defaultStats = {
+      setStats({
         totalRequests: 0,
         pendingRequests: 0,
         approvedRequests: 0,
         totalAmount: 0,
         thisMonthAmount: 0
-      };
-      setStats(defaultStats);
+      });
     }
   };
 
@@ -142,19 +121,16 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
 
   const confirmDeleteRequest = async () => {
     try {
-      // 실제 API 호출로 삭제
-      await api.delete(`/api/purchase-requests/${deleteConfirm.requestId}`, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
+      await purchaseRequestApi.delete(deleteConfirm.requestId, {
+        viewerId: loggedInUser.id,
+        viewerRole: loggedInUser.role
       });
       showSuccess('구매요청이 삭제되었습니다.');
       await fetchRequests();
       await fetchStats();
       setDeleteConfirm({ isOpen: false, requestId: null });
     } catch (error) {
-      console.error('구매요청 삭제 실패:', error);
+      console.error('[PurchaseRequestsPage] 구매요청 삭제 실패:', error);
       showError('삭제에 실패했습니다.');
     }
   };
@@ -166,64 +142,60 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   const confirmStatusUpdate = async () => {
     const { requestId, newStatus } = statusUpdateConfirm;
     const statusName = newStatus === '승인됨' ? '승인' : newStatus === '완료됨' ? '완료' : newStatus;
-    
+
     try {
-      // 실제 API 호출로 상태 업데이트
-      await api.put(`/api/purchase-requests/${requestId}`, 
+      await purchaseRequestApi.update(
+        requestId,
         { status: newStatus },
         {
-          params: {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          }
+          viewerId: loggedInUser.id,
+          viewerRole: loggedInUser.role
         }
       );
-      
+
       await fetchRequests();
       await fetchStats();
-      
+
       if (newStatus === '승인됨' || newStatus === '완료됨') {
         showInfo(`구매요청이 ${statusName} 처리되었습니다.\n연결된 캠페인의 집행 상태도 자동으로 업데이트됩니다.`);
       } else {
         showSuccess(`구매요청 상태가 '${newStatus}'로 업데이트되었습니다.`);
       }
-      
+
       setStatusUpdateConfirm({ isOpen: false, requestId: null, newStatus: null });
     } catch (error) {
-      console.error('상태 업데이트 실패:', error);
-      showError('상태 업데이트에 실했했습니다.');
+      console.error('[PurchaseRequestsPage] 상태 업데이트 실패:', error);
+      showError('상태 업데이트에 실패했습니다.');
     }
   };
 
   const handleGenerateDocuments = async (requestId, type = 'transaction') => {
     try {
-      // 실제 API 호출로 문서 생성
-      const response = await api.post(`/api/purchase-requests/${requestId}/generate-documents`, 
+      const data = await purchaseRequestApi.generateDocuments(
+        requestId,
         { type },
         {
-          params: {
-            viewerId: loggedInUser.id,
-            viewerRole: loggedInUser.role
-          }
+          viewerId: loggedInUser.id,
+          viewerRole: loggedInUser.role
         }
       );
-      
-      const { files } = response.data;
-      
+
+      const { files } = data;
+
       // PDF 다운로드
       if (files.pdf) {
         downloadFile(files.pdf.data, files.pdf.filename, files.pdf.mimeType);
       }
-      
+
       // JPG 다운로드
       if (files.jpg) {
         downloadFile(files.jpg.data, files.jpg.filename, files.jpg.mimeType);
       }
-      
+
       showInfo(`📄 ${type === 'quote' ? '견적서' : '거래명세서'}가 PDF와 JPG로 생성되었습니다!\n드래그해서 카카오톡으로 전송하세요! 🚀`);
-      
+
     } catch (error) {
-      console.error('문서 생성 실패:', error);
+      console.error('[PurchaseRequestsPage] 문서 생성 실패:', error);
       showError('문서 생성에 실패했습니다.');
     }
   };
