@@ -1,6 +1,5 @@
 // src/components/modals/PurchaseRequestModal.jsx
 import React, { useState, useEffect } from 'react';
-import api from '../../api/client';
 import purchaseRequestApi from '../../api/purchaseRequestApi';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
@@ -21,40 +20,17 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     resourceType: defaultResourceType,
     priority: '보통',
     dueDate: '',
-    campaignId: '',
-    postId: '',
     status: '승인 대기',
     approverComment: '',
     rejectReason: ''
   });
   const [isUrgentRequest, setIsUrgentRequest] = useState(false);
-  const [campaigns, setCampaigns] = useState([]);
-  const [campaignPosts, setCampaignPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [receiptFile, setReceiptFile] = useState(null);
   const [receiptPreview, setReceiptPreview] = useState(null);
   const [isUploadingReceipt, setIsUploadingReceipt] = useState(false);
 
 
-  useEffect(() => {
-    // 캠페인 목록 로드 (모달 열릴 때 한 번만)
-    if (isOpen && loggedInUser?.id) {
-      const loadCampaigns = async () => {
-        try {
-          const { data } = await api.get('/api/campaigns/', {
-            params: {
-              viewerId: loggedInUser.id,
-              viewerRole: loggedInUser.role
-            }
-          });
-          setCampaigns(data || []);
-        } catch (error) {
-          console.error('캠페인 목록 로딩 실패:', error);
-        }
-      };
-      loadCampaigns();
-    }
-  }, [isOpen, loggedInUser?.id, loggedInUser?.role]);
 
   useEffect(() => {
     if (request) {
@@ -68,8 +44,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         resourceType: request.resourceType || defaultResourceType,
         priority: request.priority || '보통',
         dueDate: dueDate,
-        campaignId: request.campaignId || '',
-        postId: request.postId || '',
         status: request.status || '승인 대기',
         approverComment: request.approverComment || '',
         rejectReason: request.rejectReason || ''
@@ -83,12 +57,10 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       // 기존 요청의 완료일이 오늘 날짜와 같으면 당일요청으로 설정
       setIsUrgentRequest(dueDate === today);
     } else if (initialData) {
-      // 캠페인 상세에서 호출된 경우
+      // 초기 데이터가 있는 경우
       setFormData(prev => ({
         ...prev,
-        title: initialData.title || '',
-        campaignId: initialData.campaignId || '',
-        postId: initialData.postId || ''
+        title: initialData.title || ''
       }));
       setIsUrgentRequest(false);
     } else {
@@ -97,26 +69,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     }
   }, [request, initialData, defaultResourceType]);
 
-  const fetchCampaignCosts = async (campaignId) => {
-    if (!campaignId) return 0;
-    
-    try {
-      const { data } = await api.get(`/api/campaigns/${campaignId}/financial_summary/`, {
-        params: {
-          viewerId: loggedInUser.id,
-          viewerRole: loggedInUser.role
-        }
-      });
-      
-      // 캠페인의 총 원가를 계산
-      const totalCost = data.totalCost || 0;
-      console.log(`캠페인 ${campaignId}의 원가:`, totalCost);
-      return totalCost;
-    } catch (error) {
-      console.error('캠페인 원가 조회 실패:', error);
-      return 0;
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -126,8 +78,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       const submitData = {
         ...formData,
         amount: parseFloat(removeCommas(formData.amount)),
-        campaignId: formData.campaignId || null,
-        postId: formData.postId || null,
         dueDate: formData.dueDate || null
       };
 
@@ -151,9 +101,9 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     }
   };
 
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // 금액 필드인 경우 콤마 처리
     if (name === 'amount') {
       const numericValue = removeCommas(value);
@@ -161,18 +111,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       setFormData(prev => ({ ...prev, [name]: formattedValue }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
-    }
-    
-    // 캠페인이 선택되면 자동으로 원가 계산
-    if (name === 'campaignId' && value) {
-      const campaignCost = await fetchCampaignCosts(value);
-      if (campaignCost > 0) {
-        const formattedCost = formatNumberWithCommas(campaignCost.toString());
-        setFormData(prev => ({ ...prev, amount: formattedCost }));
-      }
-    } else if (name === 'campaignId' && !value) {
-      // 캠페인 선택 해제 시 금액 초기화
-      setFormData(prev => ({ ...prev, amount: '' }));
     }
   };
 
@@ -256,7 +194,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
 
   if (!isOpen) return null;
 
-  console.log('[PurchaseRequestModal] Rendering - isOpen:', isOpen, 'request:', request, 'campaigns:', campaigns?.length);
+  console.log('[PurchaseRequestModal] Rendering - isOpen:', isOpen, 'request:', request);
   console.log('[PurchaseRequestModal] loggedInUser:', loggedInUser);
   console.log('[PurchaseRequestModal] RESOURCE_TYPES:', RESOURCE_TYPES);
   console.log('[PurchaseRequestModal] formData:', formData);
@@ -363,9 +301,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                 pattern="[0-9,]*"
                 required
               />
-              <p className="text-xs text-blue-600 mt-1">
-                💡 연관 캠페인 선택 시 해당 캠페인의 업무 원가가 자동으로 설정됩니다
-              </p>
             </div>
 
             <div>
@@ -394,26 +329,6 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                   당일 요청 시 오늘 날짜로 자동 설정됩니다
                 </p>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">연관 캠페인</label>
-              <select
-                name="campaignId"
-                value={formData.campaignId}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">선택하지 않음</option>
-                {campaigns.map(campaign => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                캠페인 선택 시 해당 캠페인의 업무 원가 총합이 금액에 자동 반영됩니다
-              </p>
             </div>
 
             <div className="md:col-span-2">
