@@ -344,11 +344,10 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
             </div>
 
             {/* 영수증 업로드 */}
-            {request && (
-              <div className="md:col-span-2 border-t pt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📸 영수증 파일 (jpg, jpeg, png)
-                </label>
+            <div className="md:col-span-2 border-t pt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                📸 영수증 파일 (jpg, jpeg, png)
+              </label>
 
                 <div className="space-y-3">
                   {/* 파일 선택 */}
@@ -391,11 +390,10 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                   )}
                 </div>
 
-                <p className="text-xs text-gray-500 mt-2">
-                  💡 모바일에서 카메라로 바로 촬영하여 업로드할 수 있습니다
-                </p>
-              </div>
-            )}
+              <p className="text-xs text-gray-500 mt-2">
+                💡 모바일에서 카메라로 바로 촬영하여 업로드할 수 있습니다
+              </p>
+            </div>
           </div>
 
           {/* 관리자 전용 필드 */}
