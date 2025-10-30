@@ -17,6 +17,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     title: '',
     description: '',
     amount: '',
+    vendor: '',  // ✅ 공급업체 필드 추가
     resourceType: defaultResourceType,
     priority: '보통',
     dueDate: '',
@@ -41,6 +42,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         title: request.title || '',
         description: request.description || '',
         amount: request.amount ? formatNumberWithCommas(request.amount.toString()) : '',
+        vendor: request.vendor || '',  // ✅ 공급업체 추가
         resourceType: request.resourceType || defaultResourceType,
         priority: request.priority || '보통',
         dueDate: dueDate,
@@ -300,6 +302,18 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                 placeholder="0"
                 pattern="[0-9,]*"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">공급업체</label>
+              <input
+                type="text"
+                name="vendor"
+                value={formData.vendor}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                placeholder="공급업체명을 입력하세요"
               />
             </div>
 
