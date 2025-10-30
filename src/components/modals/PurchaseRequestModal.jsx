@@ -22,7 +22,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     resourceType: defaultResourceType,
     priority: '보통',
     dueDate: '',
-    status: '승인 대기',
+    status: '대기',  // 백엔드 Enum 값과 일치
     approverComment: '',
     rejectReason: ''
   });
@@ -47,7 +47,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         resourceType: request.resourceType || defaultResourceType,
         priority: request.priority || '보통',
         dueDate: dueDate,
-        status: request.status || '승인 대기',
+        status: request.status || '대기',  // 백엔드 Enum 값 사용
         approverComment: request.approverComment || '',
         rejectReason: request.rejectReason || ''
       });
@@ -431,13 +431,10 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="승인 대기">승인 대기</option>
-                    <option value="검토 중">검토 중</option>
-                    <option value="승인됨">승인됨</option>
-                    <option value="거절됨">거절됨</option>
-                    <option value="보류">보류</option>
-                    <option value="구매 완료">구매 완료</option>
-                    <option value="정산 완료">정산 완료</option>
+                    <option value="대기">승인 대기</option>
+                    <option value="승인">승인됨</option>
+                    <option value="거절">거절됨</option>
+                    <option value="완료">구매 완료</option>
                   </select>
                 </div>
 
@@ -453,7 +450,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                   />
                 </div>
 
-                {formData.status === '거절됨' && (
+                {formData.status === '거절' && (
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">거절 사유 *</label>
                     <textarea
@@ -463,7 +460,7 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                       rows="3"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
                       placeholder="거절 사유를 상세히 입력하세요"
-                      required={formData.status === '거절됨'}
+                      required={formData.status === '거절'}
                     />
                   </div>
                 )}
