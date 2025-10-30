@@ -377,7 +377,23 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
         <button onClick={onBack} className="text-sm text-blue-600 hover:underline mb-2">
           &larr; 전체 캠페인 목록으로
         </button>
-        <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
+
+          {/* 총 매출 표시 */}
+          <div className="bg-purple-50 border-2 border-purple-200 rounded-lg px-6 py-3">
+            <div className="text-xs text-gray-600 mb-1">캠페인 총 매출</div>
+            <div className="text-2xl font-bold text-purple-700">
+              {(() => {
+                const totalBudget = posts.reduce((sum, post) => sum + (post.budget || 0), 0);
+                return safeFormatCurrency(totalBudget);
+              })()}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {posts.filter(p => p.budget && p.budget !== 0).length}개 업무
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex-grow bg-white p-6 rounded-xl border border-gray-200 flex flex-col mt-4">
