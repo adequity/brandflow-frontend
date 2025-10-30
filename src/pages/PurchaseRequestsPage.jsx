@@ -1,6 +1,6 @@
 // src/pages/PurchaseRequestsPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, Download, FileImage } from 'lucide-react';
+import { Plus, Edit, Trash2, FileText, DollarSign, Clock, CheckCircle, XCircle, AlertCircle, FileImage } from 'lucide-react';
 import purchaseRequestApi from '../api/purchaseRequestApi';
 import PurchaseRequestModal from '../components/modals/PurchaseRequestModal';
 import { useToast } from '../contexts/ToastContext';
@@ -52,16 +52,18 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
         title: request.title,
         description: request.description,
         amount: parseInt(request.amount),
+        vendor: request.vendor,
         resourceType: request.resourceType || '구매요청',
         priority: request.priority || '보통',
         status: request.status,
-        requesterId: request.requesterId,
+        requesterId: request.requester_id || request.requesterId,
         requester: request.requester || {
           name: request.requester_name || '요청자',
           email: request.requester_email || ''
         },
-        requestedDate: request.requestedDate || request.createdAt,
-        dueDate: request.dueDate,
+        requestedDate: request.created_at || request.requestedDate || request.createdAt,
+        dueDate: request.due_date || request.dueDate,
+        receiptFileUrl: request.receiptFileUrl || request.receipt_file_url,
         campaign: request.campaign
       }));
 
@@ -405,7 +407,59 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
         </div>
       </div>
 
-      {/* 요청 목록 */}
+      {/* 요청 목록 - 승인 대기 카드 영역 */}
+      {canApproveRequest() && requests.filter(r => r.status === '승인 대기').length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">⏳ 승인 대기 중인 요청</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {requests.filter(r => r.status === '승인 대기').map((request) => (
+              <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center space-x-2">
+                    {getPriorityIcon(request.priority)}
+                    <span className="text-xs text-gray-600">{request.resourceType}</span>
+                  </div>
+                  <span className={getStatusBadge(request.status)}>{request.status}</span>
+                </div>
+
+                <h4 className="font-bold text-gray-900 mb-2">{request.title}</h4>
+                <p className="text-2xl font-bold text-blue-600 mb-3">{formatAmount(request.amount)}</p>
+
+                {request.vendor && (
+                  <p className="text-sm text-gray-600 mb-2">🏪 {request.vendor}</p>
+                )}
+
+                <div className="space-y-1 text-xs text-gray-500 mb-3">
+                  <p>👤 요청자: {request.requester?.name || '알 수 없음'}</p>
+                  <p>📅 요청일: {new Date(request.requestedDate).toLocaleDateString('ko-KR')}</p>
+                  {request.dueDate && (
+                    <p>⏰ 희망일: {new Date(request.dueDate).toLocaleDateString('ko-KR')}</p>
+                  )}
+                </div>
+
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleStatusUpdate(request.id, '승인됨')}
+                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    <CheckCircle size={16} />
+                    <span>승인</span>
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(request.id, '거절됨')}
+                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  >
+                    <XCircle size={16} />
+                    <span>거절</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 요청 목록 - 전체 테이블 */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {requests.length === 0 ? (
           <div className="text-center py-12">
