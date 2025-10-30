@@ -1384,13 +1384,13 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                         )}
                                     </td>
                                     <td className="p-4 text-center">
-                                        <span className="text-sm text-neutral-700">
-                                            {post.budget && post.budget > 0 ? (
-                                                `${post.budget.toLocaleString()}원`
-                                            ) : (
-                                                <span className="text-gray-400">-</span>
-                                            )}
-                                        </span>
+                                        {post.budget !== null && post.budget !== undefined && post.budget !== 0 ? (
+                                            <span className={`text-sm font-semibold ${post.budget > 0 ? 'text-purple-600' : 'text-red-600'}`}>
+                                                {post.budget.toLocaleString()}원
+                                            </span>
+                                        ) : (
+                                            <span className="text-sm text-gray-400">-</span>
+                                        )}
                                     </td>
 
                                     {/* 재무 상태 */}
