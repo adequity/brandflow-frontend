@@ -435,6 +435,19 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                   {request.dueDate && (
                     <p>⏰ 희망일: {new Date(request.dueDate).toLocaleDateString('ko-KR')}</p>
                   )}
+                  <p className="flex items-center space-x-1">
+                    {request.receiptFileUrl ? (
+                      <>
+                        <FileImage size={14} className="text-green-500" />
+                        <span className="text-green-600 font-medium">영수증 첨부됨</span>
+                      </>
+                    ) : (
+                      <>
+                        <FileImage size={14} className="text-gray-400" />
+                        <span className="text-gray-400">영수증 미첨부</span>
+                      </>
+                    )}
+                  </p>
                 </div>
 
                 <div className="flex space-x-2">
@@ -482,6 +495,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                 <th className="px-6 py-3">리소스 종류</th>
                 <th className="px-6 py-3">금액</th>
                 <th className="px-6 py-3">상태</th>
+                <th className="px-6 py-3">영수증</th>
                 <th className="px-6 py-3">요청자</th>
                 <th className="px-6 py-3">요청일</th>
                 <th className="px-6 py-3">희망 완료일</th>
@@ -524,6 +538,21 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                     <span className={getStatusBadge(request.status)}>
                       {request.status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-1">
+                      {request.receiptFileUrl ? (
+                        <>
+                          <FileImage size={16} className="text-green-500" />
+                          <span className="text-green-600 text-xs font-medium">첨부</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileImage size={16} className="text-gray-300" />
+                          <span className="text-gray-400 text-xs">미첨부</span>
+                        </>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-gray-900">{request.requester?.name}</div>
