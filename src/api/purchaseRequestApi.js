@@ -187,9 +187,7 @@ const purchaseRequestApi = {
         formData,
         {
           params,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          // Content-Type 헤더를 설정하지 않으면 브라우저가 자동으로 boundary를 포함한 올바른 헤더를 설정함
         }
       );
       return response.data;
