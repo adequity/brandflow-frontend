@@ -172,12 +172,9 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     setIsUploadingReceipt(true);
 
     try {
-      const uploadFormData = new FormData();
-      uploadFormData.append('file', receiptFile);
-
       const data = await purchaseRequestApi.uploadReceipt(
         request.id,
-        uploadFormData,
+        receiptFile,
         {
           viewerId: loggedInUser.id,
           viewerRole: loggedInUser.role

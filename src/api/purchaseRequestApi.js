@@ -171,16 +171,19 @@ const purchaseRequestApi = {
   },
 
   /**
-   * 영수증 파일 업로드
+   * 영수증 파일 업로드 (로고 방식과 동일)
    * @param {number} requestId - 구매요청 ID
-   * @param {FormData} formData - 파일이 포함된 FormData
+   * @param {File} file - 업로드할 파일
    * @param {Object} params - 쿼리 파라미터
    * @returns {Promise} 업로드 결과
    */
-  uploadReceipt: async (requestId, formData, params = {}) => {
+  uploadReceipt: async (requestId, file, params = {}) => {
     try {
+      const formData = new FormData();
+      formData.append('receipt', file);
+
       const response = await api.post(
-        `/api/purchase-requests/${requestId}/upload-receipt`,
+        `/api/purchase-requests/${requestId}/receipt`,
         formData,
         {
           params,
