@@ -223,11 +223,18 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       );
 
       if (data.success && data.documentUrl) {
-        // PDF 다운로드
-        const downloadUrl = data.documentUrl.startsWith('http')
-          ? data.documentUrl
-          : `${API_BASE_URL}${data.documentUrl}`;
+        // PDF 다운로드 URL 생성
+        let downloadUrl;
+        if (data.documentUrl.startsWith('http')) {
+          downloadUrl = data.documentUrl;
+        } else {
+          // API_BASE_URL 끝의 슬래시와 documentUrl 시작의 슬래시 중복 방지
+          const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+          const docPath = data.documentUrl.startsWith('/') ? data.documentUrl : `/${data.documentUrl}`;
+          downloadUrl = `${baseUrl}${docPath}`;
+        }
 
+        console.log('[PurchaseRequestModal] PDF URL:', downloadUrl);
         window.open(downloadUrl, '_blank');
         alert('지출품의서가 생성되었습니다. 다운로드를 시작합니다.');
       }
