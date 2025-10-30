@@ -471,9 +471,11 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                       )}
                     </td>
                     <td className="p-2">{post.outlineStatus ? <StatusBadge status={post.outlineStatus} /> : '-'}</td>
-                    <td className="p-2 text-xs font-semibold text-purple-600 bg-purple-50">
-                      {post.budget && post.budget > 0 ? (
-                        <span>{safeFormatCurrency(post.budget)}</span>
+                    <td className="p-2 text-xs font-semibold bg-purple-50">
+                      {post.budget !== null && post.budget !== undefined && post.budget !== 0 ? (
+                        <span className={post.budget > 0 ? 'text-purple-600' : 'text-red-600'}>
+                          {safeFormatCurrency(post.budget)}
+                        </span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
