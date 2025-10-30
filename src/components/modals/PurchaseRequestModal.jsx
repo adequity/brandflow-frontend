@@ -199,6 +199,46 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
     }
   };
 
+  const handleGenerateDocument = async () => {
+    if (!request) {
+      showError('구매요청 정보가 없습니다.');
+      return;
+    }
+
+    if (request.status !== '승인') {
+      showError('승인된 구매요청만 문서를 생성할 수 있습니다.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const data = await purchaseRequestApi.generateDocuments(
+        request.id,
+        {},
+        {
+          viewerId: loggedInUser.id,
+          viewerRole: loggedInUser.role
+        }
+      );
+
+      if (data.success && data.documentUrl) {
+        // PDF 다운로드
+        const downloadUrl = data.documentUrl.startsWith('http')
+          ? data.documentUrl
+          : `${API_BASE_URL}${data.documentUrl}`;
+
+        window.open(downloadUrl, '_blank');
+        alert('지출품의서가 생성되었습니다. 다운로드를 시작합니다.');
+      }
+    } catch (error) {
+      console.error('[PurchaseRequestModal] PDF 생성 실패:', error);
+      showError('문서 생성에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const isAdminRole = loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN';
 
   if (!isOpen) return null;
@@ -471,6 +511,26 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* PDF 생성 버튼 (승인된 구매요청만) */}
+          {request && request.status === '승인' && (
+            <div className="border-t pt-4">
+              <button
+                type="button"
+                onClick={handleGenerateDocument}
+                disabled={isLoading}
+                className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                {isLoading ? 'PDF 생성 중...' : '📄 지출품의서 PDF 생성'}
+              </button>
+              <p className="text-xs text-gray-500 text-center mt-2">
+                승인된 구매요청의 지출품의서를 PDF로 다운로드합니다
+              </p>
             </div>
           )}
 
