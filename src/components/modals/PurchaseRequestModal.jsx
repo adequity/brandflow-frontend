@@ -429,12 +429,18 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
                     name="status"
                     value={formData.status}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    className={`w-full px-3 py-2 border-2 rounded-lg focus:ring-2 font-medium ${
+                      formData.status === '대기' ? 'border-yellow-400 bg-yellow-50 text-yellow-800 focus:ring-yellow-500' :
+                      formData.status === '승인' ? 'border-green-400 bg-green-50 text-green-800 focus:ring-green-500' :
+                      formData.status === '거절' ? 'border-red-400 bg-red-50 text-red-800 focus:ring-red-500' :
+                      formData.status === '완료' ? 'border-blue-400 bg-blue-50 text-blue-800 focus:ring-blue-500' :
+                      'border-gray-300 bg-white text-gray-800 focus:ring-blue-500'
+                    }`}
                   >
-                    <option value="대기">승인 대기</option>
-                    <option value="승인">승인됨</option>
-                    <option value="거절">거절됨</option>
-                    <option value="완료">구매 완료</option>
+                    <option value="대기">⏳ 승인 대기</option>
+                    <option value="승인">✅ 승인됨</option>
+                    <option value="거절">❌ 거절됨</option>
+                    <option value="완료">💰 구매 완료</option>
                   </select>
                 </div>
 

@@ -38,6 +38,11 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
         viewerRole: loggedInUser.role
       };
 
+      // 상태 필터가 있으면 추가
+      if (filters.status) {
+        params.status = filters.status;
+      }
+
       // 지출 카테고리 필터가 있으면 추가
       if (filters.resourceType) {
         params.resourceType = filters.resourceType;
@@ -225,16 +230,20 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   const getStatusBadge = (status) => {
     const baseClass = 'px-2 py-1 text-xs font-medium rounded-full';
     const statusStyles = {
-      '승인 대기': 'bg-yellow-100 text-yellow-800',
-      '검토 중': 'bg-blue-100 text-blue-800',
-      '승인됨': 'bg-green-100 text-green-800',
-      '거절됨': 'bg-red-100 text-red-800',
-      '보류': 'bg-orange-100 text-orange-800',
-      '구매 완료': 'bg-purple-100 text-purple-800',
-      '정산 완료': 'bg-gray-100 text-gray-800'
+      '대기': 'bg-yellow-100 text-yellow-800',
+      '승인': 'bg-green-100 text-green-800',
+      '거절': 'bg-red-100 text-red-800',
+      '완료': 'bg-blue-100 text-blue-800'
     };
-    
-    return `${baseClass} ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`;
+
+    const statusLabels = {
+      '대기': '⏳ 승인 대기',
+      '승인': '✅ 승인됨',
+      '거절': '❌ 거절됨',
+      '완료': '💰 구매 완료'
+    };
+
+    return { class: `${baseClass} ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`, label: statusLabels[status] || status };
   };
 
   const getPriorityIcon = (priority) => {
@@ -381,13 +390,10 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">전체</option>
-              <option value="승인 대기">승인 대기</option>
-              <option value="검토 중">검토 중</option>
-              <option value="승인됨">승인됨</option>
-              <option value="거절됨">거절됨</option>
-              <option value="보류">보류</option>
-              <option value="구매 완료">구매 완료</option>
-              <option value="정산 완료">정산 완료</option>
+              <option value="대기">⏳ 승인 대기</option>
+              <option value="승인">✅ 승인됨</option>
+              <option value="거절">❌ 거절됨</option>
+              <option value="완료">💰 구매 완료</option>
             </select>
           </div>
           
@@ -408,18 +414,18 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
       </div>
 
       {/* 요청 목록 - 승인 대기 카드 영역 */}
-      {canApproveRequest() && requests.filter(r => r.status === '승인 대기').length > 0 && (
+      {canApproveRequest() && requests.filter(r => r.status === '대기').length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-4">⏳ 승인 대기 중인 요청</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {requests.filter(r => r.status === '승인 대기').map((request) => (
+            {requests.filter(r => r.status === '대기').map((request) => (
               <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center space-x-2">
                     {getPriorityIcon(request.priority)}
                     <span className="text-xs text-gray-600">{request.resourceType}</span>
                   </div>
-                  <span className={getStatusBadge(request.status)}>{request.status}</span>
+                  <span className={getStatusBadge(request.status).class}>{getStatusBadge(request.status).label}</span>
                 </div>
 
                 <h4 className="font-bold text-gray-900 mb-2">{request.title}</h4>
@@ -452,14 +458,14 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => handleStatusUpdate(request.id, '승인됨')}
+                    onClick={() => handleStatusUpdate(request.id, '승인')}
                     className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
                   >
                     <CheckCircle size={16} />
                     <span>승인</span>
                   </button>
                   <button
-                    onClick={() => handleStatusUpdate(request.id, '거절됨')}
+                    onClick={() => handleStatusUpdate(request.id, '거절')}
                     className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                   >
                     <XCircle size={16} />
@@ -535,8 +541,8 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={getStatusBadge(request.status)}>
-                      {request.status}
+                    <span className={getStatusBadge(request.status).class}>
+                      {getStatusBadge(request.status).label}
                     </span>
                   </td>
                   <td className="px-6 py-4">
