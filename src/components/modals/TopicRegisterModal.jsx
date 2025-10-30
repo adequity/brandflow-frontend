@@ -267,14 +267,13 @@ const TopicRegisterModal = ({ onSave, onClose, campaignId }) => {
                                 <input
                                     type="number"
                                     value={budget}
-                                    onChange={(e) => setBudget(Math.max(0, parseFloat(e.target.value) || 0))}
-                                    min="0"
+                                    onChange={(e) => setBudget(parseFloat(e.target.value) || 0)}
                                     step="1000"
                                     className="w-full p-2 border border-gray-300 rounded-lg text-sm"
-                                    placeholder="이 업무의 매출을 입력하세요 (원)"
+                                    placeholder="이 업무의 매출을 입력하세요 (환불은 - 입력)"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                    캠페인의 총 매출은 모든 업무의 매출 합계로 계산됩니다
+                                    캠페인의 총 매출은 모든 업무의 매출 합계로 계산됩니다. 환불은 - 값으로 입력하세요.
                                 </p>
                             </div>
                         </div>
