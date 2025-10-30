@@ -4,6 +4,7 @@ import purchaseRequestApi from '../../api/purchaseRequestApi';
 import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 import { RESOURCE_TYPES } from '../../constants/purchaseRequestTypes';
+import { API_BASE_URL } from '../../api/client';
 
 const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, request = null, initialData = null }) => {
   const { showError } = useToast();
@@ -51,9 +52,13 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
         rejectReason: request.rejectReason || ''
       });
 
-      // 기존 영수증 미리보기 설정
+      // 기존 영수증 미리보기 설정 (백엔드 URL 포함)
       if (request.receiptFileUrl) {
-        setReceiptPreview(request.receiptFileUrl);
+        const fullImageUrl = request.receiptFileUrl.startsWith('http')
+          ? request.receiptFileUrl
+          : `${API_BASE_URL}${request.receiptFileUrl}`;
+        setReceiptPreview(fullImageUrl);
+        console.log('[PurchaseRequestModal] 영수증 미리보기 설정:', fullImageUrl);
       }
 
       // 기존 요청의 완료일이 오늘 날짜와 같으면 당일요청으로 설정
@@ -180,8 +185,13 @@ const PurchaseRequestModal = ({ isOpen, onClose, onSuccess, loggedInUser, reques
       );
 
       if (data.success) {
-        setReceiptPreview(data.fileUrl);
+        // 백엔드 URL을 포함한 전체 이미지 URL 생성
+        const fullImageUrl = data.fileUrl.startsWith('http')
+          ? data.fileUrl
+          : `${API_BASE_URL}${data.fileUrl}`;
+        setReceiptPreview(fullImageUrl);
         setReceiptFile(null);
+        console.log('[PurchaseRequestModal] 영수증 업로드 성공:', fullImageUrl);
         alert('영수증이 업로드되었습니다.');
       }
     } catch (error) {
