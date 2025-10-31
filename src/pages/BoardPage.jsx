@@ -103,14 +103,6 @@ const BoardPage = ({ loggedInUser }) => {
     }
   };
 
-  // 파일 다운로드
-  const handleDownload = (url, filename) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.click();
-  };
-
   // 게시글 타입 라벨
   const getPostTypeLabel = (type) => {
     const labels = {
@@ -136,34 +128,56 @@ const BoardPage = ({ loggedInUser }) => {
   const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 p-6">
+      <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
-        <div className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">📋 게시판</h1>
-            <p className="text-gray-600 mt-1">공지사항, 메뉴얼, 자료 등을 확인하세요</p>
+        <div className="mb-8">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <h1 className="text-3xl font-bold text-neutral-800 mb-2">📋 게시판</h1>
+              <p className="text-neutral-500 text-sm">공지사항, 메뉴얼, 자료 등을 확인하세요</p>
+            </div>
+            {isAgencyAdmin && (
+              <button
+                onClick={handleCreatePost}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl font-medium"
+              >
+                <Plus size={20} />
+                게시글 작성
+              </button>
+            )}
           </div>
-          {isAgencyAdmin && (
-            <button
-              onClick={handleCreatePost}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={20} />
-              게시글 작성
-            </button>
-          )}
+
+          {/* 통계 카드 */}
+          <div className="grid grid-cols-4 gap-4 mt-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
+              <p className="text-sm font-medium text-neutral-500 mb-1">총 게시글</p>
+              <p className="text-2xl font-bold text-neutral-800">{total}개</p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
+              <p className="text-sm font-medium text-neutral-500 mb-1">공지사항</p>
+              <p className="text-2xl font-bold text-red-600">{posts.filter(p => p.isNotice).length}개</p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
+              <p className="text-sm font-medium text-neutral-500 mb-1">메뉴얼</p>
+              <p className="text-2xl font-bold text-green-600">{posts.filter(p => p.postType === 'manual').length}개</p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
+              <p className="text-sm font-medium text-neutral-500 mb-1">자료실</p>
+              <p className="text-2xl font-bold text-purple-600">{posts.filter(p => p.postType === 'resource').length}개</p>
+            </div>
+          </div>
         </div>
 
         {/* 필터 */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 mb-6 border border-neutral-200/50 shadow-sm">
           <div className="flex gap-4 items-center flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">타입:</label>
+              <label className="text-sm font-semibold text-neutral-700">타입</label>
               <select
                 value={postType}
                 onChange={(e) => setPostType(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
               >
                 <option value="all">전체</option>
                 <option value="notice">공지사항</option>
@@ -173,76 +187,79 @@ const BoardPage = ({ loggedInUser }) => {
               </select>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg hover:bg-neutral-50 transition-colors">
               <input
                 type="checkbox"
                 checked={showNoticeOnly}
                 onChange={(e) => setShowNoticeOnly(e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
               />
-              <span className="text-sm text-gray-700">공지사항만 보기</span>
+              <span className="text-sm text-neutral-700 font-medium">공지사항만 보기</span>
             </label>
-
-            <div className="ml-auto text-sm text-gray-600">
-              총 <span className="font-semibold text-gray-900">{total}</span>개
-            </div>
           </div>
         </div>
 
         {/* 게시글 목록 */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl overflow-hidden border border-neutral-200/50 shadow-sm">
           {loading ? (
-            <div className="p-8 text-center text-gray-500">로딩 중...</div>
+            <div className="p-12 text-center text-neutral-500">로딩 중...</div>
           ) : posts.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">게시글이 없습니다.</div>
+            <div className="p-12 text-center text-neutral-500">게시글이 없습니다.</div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-neutral-200/70">
               {posts.map((post) => (
                 <div
                   key={post.id}
-                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="p-5 hover:bg-neutral-50/70 transition-all cursor-pointer group"
                   onClick={() => handleViewPost(post)}
                 >
                   <div className="flex items-start gap-4">
                     {/* 아이콘 */}
                     <div className="flex-shrink-0 mt-1">
                       {post.isNotice ? (
-                        <Megaphone className="w-5 h-5 text-red-600" />
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                          <Megaphone className="w-5 h-5 text-red-600" />
+                        </div>
                       ) : (
-                        <FileText className="w-5 h-5 text-gray-400" />
+                        <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                          <FileText className="w-5 h-5 text-neutral-400 group-hover:text-primary-600 transition-colors" />
+                        </div>
                       )}
                     </div>
 
                     {/* 콘텐츠 */}
                     <div className="flex-grow min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         {post.isNotice && (
-                          <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-semibold rounded">
+                          <span className="inline-flex px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
                             공지
                           </span>
                         )}
-                        <span className={`px-2 py-0.5 text-xs font-semibold rounded ${getPostTypeBadgeColor(post.postType)}`}>
+                        <span className={`inline-flex px-2.5 py-0.5 text-xs font-bold rounded-full ${getPostTypeBadgeColor(post.postType)}`}>
                           {getPostTypeLabel(post.postType)}
                         </span>
                         {post.attachmentUrl && (
-                          <Download className="w-4 h-4 text-gray-400" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
+                            <Download className="w-3 h-3" />
+                            첨부파일
+                          </span>
                         )}
                       </div>
 
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-primary-600 transition-colors">
                         {post.title}
                       </h3>
 
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
+                      <div className="flex items-center gap-4 text-sm text-neutral-500">
+                        <span className="flex items-center gap-1.5">
                           <Calendar className="w-4 h-4" />
                           {new Date(post.createdAt).toLocaleDateString('ko-KR')}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1.5">
                           <Eye className="w-4 h-4" />
                           {post.viewCount}
                         </span>
-                        <span>{post.authorName}</span>
+                        <span className="font-medium">{post.authorName}</span>
                       </div>
                     </div>
 
@@ -251,14 +268,14 @@ const BoardPage = ({ loggedInUser }) => {
                       <div className="flex-shrink-0 flex gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleEditPost(post)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                           title="수정"
                         >
                           <Edit size={18} />
                         </button>
                         <button
                           onClick={() => handleDeletePost(post.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           title="삭제"
                         >
                           <Trash2 size={18} />
@@ -278,19 +295,19 @@ const BoardPage = ({ loggedInUser }) => {
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 border-2 border-neutral-300 rounded-xl text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               이전
             </button>
 
-            <span className="px-4 py-2 text-sm text-gray-700">
+            <span className="px-5 py-2.5 text-sm font-bold text-neutral-700 flex items-center">
               {currentPage} / {totalPages}
             </span>
 
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 border-2 border-neutral-300 rounded-xl text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               다음
             </button>
