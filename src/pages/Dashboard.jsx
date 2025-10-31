@@ -821,42 +821,6 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
       </div>
       )}
 
-      {/* 캠페인 성과 분석 */}
-      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-        <h3 className="text-lg font-semibold text-neutral-800 mb-4">📈 캠페인 성과 분석</h3>
-        {campaignPerformance.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {campaignPerformance.slice(0, 8).map((campaign, index) => (
-              <div key={campaign.id} className="flex items-center justify-between p-3 bg-neutral-50 rounded-xl border border-neutral-200">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                    index === 0 ? 'bg-primary-500 text-white' :
-                    index === 1 ? 'bg-primary-400 text-white' :
-                    index === 2 ? 'bg-primary-300 text-white' :
-                    'bg-neutral-300 text-neutral-600'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <div>
-                    <div className="font-medium text-neutral-800">{campaign.name}</div>
-                    <div className="text-sm text-neutral-600">{campaign.clientName}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-neutral-800">{campaign.completionRate}%</div>
-                  <div className="text-xs text-neutral-600">{campaign.completed}/{campaign.total} 완료</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8 text-neutral-500">
-            <div className="text-4xl mb-3">📊</div>
-            <p>분석할 캠페인 데이터가 없습니다.</p>
-          </div>
-        )}
-      </div>
-
       {/* 업무 상태별 미리보기 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <MiniTable title="⏳ 진행 중" rows={previewInProgress} />
