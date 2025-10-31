@@ -19,13 +19,16 @@ const createRequest = async (method, url, data = null, config = {}) => {
   
   // Headers
   const headers = {
-    'Accept': 'application/json',
-    ...config.headers
+    'Accept': 'application/json'
   };
 
-  // FormData가 아닌 경우에만 Content-Type 설정
-  if (!(data instanceof FormData)) {
+  // FormData가 아닌 경우에만 Content-Type 설정 및 config.headers 병합
+  if (data instanceof FormData) {
+    // FormData인 경우 Content-Type을 설정하지 않음 (브라우저가 자동으로 boundary 추가)
+    // config.headers도 병합하지 않음 (Content-Type 오버라이드 방지)
+  } else {
     headers['Content-Type'] = 'application/json';
+    Object.assign(headers, config.headers);
   }
   
   // Add auth token
