@@ -21,7 +21,7 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
   const [file, setFile] = useState(null);
   const [removeAttachment, setRemoveAttachment] = useState(false);
 
-  const isAgencyAdmin = loggedInUser?.role === 'agency_admin';
+  const isAgencyAdmin = loggedInUser?.role === 'AGENCY_ADMIN';
   const isViewMode = mode === 'view';
   const isEditMode = mode === 'edit';
   const isCreateMode = mode === 'create';

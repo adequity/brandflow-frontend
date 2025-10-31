@@ -24,7 +24,7 @@ const BoardPage = ({ loggedInUser }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  const isAgencyAdmin = loggedInUser?.role === 'agency_admin';
+  const isAgencyAdmin = loggedInUser?.role === 'AGENCY_ADMIN';
 
   // 게시글 목록 조회
   const fetchPosts = async () => {
