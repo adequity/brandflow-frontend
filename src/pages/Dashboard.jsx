@@ -12,6 +12,8 @@ import {
   DollarSign
 } from 'lucide-react';
 import api, { apiEndpoints } from '../api/client';
+import boardApi from '../api/boardApi';
+import BoardPopupModal from '../components/modals/BoardPopupModal';
 
 const colorStyles = {
   primary:   { bg: 'bg-primary-100',   text: 'text-primary-600'   },
@@ -23,6 +25,10 @@ const colorStyles = {
 
 export default function Dashboard({ campaigns = [], activities = [], onSeeAll, user }) {
   const navigate = useNavigate();
+
+  // 팝업 게시글 상태
+  const [popupPosts, setPopupPosts] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   // 월간 필터 상태
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -77,10 +83,37 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
     pending_payments: { count: 0, total_amount: 0, campaigns: [] }
   });
 
+  // 팝업 게시글 로드
+  useEffect(() => {
+    const loadPopupPosts = async () => {
+      try {
+        // 오늘 하루 보지 않기 체크
+        const dismissedDate = localStorage.getItem('boardPopupDismissedDate');
+        const today = new Date().toDateString();
+
+        if (dismissedDate === today) {
+          return; // 오늘 하루 보지 않기가 활성화된 경우
+        }
+
+        const data = await boardApi.getPopupPosts();
+        if (data.posts && data.posts.length > 0) {
+          setPopupPosts(data.posts);
+          setShowPopup(true);
+        }
+      } catch (error) {
+        console.error('팝업 게시글 로드 실패:', error);
+      }
+    };
+
+    if (user?.id) {
+      loadPopupPosts();
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     const fetchAllStats = async () => {
       if (!user?.id) return;
-      
+
       try {
         // 월간 캠페인 통계 데이터 가져오기
         let campaignTotalRevenue = 0;
@@ -938,6 +971,14 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           </div>
         </div>
       </div>
+
+      {/* 팝업 게시글 모달 */}
+      {showPopup && popupPosts.length > 0 && (
+        <BoardPopupModal
+          posts={popupPosts}
+          onClose={() => setShowPopup(false)}
+        />
+      )}
     </div>
   );
 }
