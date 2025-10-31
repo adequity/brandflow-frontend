@@ -18,8 +18,8 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
   const [isPopup, setIsPopup] = useState(false);
   const [popupStartDate, setPopupStartDate] = useState('');
   const [popupEndDate, setPopupEndDate] = useState('');
-  const [file, setFile] = useState(null);
-  const [removeAttachment, setRemoveAttachment] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [removeAttachmentIds, setRemoveAttachmentIds] = useState([]);
 
   const isAgencyAdmin = loggedInUser?.role === 'AGENCY_ADMIN';
   const isViewMode = mode === 'view';
@@ -49,28 +49,34 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
     setIsPopup(false);
     setPopupStartDate('');
     setPopupEndDate('');
-    setFile(null);
-    setRemoveAttachment(false);
+    setFiles([]);
+    setRemoveAttachmentIds([]);
   };
 
-  // 파일 선택 핸들러
+  // 파일 선택 핸들러 (다중)
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      // 파일 크기 체크 (10MB)
-      if (selectedFile.size > 10 * 1024 * 1024) {
-        showError('파일 크기는 10MB를 초과할 수 없습니다.');
-        return;
-      }
-      setFile(selectedFile);
-      setRemoveAttachment(false);
+    const selectedFiles = Array.from(e.target.files);
+
+    // 파일 크기 체크 (각 파일 10MB)
+    const invalidFiles = selectedFiles.filter(file => file.size > 10 * 1024 * 1024);
+    if (invalidFiles.length > 0) {
+      showError('파일 크기는 10MB를 초과할 수 없습니다.');
+      e.target.value = ''; // input 초기화
+      return;
     }
+
+    setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+    e.target.value = ''; // input 초기화 (같은 파일 다시 선택 가능하도록)
   };
 
-  // 첨부파일 제거
-  const handleRemoveFile = () => {
-    setFile(null);
-    setRemoveAttachment(true);
+  // 새로 추가한 파일 제거
+  const handleRemoveNewFile = (index) => {
+    setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+  };
+
+  // 기존 첨부파일 제거 (수정 모드)
+  const handleRemoveExistingFile = (attachmentId) => {
+    setRemoveAttachmentIds(prev => [...prev, attachmentId]);
   };
 
   // 게시글 저장
@@ -104,12 +110,16 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
         formData.append('popup_end_date', new Date(popupEndDate).toISOString());
       }
 
-      if (file) {
-        formData.append('file', file);
-      }
+      // 다중 파일 추가
+      files.forEach(file => {
+        formData.append('files', file);
+      });
 
       if (isEditMode) {
-        formData.append('remove_attachment', removeAttachment);
+        // 삭제할 첨부파일 ID들
+        if (removeAttachmentIds.length > 0) {
+          formData.append('remove_attachment_ids', removeAttachmentIds.join(','));
+        }
         await boardApi.updatePost(post.id, formData);
         showSuccess('게시글이 수정되었습니다.');
       } else {
@@ -126,15 +136,6 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
     }
   };
 
-  // 파일 다운로드
-  const handleDownload = () => {
-    if (post?.attachmentUrl) {
-      const link = document.createElement('a');
-      link.href = post.attachmentUrl;
-      link.download = post.attachmentName || '파일';
-      link.click();
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -203,25 +204,31 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
               </div>
 
               {/* 첨부파일 */}
-              {post.attachmentUrl && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Download className="w-5 h-5 text-blue-600" />
-                      <span className="text-sm font-medium text-gray-900">
-                        {post.attachmentName}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        ({(post.attachmentSize / 1024).toFixed(1)} KB)
-                      </span>
+              {post.attachments && post.attachments.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-gray-700">첨부파일 ({post.attachments.length})</h3>
+                  {post.attachments.map((attachment) => (
+                    <div key={attachment.id} className="bg-blue-50 p-4 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Download className="w-5 h-5 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-900">
+                            {attachment.fileName}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <a
+                          href={attachment.fileUrl}
+                          download={attachment.fileName}
+                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          다운로드
+                        </a>
+                      </div>
                     </div>
-                    <button
-                      onClick={handleDownload}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      다운로드
-                    </button>
-                  </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -329,46 +336,86 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
               {/* 파일 첨부 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  파일 첨부
+                  파일 첨부 (다중 선택 가능)
                 </label>
 
-                {/* 기존 파일 (수정 모드) */}
-                {isEditMode && post?.attachmentUrl && !removeAttachment && !file && (
-                  <div className="mb-2 bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Download className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm text-gray-700">{post.attachmentName}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveFile}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                {/* 기존 파일 목록 (수정 모드) */}
+                {isEditMode && post?.attachments && post.attachments.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    <p className="text-xs text-gray-500">기존 첨부파일</p>
+                    {post.attachments
+                      .filter(att => !removeAttachmentIds.includes(att.id))
+                      .map((attachment) => (
+                        <div key={attachment.id} className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Download className="w-4 h-4 text-gray-600" />
+                            <span className="text-sm text-gray-700">{attachment.fileName}</span>
+                            <span className="text-xs text-gray-500">
+                              ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExistingFile(attachment.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
                   </div>
                 )}
 
-                {/* 새 파일 선택 */}
-                {(!post?.attachmentUrl || removeAttachment || file) && (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <label
-                      htmlFor="file-upload"
-                      className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
-                    >
-                      <Upload className="w-5 h-5 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {file ? file.name : '파일 선택 (최대 10MB)'}
-                      </span>
-                    </label>
+                {/* 새로 추가할 파일 목록 */}
+                {files.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    <p className="text-xs text-gray-500">새로 추가할 파일</p>
+                    {files.map((file, index) => (
+                      <div key={index} className="bg-blue-50 p-3 rounded-lg flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Upload className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-700">{file.name}</span>
+                          <span className="text-xs text-gray-500">
+                            ({(file.size / 1024).toFixed(1)} KB)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewFile(index)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
+
+                {/* 파일 선택 버튼 */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    multiple={true}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                    accept="*/*"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="flex flex-col items-center justify-center gap-2 px-4 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-gray-400" />
+                      <span className="text-sm text-gray-600 font-medium">
+                        파일 추가 (여러 개 선택 가능, 최대 10MB/개)
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      파일 선택창에서 Ctrl(Cmd) 또는 Shift 키를 누른 채 여러 파일 클릭
+                    </span>
+                  </label>
+                </div>
               </div>
 
               {/* 버튼 */}

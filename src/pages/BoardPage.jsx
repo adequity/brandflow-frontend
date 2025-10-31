@@ -218,10 +218,10 @@ const BoardPage = ({ loggedInUser }) => {
                         <span className={`inline-flex px-2.5 py-0.5 text-xs font-bold rounded-full ${getPostTypeBadgeColor(post.postType)}`}>
                           {getPostTypeLabel(post.postType)}
                         </span>
-                        {post.attachmentUrl && (
+                        {post.attachments && post.attachments.length > 0 && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
                             <Download className="w-3 h-3" />
-                            첨부파일
+                            첨부파일 {post.attachments.length}개
                           </span>
                         )}
                       </div>
