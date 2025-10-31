@@ -41,8 +41,11 @@ export const SystemSettings = lazy(() =>
 export const MonthlyIncentives = lazy(() => 
   import(/* webpackChunkName: "incentives" */ '../pages/MonthlyIncentives')
 );
-export const CalendarPage = lazy(() => 
+export const CalendarPage = lazy(() =>
   import(/* webpackChunkName: "calendar" */ '../pages/CalendarPage')
+);
+export const BoardPage = lazy(() =>
+  import(/* webpackChunkName: "board" */ '../pages/BoardPage')
 );
 
 // 사용자 역할별 메인 화면
@@ -84,6 +87,7 @@ export default {
   SalesRegistrationEnhanced: withLazyLoading(SalesRegistrationEnhanced, '매출 관리 로딩 중...'),
   SystemSettings: withLazyLoading(SystemSettings, '시스템 설정 로딩 중...'),
   MonthlyIncentives: withLazyLoading(MonthlyIncentives, '월간 인센티브 로딩 중...'),
+  BoardPage: withLazyLoading(BoardPage, '게시판 로딩 중...'),
   CalendarPage: withLazyLoading(CalendarPage, '캘린더 로딩 중...'),
   AdminUI: withLazyLoading(AdminUI, '관리자 화면 로딩 중...'),
   ClientUI: withLazyLoading(ClientUI, '클라이언트 화면 로딩 중...')

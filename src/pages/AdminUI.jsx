@@ -252,6 +252,7 @@ export default function AdminUI({ user, onLogout }) {
     if (path.startsWith('/admin/products')) return 'products';
     if (path.startsWith('/admin/sales')) return 'sales';
     if (path.startsWith('/admin/monthly-incentives')) return 'monthly-incentives';
+    if (path.startsWith('/admin/board')) return 'board';
     if (path.startsWith('/admin/calendar')) return 'calendar';
     if (path.startsWith('/admin/system-settings')) return 'system-settings';
     if (path.startsWith('/admin/users')) return 'users';
@@ -276,6 +277,7 @@ export default function AdminUI({ user, onLogout }) {
       case 'products': return '상품 관리';
       case 'sales': return '매출 관리';
       case 'monthly-incentives': return '월간 인센티브 관리';
+      case 'board': return '게시판';
       case 'calendar': return '일정 관리';
       case 'system-settings': return '시스템 설정';
       case 'users':     return '고객사/사용자 관리';
@@ -313,6 +315,7 @@ export default function AdminUI({ user, onLogout }) {
             <Route path="products" element={<LazyRoutes.ProductManagement loggedInUser={user} />} />
             <Route path="sales" element={<LazyRoutes.SalesRegistration loggedInUser={user} />} />
             <Route path="monthly-incentives" element={<LazyRoutes.MonthlyIncentives loggedInUser={user} />} />
+            <Route path="board" element={<LazyRoutes.BoardPage loggedInUser={user} />} />
             <Route path="calendar" element={<LazyRoutes.CalendarPage user={user} />} />
             <Route path="system-settings" element={<LazyRoutes.SystemSettings loggedInUser={user} />} />
             <Route path="users" element={<LazyRoutes.UserManagement loggedInUser={user} />} />
