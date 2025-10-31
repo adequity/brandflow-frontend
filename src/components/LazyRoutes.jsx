@@ -26,14 +26,8 @@ export const ProductManagement = lazy(() =>
 export const PurchaseRequestsPage = lazy(() => 
   import(/* webpackChunkName: "purchase-requests" */ '../pages/PurchaseRequestsPage')
 );
-export const OrderManagement = lazy(() => 
+export const OrderManagement = lazy(() =>
   import(/* webpackChunkName: "order-mgmt" */ '../pages/OrderManagement')
-);
-export const SalesRegistration = lazy(() => 
-  import(/* webpackChunkName: "sales-simple" */ '../pages/SalesRegistration')
-);
-export const SalesRegistrationEnhanced = lazy(() => 
-  import(/* webpackChunkName: "sales-enhanced" */ '../pages/SalesRegistrationEnhanced')
 );
 export const SystemSettings = lazy(() => 
   import(/* webpackChunkName: "system-settings" */ '../pages/SystemSettings')
@@ -83,8 +77,6 @@ export default {
   ProductManagement: withLazyLoading(ProductManagement, '상품 관리 로딩 중...'),
   PurchaseRequestsPage: withLazyLoading(PurchaseRequestsPage, '구매 요청 로딩 중...'),
   OrderManagement: withLazyLoading(OrderManagement, '발주 관리 로딩 중...'),
-  SalesRegistration: withLazyLoading(SalesRegistration, '매출 등록 로딩 중...'),
-  SalesRegistrationEnhanced: withLazyLoading(SalesRegistrationEnhanced, '매출 관리 로딩 중...'),
   SystemSettings: withLazyLoading(SystemSettings, '시스템 설정 로딩 중...'),
   MonthlyIncentives: withLazyLoading(MonthlyIncentives, '월간 인센티브 로딩 중...'),
   BoardPage: withLazyLoading(BoardPage, '게시판 로딩 중...'),

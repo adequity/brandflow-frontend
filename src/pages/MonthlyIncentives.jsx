@@ -158,8 +158,10 @@ const MonthlyIncentives = ({ loggedInUser }) => {
               console.log(`    - 매출 계산: ${campaign.budget} || 0 = ${campaignRevenue}`);
 
               const campaignCost = campaign.posts?.reduce((costSum, post) => {
-                const postCost = (post.unitPrice || 0) * (post.quantity || 1);
-                console.log(`      📄 포스트 ${post.title || post.id}: unitPrice=${post.unitPrice} × quantity=${post.quantity} = ${postCost}원`);
+                // product_cost (제품 원가)를 사용하여 원가 계산
+                const productCost = post.product_cost || post.productCost || 0;
+                const postCost = productCost * (post.quantity || 1);
+                console.log(`      📄 포스트 ${post.title || post.id}: product_cost=${productCost} × quantity=${post.quantity} = ${postCost}원`);
                 return costSum + postCost;
               }, 0) || 0;
 
