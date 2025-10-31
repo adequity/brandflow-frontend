@@ -147,26 +147,6 @@ const BoardPage = ({ loggedInUser }) => {
               </button>
             )}
           </div>
-
-          {/* 통계 카드 */}
-          <div className="grid grid-cols-4 gap-4 mt-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
-              <p className="text-sm font-medium text-neutral-500 mb-1">총 게시글</p>
-              <p className="text-2xl font-bold text-neutral-800">{total}개</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
-              <p className="text-sm font-medium text-neutral-500 mb-1">공지사항</p>
-              <p className="text-2xl font-bold text-red-600">{posts.filter(p => p.isNotice).length}개</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
-              <p className="text-sm font-medium text-neutral-500 mb-1">메뉴얼</p>
-              <p className="text-2xl font-bold text-green-600">{posts.filter(p => p.postType === 'manual').length}개</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-neutral-200/50 shadow-sm">
-              <p className="text-sm font-medium text-neutral-500 mb-1">자료실</p>
-              <p className="text-2xl font-bold text-purple-600">{posts.filter(p => p.postType === 'resource').length}개</p>
-            </div>
-          </div>
         </div>
 
         {/* 필터 */}
