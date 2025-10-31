@@ -32,11 +32,8 @@ const boardApi = {
    * 게시글 생성
    */
   createPost: async (formData) => {
-    const response = await client.post('/api/board/posts', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    // FormData 사용 시 Content-Type을 설정하지 않아야 브라우저가 boundary를 자동으로 추가
+    const response = await client.post('/api/board/posts', formData);
     return response.data;
   },
 
@@ -44,11 +41,8 @@ const boardApi = {
    * 게시글 수정
    */
   updatePost: async (postId, formData) => {
-    const response = await client.put(`/api/board/posts/${postId}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    // FormData 사용 시 Content-Type을 설정하지 않아야 브라우저가 boundary를 자동으로 추가
+    const response = await client.put(`/api/board/posts/${postId}`, formData);
     return response.data;
   },
 
