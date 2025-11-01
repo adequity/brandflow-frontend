@@ -767,30 +767,6 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
         ))}
       </div>
 
-      {/* 긴급 업무 섹션 - 관리자만 */}
-      {user?.role !== 'STAFF' && urgentTasks.length > 0 && (
-        <div className="bg-red-50/80 backdrop-blur-md border border-red-200 rounded-2xl p-6 shadow-card">
-          <h3 className="text-lg font-semibold text-red-800 mb-4">🚨 긴급 처리 필요 (3일 이상 대기)</h3>
-          <div className="space-y-3">
-            {urgentTasks.slice(0, 5).map(task => (
-              <div key={task.id} className="bg-white/80 backdrop-blur-md p-3 rounded-xl border border-red-200 shadow-sm">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-medium text-neutral-800">{task.title}</div>
-                    <div className="text-sm text-neutral-600">
-                      상태: {task.topicStatus || task.outlineStatus}
-                    </div>
-                  </div>
-                  <div className="text-xs text-red-600 bg-red-100 px-2 py-1 rounded-full">
-                    {Math.floor((new Date() - new Date(task.createdAt || task.creationTime)) / (1000 * 60 * 60 * 24))}일 경과
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 매입/지출 상세 현황 - 관리자만 */}
       {user?.role !== 'STAFF' && (
       <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
