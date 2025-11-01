@@ -6,6 +6,7 @@ import NewCampaignModal from '../modals/NewCampaignModal';
 import CampaignEditModal from '../modals/CampaignEditModal';
 import ChatContentModal from '../modals/ChatContentModal';
 import CampaignDuplicateModal from '../modals/CampaignDuplicateModal';
+import ContractUploadModal from '../modals/ContractUploadModal';
 import ConfirmModal from '../ui/ConfirmModal';
 import { debugAuth, checkAuthToken } from '../../utils/tokenUtils';
 import { useToast } from '../../contexts/ToastContext';
@@ -22,6 +23,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const [deletingCampaignId, setDeletingCampaignId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, campaign: null });
   const [chatContentModal, setChatContentModal] = useState(null);
+  const [contractModal, setContractModal] = useState(null);
   const [duplicatingCampaignId, setDuplicatingCampaignId] = useState(null);
   const [duplicateModalData, setDuplicateModalData] = useState(null);
 
@@ -466,6 +468,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               <th className="px-6 py-3">매출 현황</th>
               <th className="px-6 py-3">종료일</th>
               <th className="px-6 py-3">최근 업데이트</th>
+              {/* 계약서 관리 */}
+              {currentUser?.role !== 'CLIENT' && (
+                <th className="px-6 py-3">계약서 관리</th>
+              )}
               {/* 카톡 관리 - CLIENT 역할에게는 보이지 않음 */}
               {currentUser?.role !== 'CLIENT' && (
                 <th className="px-6 py-3">카톡 관리</th>
@@ -588,12 +594,27 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     </div>
                   </td>
                   
-                  <td 
+                  <td
                     className="px-6 py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString() : '-'}
                   </td>
+                  {/* 계약서 관리 버튼 - CLIENT 역할에게는 보이지 않음 */}
+                  {currentUser?.role !== 'CLIENT' && (
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setContractModal(campaign);
+                        }}
+                        className="text-purple-600 hover:text-purple-900"
+                        title="계약서 관리"
+                      >
+                        <FileText size={16} />
+                      </button>
+                    </td>
+                  )}
                   {/* 카톡 관리 버튼 - CLIENT 역할에게는 보이지 않음 */}
                   {currentUser?.role !== 'CLIENT' && (
                     <td className="px-6 py-4">
@@ -778,9 +799,22 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         />
       )}
 
+      {/* 계약서 관리 모달 */}
+      {contractModal && (
+        <ContractUploadModal
+          campaign={contractModal}
+          onClose={() => setContractModal(null)}
+          onSave={(contracts) => {
+            // 캠페인의 계약서 목록 업데이트
+            console.log('계약서 업데이트:', contracts);
+            setContractModal(null);
+          }}
+        />
+      )}
+
       {/* 카톡 내용 정리 모달 */}
       {chatContentModal && (
-        <ChatContentModal 
+        <ChatContentModal
           campaign={chatContentModal}
           onClose={() => setChatContentModal(null)}
           onSave={(chatData) => {
