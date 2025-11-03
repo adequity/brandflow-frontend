@@ -131,16 +131,6 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       }
       console.error('❌ Full error object:', JSON.stringify(err, Object.getOwnPropertyNames(err)));
       
-      // Network/Fetch 관련 에러 체크
-      if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
-        console.error('🚨 네트워크 연결 실패 - 하지만 캠페인이 생성되었을 수 있음');
-        // 모달 닫고 페이지 새로고침
-        setModalOpen(false);
-        showSuccess('캠페인이 생성되었습니다. 페이지를 새로고침합니다...');
-        setTimeout(() => window.location.reload(), 1500);
-        return;
-      }
-      
       // CORS 에러 특별 처리
       if (err.message?.includes('CORS') || err.message?.includes('Access-Control-Allow-Origin')) {
         console.error('🚨 CORS 정책 에러 - 백엔드 서버 설정 필요');
