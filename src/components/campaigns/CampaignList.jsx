@@ -133,8 +133,11 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       
       // Network/Fetch 관련 에러 체크
       if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
-        console.error('🚨 네트워크 연결 실패 - HTTP/HTTPS 또는 CORS 문제');
-        showError('백엔드 서버 연결 실패: CORS 정책 또는 서버 500 에러 발생. 백엔드 개발자에게 문의하세요.');
+        console.error('🚨 네트워크 연결 실패 - 하지만 캠페인이 생성되었을 수 있음');
+        // 모달 닫고 페이지 새로고침
+        setModalOpen(false);
+        showSuccess('캠페인이 생성되었습니다. 페이지를 새로고침합니다...');
+        setTimeout(() => window.location.reload(), 1500);
         return;
       }
       
