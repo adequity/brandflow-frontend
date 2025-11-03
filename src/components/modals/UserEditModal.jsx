@@ -100,11 +100,16 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
     useEffect(() => {
         if (formData.role === 'STAFF' && formData.company) {
             fetchTeamLeaders(formData.company);
+
+            // TEAM_LEADER가 STAFF를 추가할 때 자동으로 본인을 팀 리더로 설정
+            if (loggedInUser?.role === 'TEAM_LEADER' && !user) {
+                setFormData(prev => ({ ...prev, teamLeaderId: loggedInUser.id }));
+            }
         } else if (formData.role !== 'STAFF') {
             // STAFF가 아닌 역할로 변경되면 팀 리더 목록 초기화
             setTeamLeaders([]);
         }
-    }, [formData.role, formData.company]);
+    }, [formData.role, formData.company, loggedInUser, user]);
 
     // STAFF 목록 로드 (CLIENT 역할 선택 시)
     useEffect(() => {
