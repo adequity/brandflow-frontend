@@ -798,22 +798,54 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         try {
             console.log(`${field} 상태 업데이트 시작:`, { postId, field, newValue: editingValue });
 
-            // 모든 필드에 대해 기존 업무 수정 API 사용
-            const updateData = { [field]: editingValue };
-            const response = await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, updateData);
-            console.log('업무 수정 API 호출 성공:', response.data);
+            // 반려 상태로 변경하는 경우 반려 사유 입력 요청
+            if ((field === 'topicStatus' && editingValue.includes('반려')) ||
+                (field === 'outlineStatus' && editingValue.includes('반려'))) {
+                const reason = prompt(`반려 사유를 입력해주세요:`);
+                if (!reason || reason.trim() === '') {
+                    showError('반려 사유를 입력해야 합니다.');
+                    setEditingCell(null);
+                    setEditingValue('');
+                    return;
+                }
 
-            // 로컬 상태 즉시 업데이트
-            setPosts(prevPosts =>
-                prevPosts.map(post =>
-                    post.id === postId
-                        ? { ...post, [field]: editingValue }
-                        : post
-                )
-            );
+                // 반려 상태와 반려 사유를 함께 업데이트
+                const updateData = {
+                    [field]: editingValue,
+                    rejectReason: reason.trim()
+                };
+                const response = await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, updateData);
+                console.log('업무 수정 API 호출 성공:', response.data);
 
-            const fieldName = field === 'topicStatus' ? '승인 상태' : field === 'outlineStatus' ? '세부사항 승인 상태' : field;
-            showSuccess(`${fieldName}이(가) "${editingValue}"(으)로 수정되었습니다.`);
+                // 로컬 상태 즉시 업데이트
+                setPosts(prevPosts =>
+                    prevPosts.map(post =>
+                        post.id === postId
+                            ? { ...post, [field]: editingValue, rejectReason: reason.trim() }
+                            : post
+                    )
+                );
+
+                const fieldName = field === 'topicStatus' ? '승인 상태' : '세부사항 승인 상태';
+                showSuccess(`${fieldName}이(가) "${editingValue}"(으)로 수정되었습니다.`);
+            } else {
+                // 일반 필드 업데이트
+                const updateData = { [field]: editingValue };
+                const response = await api.put(`/api/campaigns/${campaignId}/posts/${postId}`, updateData);
+                console.log('업무 수정 API 호출 성공:', response.data);
+
+                // 로컬 상태 즉시 업데이트
+                setPosts(prevPosts =>
+                    prevPosts.map(post =>
+                        post.id === postId
+                            ? { ...post, [field]: editingValue }
+                            : post
+                    )
+                );
+
+                const fieldName = field === 'topicStatus' ? '승인 상태' : field === 'outlineStatus' ? '세부사항 승인 상태' : field;
+                showSuccess(`${fieldName}이(가) "${editingValue}"(으)로 수정되었습니다.`);
+            }
 
             // 서버 데이터와 동기화를 위해 캠페인 데이터 새로고침
             await fetchCampaignDetail();
