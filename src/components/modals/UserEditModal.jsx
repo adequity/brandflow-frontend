@@ -64,7 +64,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 email: '',
                 password: '',
                 contact: '',
-                company: (loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') ? loggedInUser.company : '',
+                company: (loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'TEAM_LEADER') ? loggedInUser.company : '',
                 role: defaultRole,
                 incentiveRate: 0,
                 // 팀 정보 초기값
@@ -321,8 +321,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 )}
                             </label>
 
-                            {/* 직원/대행사 관리자가 사용자 생성 시에는 본인 회사로 고정 */}
-                            {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && !user ? (
+                            {/* 직원/대행사 관리자/팀 리더가 사용자 생성 시에는 본인 회사로 고정 */}
+                            {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'TEAM_LEADER') && !user ? (
                                 <div className="w-full px-4 py-3 border border-gray-300 bg-gray-100 rounded-lg text-gray-700">
                                     {loggedInUser.company} (본인 소속)
                                     <input type="hidden" name="company" value={loggedInUser.company} />
