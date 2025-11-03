@@ -353,6 +353,22 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             }
         }
 
+        // 정렬: 승인 상태 우선, 그 다음 생성일시 최신순
+        filtered.sort((a, b) => {
+            // 승인 상태 확인 (topicStatus 또는 outlineStatus에 "승인" 포함)
+            const aApproved = a.topicStatus?.includes('승인') || a.outlineStatus?.includes('승인');
+            const bApproved = b.topicStatus?.includes('승인') || b.outlineStatus?.includes('승인');
+
+            // 승인 상태가 다르면 승인된 것을 위로
+            if (aApproved && !bApproved) return -1;
+            if (!aApproved && bApproved) return 1;
+
+            // 승인 상태가 같으면 생성일시 최신순 (내림차순)
+            const aDate = new Date(a.createdAt || a.created_at || 0);
+            const bDate = new Date(b.createdAt || b.created_at || 0);
+            return bDate - aDate;
+        });
+
         setFilteredPosts(filtered);
     }, [posts, filters, campaign]);
 
