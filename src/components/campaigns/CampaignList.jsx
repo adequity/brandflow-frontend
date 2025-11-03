@@ -73,7 +73,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
         client_company: clientCompanyWithId,
         budget: Math.max(campaignData.budget || 1000000, 1), // 백엔드 요구사항: budget > 0
         start_date: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString(),
-        end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString()
+        end_date: campaignData.endDate ? new Date(campaignData.endDate).toISOString() : new Date(Date.now() + 365*24*60*60*1000).toISOString(),
+        staff_id: actualCreatorId  // 담당자 ID 추가
       };
       
       console.log('Payload to send:', payload);
