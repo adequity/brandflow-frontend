@@ -103,6 +103,19 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
 
             // TEAM_LEADER가 STAFF를 추가할 때 자동으로 본인을 팀 리더로 설정
             if (loggedInUser?.role === 'TEAM_LEADER' && !user) {
+                // 팀 리더 목록에 본인 추가 (API 조회 결과에 없을 수 있으므로)
+                setTeamLeaders(prev => {
+                    const alreadyExists = prev.some(leader => leader.id === loggedInUser.id);
+                    if (!alreadyExists) {
+                        return [{
+                            id: loggedInUser.id,
+                            name: loggedInUser.name,
+                            teamName: loggedInUser.teamName,
+                            team_name: loggedInUser.teamName
+                        }, ...prev];
+                    }
+                    return prev;
+                });
                 setFormData(prev => ({ ...prev, teamLeaderId: loggedInUser.id }));
             }
         } else if (formData.role !== 'STAFF') {
