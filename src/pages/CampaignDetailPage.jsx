@@ -361,18 +361,24 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 const topicStatus = post.topicStatus || '';
                 const outlineStatus = post.outlineStatus || '';
 
-                // 반려 체크 (반려가 포함되어 있지만 "승인 대기"는 아님)
+                // 1. 반려 체크 (최우선)
                 if (topicStatus.includes('반려') || outlineStatus.includes('반려')) {
                     return 'rejected';
                 }
 
-                // 승인 체크 ("승인"으로 끝나는 경우만, "승인 대기"는 제외)
-                if (topicStatus === '주제 승인' || topicStatus === '목차 승인' ||
-                    outlineStatus === '주제 승인' || outlineStatus === '목차 승인') {
+                // 2. 대기 체크 ("대기"가 포함되면 무조건 대기)
+                // "주제 승인 대기", "목차 승인 대기" 등
+                if (topicStatus.includes('대기') || outlineStatus.includes('대기')) {
+                    return 'pending';
+                }
+
+                // 3. 승인 체크 ("승인"이 포함되고 "대기"가 없으면 승인)
+                // "주제 승인", "목차 승인"
+                if (topicStatus.includes('승인') || outlineStatus.includes('승인')) {
                     return 'approved';
                 }
 
-                // 나머지는 대기
+                // 4. 나머지는 대기
                 return 'pending';
             };
 
@@ -394,6 +400,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             const bDate = new Date(b.createdAt || b.created_at || 0);
             return bDate - aDate;
         });
+
+        console.log('🔍 정렬 후 포스트 순서:', filtered.map(p => ({ title: p.title, topicStatus: p.topicStatus, outlineStatus: p.outlineStatus })));
 
         setFilteredPosts(filtered);
     }, [posts, filters, campaign]);
