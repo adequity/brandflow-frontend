@@ -477,6 +477,10 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 if (loggedInUser?.role === 'STAFF') {
                                     return role.value === 'CLIENT';
                                 }
+                                // 팀 리더는 STAFF와 CLIENT만 생성 가능
+                                if (loggedInUser?.role === 'TEAM_LEADER') {
+                                    return role.value === 'STAFF' || role.value === 'CLIENT';
+                                }
                                 // 대행사 어드민은 슈퍼 어드민 제외하고 생성 가능
                                 if (loggedInUser?.role === 'AGENCY_ADMIN') {
                                     return role.value !== 'SUPER_ADMIN';
