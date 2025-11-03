@@ -353,17 +353,30 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             }
         }
 
-        // 정렬: 승인 상태 우선, 그 다음 생성일시 최신순
+        // 정렬: 반려 → 승인 → 대기 순서, 각 그룹 내에서 생성일시 최신순
         filtered.sort((a, b) => {
-            // 승인 상태 확인 (topicStatus 또는 outlineStatus에 "승인" 포함)
+            // 상태 확인 (topicStatus 또는 outlineStatus 기준)
+            const aRejected = a.topicStatus?.includes('반려') || a.outlineStatus?.includes('반려');
+            const bRejected = b.topicStatus?.includes('반려') || b.outlineStatus?.includes('반려');
             const aApproved = a.topicStatus?.includes('승인') || a.outlineStatus?.includes('승인');
             const bApproved = b.topicStatus?.includes('승인') || b.outlineStatus?.includes('승인');
 
-            // 승인 상태가 다르면 승인된 것을 위로
-            if (aApproved && !bApproved) return -1;
-            if (!aApproved && bApproved) return 1;
+            // 우선순위 계산 (1: 반려, 2: 승인, 3: 대기/기타)
+            const getPriority = (rejected, approved) => {
+                if (rejected) return 1;
+                if (approved) return 2;
+                return 3;
+            };
 
-            // 승인 상태가 같으면 생성일시 최신순 (내림차순)
+            const aPriority = getPriority(aRejected, aApproved);
+            const bPriority = getPriority(bRejected, bApproved);
+
+            // 우선순위가 다르면 우선순위 순서대로
+            if (aPriority !== bPriority) {
+                return aPriority - bPriority;
+            }
+
+            // 우선순위가 같으면 생성일시 최신순 (내림차순)
             const aDate = new Date(a.createdAt || a.created_at || 0);
             const bDate = new Date(b.createdAt || b.created_at || 0);
             return bDate - aDate;
