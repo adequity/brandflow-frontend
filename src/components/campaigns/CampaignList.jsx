@@ -389,92 +389,94 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const canCreate = currentUser?.role && currentUser.role !== 'CLIENT';
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* 검색 & 필터 영역 */}
-      <div className="flex justify-between items-start mb-6">
-        <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           {/* 검색창 */}
-          <div className="relative">
+          <div className="relative flex-1 max-w-full sm:max-w-xs">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="캠페인명 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg"
+              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg text-base min-h-[44px] touch-manipulation"
             />
           </div>
 
-          {/* 필터 영역 */}
-          <div className="flex gap-3 items-center">
-            {/* STAFF 필터 */}
-            <select
-              value={filters.staffId}
-              onChange={(e) => setFilters({ ...filters, staffId: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          {/* 새 캠페인 생성 버튼 */}
+          {canCreate && (
+            <button
+              onClick={() => setModalOpen(true)}
+              className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 touch-manipulation min-h-[44px] whitespace-nowrap"
             >
-              <option value="all">👤 담당자: 전체</option>
-              {staffList.map(staff => (
-                <option key={staff.id} value={staff.id}>
-                  👤 {staff.name || staff.username}
-                </option>
-              ))}
-            </select>
-
-            {/* 필터 초기화 버튼 */}
-            {(filters.staffId !== 'all') && (
-              <button
-                onClick={() => setFilters({
-                  staffId: 'all'
-                })}
-                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ✕ 필터 초기화
-              </button>
-            )}
-          </div>
-
-          {/* 필터 결과 요약 */}
-          <div className="text-sm text-gray-600">
-            전체 {ensureArray(campaigns).length}개 중 <span className="font-semibold text-blue-600">{filteredCampaigns.length}개</span> 표시
-          </div>
+              <Plus size={18} />
+              <span className="text-sm md:text-base">새 캠페인 생성</span>
+            </button>
+          )}
         </div>
 
-        {canCreate && (
-          <button
-            onClick={() => setModalOpen(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        {/* 필터 영역 */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          {/* STAFF 필터 */}
+          <select
+            value={filters.staffId}
+            onChange={(e) => setFilters({ ...filters, staffId: e.target.value })}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[44px] touch-manipulation"
           >
-            <Plus size={18} />
-            <span>새 캠페인 생성</span>
-          </button>
-        )}
+            <option value="all">👤 담당자: 전체</option>
+            {staffList.map(staff => (
+              <option key={staff.id} value={staff.id}>
+                👤 {staff.name || staff.username}
+              </option>
+            ))}
+          </select>
+
+          {/* 필터 초기화 버튼 */}
+          {(filters.staffId !== 'all') && (
+            <button
+              onClick={() => setFilters({
+                staffId: 'all'
+              })}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation min-h-[44px]"
+            >
+              ✕ 필터 초기화
+            </button>
+          )}
+
+          {/* 필터 결과 요약 */}
+          <div className="text-xs md:text-sm text-gray-600 flex items-center">
+            전체 {ensureArray(campaigns).length}개 중 <span className="font-semibold text-blue-600 ml-1">{filteredCampaigns.length}개</span> 표시
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-sm text-left text-gray-500">
-          <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
-            <tr>
-              <th className="px-6 py-3">캠페인명</th>
-              <th className="px-6 py-3">클라이언트</th>
-              <th className="px-6 py-3">담당자</th>
-              <th className="px-6 py-3">진행률 (완료/총)</th>
-              <th className="px-6 py-3">매출 현황</th>
-              <th className="px-6 py-3">종료일</th>
-              <th className="px-6 py-3">최근 업데이트</th>
-              {/* 계약서 관리 */}
-              {currentUser?.role !== 'CLIENT' && (
-                <th className="px-6 py-3">계약서 관리</th>
-              )}
-              {/* 카톡 관리 - CLIENT 역할에게는 보이지 않음 */}
-              {currentUser?.role !== 'CLIENT' && (
-                <th className="px-6 py-3">카톡 관리</th>
-              )}
-              {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'TEAM_LEADER' || currentUser?.role === 'STAFF') && (
-                <th className="px-6 py-3">관리</th>
-              )}
-            </tr>
-          </thead>
+      <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs md:text-sm text-left text-gray-500">
+            <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+              <tr>
+                <th className="px-3 md:px-6 py-2 md:py-3">캠페인명</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 hidden sm:table-cell">클라이언트</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 hidden md:table-cell">담당자</th>
+                <th className="px-3 md:px-6 py-2 md:py-3">진행률</th>
+                <th className="px-3 md:px-6 py-2 md:py-3">매출</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">종료일</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 hidden xl:table-cell">업데이트</th>
+                {/* 계약서 관리 */}
+                {currentUser?.role !== 'CLIENT' && (
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">계약서</th>
+                )}
+                {/* 카톡 관리 - CLIENT 역할에게는 보이지 않음 */}
+                {currentUser?.role !== 'CLIENT' && (
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">카톡</th>
+                )}
+                {(currentUser?.role === 'SUPER_ADMIN' || currentUser?.role === 'AGENCY_ADMIN' || currentUser?.role === 'TEAM_LEADER' || currentUser?.role === 'STAFF') && (
+                  <th className="px-3 md:px-6 py-2 md:py-3">관리</th>
+                )}
+              </tr>
+            </thead>
           <tbody>
             {filteredCampaigns.map((campaign) => {
               // 디버깅: 캠페인 데이터 구조 확인
@@ -494,57 +496,60 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               return (
                 <tr
                   key={campaign.id}
-                  className="bg-white border-b hover:bg-gray-50"
+                  className="bg-white border-b hover:bg-gray-50 touch-manipulation"
                 >
-                  <th 
-                    scope="row" 
-                    className="px-6 py-4 font-medium text-gray-900 cursor-pointer"
+                  <th
+                    scope="row"
+                    className="px-3 md:px-6 py-3 md:py-4 font-medium text-gray-900 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     <div>
-                      <div className="font-medium">{campaign.name}</div>
+                      <div className="font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">{campaign.name}</div>
                       {campaign.memo && (
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-gray-500 mt-1 hidden md:block">
                           특이사항: {campaign.memo}
                         </div>
                       )}
                     </div>
                   </th>
-                  <td 
-                    className="px-6 py-4 cursor-pointer"
+                  <td
+                    className="px-3 md:px-6 py-3 md:py-4 cursor-pointer hidden sm:table-cell"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    {/* 클라이언트 이름만 표시 (ID 정보 제거) */}
-                    {getClientDisplayName(campaign.client_company || campaign.client)}
+                    <div className="text-xs md:text-sm truncate max-w-[100px] md:max-w-none">
+                      {getClientDisplayName(campaign.client_company || campaign.client)}
+                    </div>
                   </td>
-                  <td 
-                    className="px-6 py-4 cursor-pointer"
+                  <td
+                    className="px-3 md:px-6 py-3 md:py-4 cursor-pointer hidden md:table-cell"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    {campaign.creator_name || 
-                     campaign.staff_name || 
-                     campaign.User?.name || 
-                     users?.find(u => u.id === campaign.creator_id)?.name ||
-                     'N/A'}
+                    <div className="text-xs md:text-sm truncate max-w-[80px] md:max-w-none">
+                      {campaign.creator_name ||
+                       campaign.staff_name ||
+                       campaign.User?.name ||
+                       users?.find(u => u.id === campaign.creator_id)?.name ||
+                       'N/A'}
+                    </div>
                   </td>
-                  <td 
-                    className="px-6 py-4 font-medium cursor-pointer"
+                  <td
+                    className="px-3 md:px-6 py-3 md:py-4 font-medium cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     <div className="text-center">
-                      <div className="font-medium">{`${completedCount}/${totalCount}`}</div>
+                      <div className="font-medium text-xs md:text-sm">{`${completedCount}/${totalCount}`}</div>
                       <div className="text-xs text-gray-500">
                         {totalCount > 0 ? Math.round((completedCount/totalCount) * 100) : 0}%
                       </div>
                     </div>
                   </td>
                   <td
-                    className="px-6 py-4 cursor-pointer"
+                    className="px-3 md:px-6 py-3 md:py-4 cursor-pointer"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    <div className="text-sm">
-                      <div className="font-medium text-blue-600">
-                        매출: {safeFormatCurrency(campaign.budget || 0)}
+                    <div className="text-xs md:text-sm">
+                      <div className="font-medium text-blue-600 break-all">
+                        {safeFormatCurrency(campaign.budget || 0)}
                         {console.log(`[CAMPAIGN-DEBUG] Campaign ${campaign.id} budget:`, campaign.budget, typeof campaign.budget)}
                       </div>
                       {/* 간단화: budget만 표시 */}
@@ -553,7 +558,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
 
                   {/* 종료일 */}
                   <td
-                    className="px-6 py-4 cursor-pointer"
+                    className="px-3 md:px-6 py-3 md:py-4 cursor-pointer hidden lg:table-cell"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     <div className="flex items-center space-x-2">
@@ -587,22 +592,24 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                       })()}
                     </div>
                   </td>
-                  
+
                   <td
-                    className="px-6 py-4 cursor-pointer"
+                    className="px-3 md:px-6 py-3 md:py-4 cursor-pointer hidden xl:table-cell"
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
-                    {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString() : '-'}
+                    <div className="text-xs md:text-sm">
+                      {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString() : '-'}
+                    </div>
                   </td>
                   {/* 계약서 관리 버튼 - CLIENT 역할에게는 보이지 않음 */}
                   {currentUser?.role !== 'CLIENT' && (
-                    <td className="px-6 py-4">
+                    <td className="px-3 md:px-6 py-3 md:py-4 hidden lg:table-cell">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setContractModal(campaign);
                         }}
-                        className="text-purple-600 hover:text-purple-900"
+                        className="text-purple-600 hover:text-purple-900 p-2 hover:bg-purple-50 rounded touch-manipulation"
                         title="계약서 관리"
                       >
                         <FileText size={16} />
@@ -611,13 +618,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                   )}
                   {/* 카톡 관리 버튼 - CLIENT 역할에게는 보이지 않음 */}
                   {currentUser?.role !== 'CLIENT' && (
-                    <td className="px-6 py-4">
+                    <td className="px-3 md:px-6 py-3 md:py-4 hidden lg:table-cell">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setChatContentModal(campaign);
                         }}
-                        className="text-green-600 hover:text-green-900"
+                        className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded touch-manipulation"
                         title="카톡 내용 정리"
                       >
                         <MessageSquare size={16} />
@@ -625,18 +632,18 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     </td>
                   )}
                   {canEditCampaign(currentUser, campaign) && (
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-3 md:px-6 py-3 md:py-4">
+                      <div className="flex items-center space-x-1 md:space-x-2">
                         {/* 편집 버튼 - 모든 계정이 자신의 권한 안에 있는 캠페인 편집 가능 */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditCampaign(campaign);
                           }}
-                          className="text-blue-500 hover:text-blue-700"
+                          className="text-blue-500 hover:text-blue-700 p-1.5 md:p-2 hover:bg-blue-50 rounded touch-manipulation"
                           title="캠페인 편집"
                         >
-                          <Edit size={16} />
+                          <Edit size={14} className="md:w-4 md:h-4" />
                         </button>
 
                         {/* 복사 버튼 - 편집 권한과 동일하게 적용 */}
@@ -646,13 +653,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                             handleDuplicateCampaign(campaign);
                           }}
                           disabled={duplicatingCampaignId === campaign.id}
-                          className="text-green-500 hover:text-green-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                          className="text-green-500 hover:text-green-700 disabled:text-gray-400 disabled:cursor-not-allowed p-1.5 md:p-2 hover:bg-green-50 rounded touch-manipulation"
                           title="캠페인 복사"
                         >
                           {duplicatingCampaignId === campaign.id ? (
-                            <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                            <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
                           ) : (
-                            <Copy size={16} />
+                            <Copy size={14} className="md:w-4 md:h-4" />
                           )}
                         </button>
 
@@ -664,13 +671,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                               handleDeleteCampaign(campaign.id, campaign.name);
                             }}
                             disabled={deletingCampaignId === campaign.id}
-                            className="text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed"
+                            className="text-red-500 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed p-1.5 md:p-2 hover:bg-red-50 rounded touch-manipulation"
                             title="캠페인 삭제"
                           >
                             {deletingCampaignId === campaign.id ? (
-                              <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-3.5 h-3.5 md:w-4 md:h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                             ) : (
-                              <Trash2 size={16} />
+                              <Trash2 size={14} className="md:w-4 md:h-4" />
                             )}
                           </button>
                         )}
@@ -680,22 +687,23 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                 </tr>
               );
             })}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* 페이지네이션 */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="bg-white px-6 py-3 border-t border-gray-200 flex justify-between items-center">
-          <div className="text-sm text-gray-700">
+        <div className="bg-white px-3 md:px-6 py-3 border-t border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <div className="text-xs md:text-sm text-gray-700 text-center sm:text-left">
             전체 {pagination.total}개 중 {((pagination.page - 1) * pagination.size) + 1}-{Math.min(pagination.page * pagination.size, pagination.total)}개 표시
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center space-x-1 md:space-x-2">
             {/* 이전 페이지 */}
             <button
               onClick={() => onPageChange && onPageChange(pagination.page - 1)}
               disabled={!pagination.has_prev}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[36px] md:min-h-[44px]"
             >
               이전
             </button>
@@ -705,34 +713,36 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               const pages = [];
               const currentPage = pagination.page;
               const totalPages = pagination.total_pages;
-              
-              // 시작과 끝 페이지 계산 (현재 페이지 기준 ±2)
-              const start = Math.max(1, currentPage - 2);
-              const end = Math.min(totalPages, currentPage + 2);
-              
+
+              // 모바일에서는 더 적은 페이지 표시 (현재 페이지 기준 ±1)
+              const isMobile = window.innerWidth < 768;
+              const range = isMobile ? 1 : 2;
+              const start = Math.max(1, currentPage - range);
+              const end = Math.min(totalPages, currentPage + range);
+
               // 첫 페이지 표시
               if (start > 1) {
                 pages.push(
                   <button
                     key={1}
                     onClick={() => onPageChange && onPageChange(1)}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 rounded-md hover:bg-gray-50 touch-manipulation min-h-[36px] md:min-h-[44px]"
                   >
                     1
                   </button>
                 );
                 if (start > 2) {
-                  pages.push(<span key="start-ellipsis" className="px-2 text-gray-500">...</span>);
+                  pages.push(<span key="start-ellipsis" className="px-1 md:px-2 text-gray-500 text-xs md:text-sm">...</span>);
                 }
               }
-              
+
               // 현재 페이지 주변 페이지들
               for (let i = start; i <= end; i++) {
                 pages.push(
                   <button
                     key={i}
                     onClick={() => onPageChange && onPageChange(i)}
-                    className={`px-3 py-1 text-sm border rounded-md ${
+                    className={`px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border rounded-md touch-manipulation min-h-[36px] md:min-h-[44px] ${
                       i === currentPage
                         ? 'bg-blue-600 text-white border-blue-600'
                         : 'border-gray-300 hover:bg-gray-50'
@@ -742,23 +752,23 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                   </button>
                 );
               }
-              
+
               // 마지막 페이지 표시
               if (end < totalPages) {
                 if (end < totalPages - 1) {
-                  pages.push(<span key="end-ellipsis" className="px-2 text-gray-500">...</span>);
+                  pages.push(<span key="end-ellipsis" className="px-1 md:px-2 text-gray-500 text-xs md:text-sm">...</span>);
                 }
                 pages.push(
                   <button
                     key={totalPages}
                     onClick={() => onPageChange && onPageChange(totalPages)}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 rounded-md hover:bg-gray-50 touch-manipulation min-h-[36px] md:min-h-[44px]"
                   >
                     {totalPages}
                   </button>
                 );
               }
-              
+
               return pages;
             })()}
 
@@ -766,7 +776,7 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
             <button
               onClick={() => onPageChange && onPageChange(pagination.page + 1)}
               disabled={!pagination.has_next}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[36px] md:min-h-[44px]"
             >
               다음
             </button>
