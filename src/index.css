@@ -27,3 +27,147 @@
     @apply w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all placeholder-neutral-400 text-neutral-800;
   }
 }
+
+/* ===============================================
+   🎯 모바일 UI/UX 최적화 스타일
+   =============================================== */
+
+@layer base {
+  /* 터치 디바이스 최적화 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* iOS 입력 필드 줌 방지 */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@layer utilities {
+  /* 터치 조작 최적화 */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 모바일 전용 숨김/표시 */
+  @media (max-width: 768px) {
+    .mobile-hidden {
+      display: none !important;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .desktop-hidden {
+      display: none !important;
+    }
+  }
+}
+
+@layer components {
+  /* 모바일 터치 타겟 크기 */
+  @media (max-width: 1024px) {
+    button,
+    a[role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+      @apply min-h-[44px] min-w-[44px] px-4 py-3;
+    }
+
+    /* 입력 필드 터치 최적화 */
+    input,
+    select,
+    textarea,
+    .input-modern {
+      @apply min-h-[44px] text-base;
+    }
+
+    /* 테이블 터치 스크롤 최적화 */
+    .overflow-x-auto {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+    }
+
+    .overflow-x-auto::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .overflow-x-auto::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .overflow-x-auto::-webkit-scrollbar-thumb {
+      background-color: rgba(156, 163, 175, 0.5);
+      border-radius: 3px;
+    }
+
+    /* 모바일 패딩 조정 */
+    .p-6 {
+      @apply p-4;
+    }
+
+    .px-6 {
+      @apply px-4;
+    }
+
+    .py-6 {
+      @apply py-4;
+    }
+
+    /* 모바일 텍스트 크기 조정 */
+    .text-2xl {
+      @apply text-xl;
+    }
+
+    .text-3xl {
+      @apply text-2xl;
+    }
+
+    /* 모바일 그리드 최적화 */
+    .grid {
+      @apply gap-3;
+    }
+  }
+
+  /* 모바일 모달 최적화 */
+  @media (max-width: 768px) {
+    .modal-content,
+    [class*="Modal"] > div:first-child {
+      @apply w-full mx-4 max-h-[90vh] overflow-y-auto;
+    }
+
+    /* 모바일 카드 최적화 */
+    .card-modern,
+    [class*="rounded-2xl"] {
+      @apply rounded-xl;
+    }
+  }
+
+  /* 터치 피드백 애니메이션 */
+  .touch-feedback {
+    @apply transition-all duration-150 active:scale-95 active:opacity-80;
+  }
+
+  /* 스크롤 컨테이너 최적화 */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}

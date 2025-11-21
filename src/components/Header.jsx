@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
-import { Bell, ChevronDown, LogOut, Search } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Search, Menu } from 'lucide-react';
 import NotificationBell from './common/NotificationBell';
 
-const Header = ({ title, onLogout, user }) => {
+const Header = ({ title, onLogout, user, onMenuClick }) => {
     const [isProfileOpen, setProfileOpen] = useState(false);
     return (
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-neutral-200 flex items-center justify-between px-8 shrink-0 sticky top-0 z-40">
-            <div className="flex items-center space-x-6">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
+        <header className="h-16 md:h-20 bg-white/80 backdrop-blur-md border-b border-neutral-200 flex items-center justify-between px-4 md:px-8 shrink-0 sticky top-0 z-40">
+            <div className="flex items-center space-x-3 md:space-x-6">
+                {/* 모바일 햄버거 메뉴 */}
+                {onMenuClick && (
+                    <button
+                        onClick={onMenuClick}
+                        className="lg:hidden p-2 -ml-2 hover:bg-neutral-100 rounded-lg transition-colors touch-manipulation"
+                        aria-label="메뉴 열기"
+                    >
+                        <Menu size={24} className="text-neutral-700" />
+                    </button>
+                )}
+                <h1 className="text-lg md:text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent truncate max-w-[150px] sm:max-w-none">
                     {title}
                 </h1>
             </div>
 
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3 md:space-x-6">
                 {/* 검색 기능 */}
                 <div className="hidden md:flex items-center bg-neutral-100 hover:bg-neutral-200 rounded-full px-4 py-2 transition-colors cursor-pointer group">
                     <Search className="text-neutral-500 group-hover:text-primary-600 transition-colors" size={18} />
@@ -26,9 +36,9 @@ const Header = ({ title, onLogout, user }) => {
                 <div className="relative">
                     <div
                         onClick={() => setProfileOpen(!isProfileOpen)}
-                        className="flex items-center space-x-3 cursor-pointer p-2 rounded-xl hover:bg-neutral-100 transition-colors group"
+                        className="flex items-center space-x-2 md:space-x-3 cursor-pointer p-2 rounded-xl hover:bg-neutral-100 transition-colors group touch-manipulation min-h-[44px]"
                     >
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center font-bold text-white shadow-elegant">
+                        <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center font-bold text-white shadow-elegant text-sm md:text-base">
                             {user?.name?.charAt(0)}
                         </div>
                         <div className="hidden sm:block text-left">
@@ -36,7 +46,7 @@ const Header = ({ title, onLogout, user }) => {
                             <p className="text-xs text-neutral-500">{user?.role}</p>
                         </div>
                         <ChevronDown
-                            className={`text-neutral-500 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''} group-hover:text-primary-600`}
+                            className={`hidden sm:block text-neutral-500 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''} group-hover:text-primary-600`}
                             size={18}
                         />
                     </div>

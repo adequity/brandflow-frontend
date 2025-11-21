@@ -258,9 +258,13 @@ export default function AdminUI({ user, onLogout }) {
     return 'dashboard';
   };
   const [activePage, setActivePage] = useState(getActivePageFromPath(location.pathname));
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   useEffect(() => { setActivePage(getActivePageFromPath(location.pathname)); }, [location.pathname]);
 
   const handleNavigate = (pageId) => navigate(`/admin/${pageId}`);
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">관리자 데이터를 불러오는 중...</div>;
@@ -285,9 +289,9 @@ export default function AdminUI({ user, onLogout }) {
 
   return (
     <div className="h-screen w-full bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 flex font-sans">
-      <Sidebar activePage={activePage} setActivePage={handleNavigate} />
+      <Sidebar activePage={activePage} setActivePage={handleNavigate} isOpen={sidebarOpen} onClose={closeSidebar} />
       <main className="flex-1 flex flex-col overflow-hidden">
-        <Header title={getPageTitle()} onLogout={onLogout} user={user} />
+        <Header title={getPageTitle()} onLogout={onLogout} user={user} onMenuClick={toggleSidebar} />
         <div className="flex-1 overflow-y-auto p-6">
           <Routes>
             <Route path="dashboard" element={<LazyRoutes.Dashboard campaigns={campaigns} activities={activities} user={user} onSeeAll={() => navigate('/admin/campaigns')} />} />
