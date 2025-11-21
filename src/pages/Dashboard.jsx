@@ -509,14 +509,14 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
   const StatCard = ({ title, value, description, Icon, color }) => {
     const c = colorStyles[color] || colorStyles.primary;
     return (
-      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card hover:shadow-elegant transition-all duration-200 flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-neutral-600">{title}</p>
-          <p className="text-3xl font-bold text-neutral-800 mt-2">{value}</p>
-          <p className="text-xs text-neutral-500 mt-1">{description}</p>
+      <div className="bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-xl md:rounded-2xl border border-neutral-200 shadow-card hover:shadow-elegant transition-all duration-200 flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs md:text-sm font-medium text-neutral-600 truncate">{title}</p>
+          <p className="text-2xl md:text-3xl font-bold text-neutral-800 mt-1 md:mt-2">{value}</p>
+          <p className="text-xs text-neutral-500 mt-1 truncate">{description}</p>
         </div>
-        <div className={`p-3 rounded-xl ${c.bg} shadow-sm`}>
-          <Icon size={20} className={c.text} />
+        <div className={`p-2 md:p-3 rounded-lg md:rounded-xl ${c.bg} shadow-sm flex-shrink-0`}>
+          <Icon size={18} className={`${c.text} md:w-5 md:h-5`} />
         </div>
       </div>
     );
@@ -524,29 +524,29 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
   const MiniTable = ({ title, rows }) => (
     <div>
-      <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+      <div className="flex justify-between items-center mb-2 md:mb-3">
+        <h3 className="text-base md:text-lg font-semibold text-gray-800">{title}</h3>
         <button
-          className="text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 px-3 py-1 rounded-lg transition-all duration-200 flex items-center"
+          className="text-xs md:text-sm text-primary-600 hover:text-primary-700 hover:bg-primary-50 px-2 md:px-3 py-1 rounded-lg transition-all duration-200 flex items-center touch-manipulation"
           onClick={onSeeAll || (() => {})}
           type="button"
         >
           전체보기 <ArrowRight size={14} className="ml-1" />
         </button>
       </div>
-      <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-neutral-200 shadow-card">
-        <table className="w-full text-sm text-left text-neutral-600">
+      <div className="bg-white/80 backdrop-blur-md rounded-xl md:rounded-2xl border border-neutral-200 shadow-card overflow-x-auto">
+        <table className="w-full text-xs md:text-sm text-left text-neutral-600">
           <thead className="bg-neutral-50/80 text-xs text-neutral-700 uppercase">
             <tr>
-              <th className="px-4 py-3">주제</th>
-              <th className="px-4 py-3">상태</th>
-              <th className="px-4 py-3">업데이트</th>
+              <th className="px-3 md:px-4 py-2 md:py-3">주제</th>
+              <th className="px-3 md:px-4 py-2 md:py-3">상태</th>
+              <th className="px-3 md:px-4 py-2 md:py-3 hidden sm:table-cell">업데이트</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-center text-neutral-500" colSpan={3}>
+                <td className="px-3 md:px-4 py-4 md:py-6 text-center text-neutral-500" colSpan={3}>
                   표시할 항목이 없습니다.
                 </td>
               </tr>
@@ -554,9 +554,9 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               const status = p.outlineStatus || p.topicStatus || '-';
               return (
                 <tr key={p.id} className="border-b">
-                  <td className="px-4 py-3 font-medium text-neutral-800 truncate">{p.title}</td>
-                  <td className="px-4 py-3">{status}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 md:px-4 py-2 md:py-3 font-medium text-neutral-800 truncate max-w-[150px] md:max-w-none">{p.title}</td>
+                  <td className="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm">{status}</td>
+                  <td className="px-3 md:px-4 py-2 md:py-3 hidden sm:table-cell text-xs md:text-sm">
                     {new Date(p.updatedAt || p.createdAt).toLocaleString()}
                   </td>
                 </tr>
@@ -606,15 +606,21 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 space-y-6">
+    <div className="p-4 md:p-6 bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 space-y-4 md:space-y-6">
       {/* 환영 메시지 및 주요 알림 */}
-      <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-6 rounded-2xl shadow-elegant">
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-bold">
-              {user?.role === 'STAFF' ? `직원 ${user?.name || '사용자'}님의 대시보드 👨‍💼` : '본사 관리자 대시보드 📊'}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-elegant">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start space-y-4 md:space-y-0">
+          <div className="flex-1">
+            <h2 className="text-lg md:text-2xl font-bold leading-tight">
+              {user?.role === 'STAFF' ? (
+                <>
+                  📊 {user?.name || '사용자'}님의<br className="md:hidden" /> 대시보드
+                </>
+              ) : (
+                '본사 관리자 대시보드 📊'
+              )}
             </h2>
-            <p className="mt-2 opacity-90">
+            <p className="mt-2 text-sm md:text-base opacity-90">
               {user?.role === 'STAFF'
                 ? `안녕하세요! 오늘도 화이팅입니다! 💪`
                 : urgentTasks.length > 0
@@ -623,18 +629,18 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               }
             </p>
             {user?.role !== 'STAFF' && avgCompletionTime > 0 && (
-              <div className="mt-3 text-sm opacity-90">
+              <div className="mt-2 md:mt-3 text-xs md:text-sm opacity-90">
                 평균 업무 완료 시간: <span className="font-bold">{avgCompletionTime}일</span>
               </div>
             )}
           </div>
           {/* 월간 필터 */}
-          <div className="ml-4">
-            <label className="block text-sm font-medium text-white/80 mb-1">기준 월</label>
+          <div className="md:ml-4 w-full md:w-auto">
+            <label className="block text-xs md:text-sm font-medium text-white/80 mb-1">기준 월</label>
             <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
+              className="w-full md:w-auto px-4 py-2 text-sm md:text-base rounded-lg bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer touch-manipulation min-h-[44px]"
             >
               {generateMonthOptions().map(option => (
                 <option key={option.value} value={option.value} className="text-neutral-800">
@@ -648,66 +654,66 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
       {/* 직원용 매출 데이터 또는 관리자용 재무 현황 */}
       {user?.role === 'STAFF' ? (
-        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-neutral-800 flex items-center">
+        <div className="bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-xl md:rounded-2xl border border-neutral-200 shadow-card">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 space-y-2 sm:space-y-0">
+            <h3 className="text-lg md:text-xl font-bold text-neutral-800 flex items-center">
               📊 내 매출 데이터
             </h3>
-            <div className="px-4 py-2 bg-primary-100 rounded-lg border-2 border-primary-300">
-              <span className="text-sm font-medium text-primary-700">
+            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-primary-100 rounded-lg border-2 border-primary-300 self-start sm:self-auto">
+              <span className="text-xs md:text-sm font-medium text-primary-700">
                 📅 {selectedMonth === 'all' ? '전체 기간' : `${selectedMonth.split('-')[0]}년 ${selectedMonth.split('-')[1]}월`}
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-primary-50 rounded-xl border border-primary-200">
-              <div className="text-4xl font-bold text-primary-600">{formatAmount(employeeStats.thisMonthRevenue)}</div>
-              <div className="text-lg text-primary-700 mt-2">이번달 총 매출</div>
-              <div className="text-sm text-neutral-600 mt-1">담당 캠페인 기준</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div className="text-center p-4 md:p-6 bg-primary-50 rounded-xl border border-primary-200">
+              <div className="text-2xl md:text-4xl font-bold text-primary-600 break-all">{formatAmount(employeeStats.thisMonthRevenue)}</div>
+              <div className="text-sm md:text-lg text-primary-700 mt-2">이번달 총 매출</div>
+              <div className="text-xs md:text-sm text-neutral-600 mt-1">담당 캠페인 기준</div>
             </div>
-            <div className="text-center p-6 bg-green-50 rounded-xl border border-green-200">
-              <div className="text-4xl font-bold text-green-600">{formatAmount(employeeStats.thisMonthIncentive)}</div>
-              <div className="text-lg text-green-700 mt-2">이번달 인센티브 금액</div>
-              <div className="text-sm text-neutral-600 mt-1">
+            <div className="text-center p-4 md:p-6 bg-green-50 rounded-xl border border-green-200">
+              <div className="text-2xl md:text-4xl font-bold text-green-600 break-all">{formatAmount(employeeStats.thisMonthIncentive)}</div>
+              <div className="text-sm md:text-lg text-green-700 mt-2">이번달 인센티브 금액</div>
+              <div className="text-xs md:text-sm text-neutral-600 mt-1">
                 {employeeStats.thisMonthIncentive > 0 ? '승인/지급 예정액' : '계산 대기 중'}
               </div>
             </div>
-            <div className="text-center p-6 bg-neutral-50 rounded-xl border-2 border-dashed border-neutral-300">
-              <div className="text-4xl font-bold text-neutral-600">🗓️</div>
-              <div className="text-lg text-neutral-700 mt-2">업무 캘린더</div>
-              <div className="text-sm text-neutral-600 mt-1">추후 개발 예정</div>
+            <div className="text-center p-4 md:p-6 bg-neutral-50 rounded-xl border-2 border-dashed border-neutral-300">
+              <div className="text-3xl md:text-4xl font-bold text-neutral-600">🗓️</div>
+              <div className="text-sm md:text-lg text-neutral-700 mt-2">업무 캘린더</div>
+              <div className="text-xs md:text-sm text-neutral-600 mt-1">추후 개발 예정</div>
             </div>
           </div>
-          
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-red-50 rounded-xl border border-red-200">
-              <div className="text-2xl font-bold text-red-600">{employeeStats.pendingInvoices}</div>
-              <div className="text-sm text-red-700 mt-1">미발행 계산서</div>
+
+          <div className="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div className="text-center p-3 md:p-4 bg-red-50 rounded-xl border border-red-200">
+              <div className="text-xl md:text-2xl font-bold text-red-600">{employeeStats.pendingInvoices}</div>
+              <div className="text-xs md:text-sm text-red-700 mt-1">미발행 계산서</div>
               <div className="text-xs text-neutral-600 mt-1">발행 필요한 캠페인</div>
             </div>
-            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-200">
-              <div className="text-2xl font-bold text-amber-600">{employeeStats.pendingPayments}</div>
-              <div className="text-sm text-amber-700 mt-1">미입금 캠페인</div>
+            <div className="text-center p-3 md:p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="text-xl md:text-2xl font-bold text-amber-600">{employeeStats.pendingPayments}</div>
+              <div className="text-xs md:text-sm text-amber-700 mt-1">미입금 캠페인</div>
               <div className="text-xs text-neutral-600 mt-1">입금 대기 중</div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-neutral-800 flex items-center">
+        <div className="bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-xl md:rounded-2xl border border-neutral-200 shadow-card">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 space-y-2 sm:space-y-0">
+            <h3 className="text-lg md:text-xl font-bold text-neutral-800 flex items-center">
               💰 재무 현황 (원장 데이터)
             </h3>
-            <div className="px-4 py-2 bg-primary-100 rounded-lg border-2 border-primary-300">
-              <span className="text-sm font-medium text-primary-700">
+            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-primary-100 rounded-lg border-2 border-primary-300 self-start sm:self-auto">
+              <span className="text-xs md:text-sm font-medium text-primary-700">
                 📅 {selectedMonth === 'all' ? '전체 기간' : `${selectedMonth.split('-')[0]}년 ${selectedMonth.split('-')[1]}월`}
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="text-center p-4 bg-primary-50 rounded-xl border border-primary-200">
-              <div className="text-3xl font-bold text-primary-600">{formatAmount(financialOverview.totalRevenue)}</div>
-              <div className="text-sm text-primary-700 mt-1">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+            <div className="text-center p-3 md:p-4 bg-primary-50 rounded-xl border border-primary-200">
+              <div className="text-xl md:text-3xl font-bold text-primary-600 break-all">{formatAmount(financialOverview.totalRevenue)}</div>
+              <div className="text-xs md:text-sm text-primary-700 mt-1">
                 총 매출
                 <span className="text-xs text-green-600 ml-1 font-medium">
                   (수금: {formatAmount(financialOverview.collectedRevenue || 0)})
@@ -715,26 +721,26 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
               </div>
               <div className="text-xs text-neutral-600 mt-1">Sales + Campaigns</div>
             </div>
-            <div className="text-center p-4 bg-red-50 rounded-xl border border-red-200">
-              <div className="text-3xl font-bold text-red-600">{formatAmount(financialOverview.totalExpenses)}</div>
-              <div className="text-sm text-red-700 mt-1">총 매입/지출</div>
+            <div className="text-center p-3 md:p-4 bg-red-50 rounded-xl border border-red-200">
+              <div className="text-xl md:text-3xl font-bold text-red-600 break-all">{formatAmount(financialOverview.totalExpenses)}</div>
+              <div className="text-xs md:text-sm text-red-700 mt-1">총 매입/지출</div>
               <div className="text-xs text-neutral-600 mt-1">Purchase + Cost</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
-              <div className="text-3xl font-bold text-green-600">{formatAmount(financialOverview.netProfit)}</div>
-              <div className="text-sm text-green-700 mt-1">순이익</div>
+            <div className="text-center p-3 md:p-4 bg-green-50 rounded-xl border border-green-200">
+              <div className="text-xl md:text-3xl font-bold text-green-600 break-all">{formatAmount(financialOverview.netProfit)}</div>
+              <div className="text-xs md:text-sm text-green-700 mt-1">순이익</div>
               <div className="text-xs text-neutral-600 mt-1">Revenue - Expenses</div>
             </div>
-            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-200">
-              <div className="text-3xl font-bold text-amber-600">{formatAmount(financialOverview.totalIncentives)}</div>
-              <div className="text-sm text-amber-700 mt-1">인센티브 지출</div>
+            <div className="text-center p-3 md:p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="text-xl md:text-3xl font-bold text-amber-600 break-all">{formatAmount(financialOverview.totalIncentives)}</div>
+              <div className="text-xs md:text-sm text-amber-700 mt-1">인센티브 지출</div>
               <div className="text-xs text-neutral-600 mt-1">Staff Incentives</div>
             </div>
-            <div className="text-center p-4 bg-neutral-50 rounded-xl border border-neutral-200">
-              <div className={`text-3xl font-bold ${financialOverview.finalNetProfit >= 0 ? 'text-primary-600' : 'text-red-600'}`}>
+            <div className="text-center p-3 md:p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+              <div className={`text-xl md:text-3xl font-bold break-all ${financialOverview.finalNetProfit >= 0 ? 'text-primary-600' : 'text-red-600'}`}>
                 {formatAmount(financialOverview.finalNetProfit)}
               </div>
-              <div className="text-sm text-neutral-700 mt-1">최종 순이익</div>
+              <div className="text-xs md:text-sm text-neutral-700 mt-1">최종 순이익</div>
               <div className="text-xs text-neutral-600 mt-1">Final Net Profit</div>
             </div>
           </div>
@@ -769,62 +775,62 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
 
       {/* 매입/지출 상세 현황 - 관리자만 */}
       {user?.role !== 'STAFF' && (
-      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-        <h3 className="text-lg font-semibold text-neutral-800 mb-4">💸 구매요청 및 발주승인 현황</h3>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div className="text-center p-3 bg-primary-50 rounded-xl border border-primary-200">
-            <div className="text-2xl font-bold text-primary-600">{purchaseStats.totalRequests}</div>
-            <div className="text-sm text-primary-700 mt-1">총 발주</div>
+      <div className="bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-xl md:rounded-2xl border border-neutral-200 shadow-card">
+        <h3 className="text-base md:text-lg font-semibold text-neutral-800 mb-3 md:mb-4">💸 구매요청 및 발주승인 현황</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+          <div className="text-center p-2 md:p-3 bg-primary-50 rounded-xl border border-primary-200">
+            <div className="text-xl md:text-2xl font-bold text-primary-600">{purchaseStats.totalRequests}</div>
+            <div className="text-xs md:text-sm text-primary-700 mt-1">총 발주</div>
           </div>
-          <div className="text-center p-3 bg-amber-50 rounded-xl border border-amber-200">
-            <div className="text-2xl font-bold text-amber-600">{purchaseStats.pendingRequests}</div>
-            <div className="text-sm text-amber-700 mt-1">대기중</div>
+          <div className="text-center p-2 md:p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="text-xl md:text-2xl font-bold text-amber-600">{purchaseStats.pendingRequests}</div>
+            <div className="text-xs md:text-sm text-amber-700 mt-1">대기중</div>
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-xl border border-green-200">
-            <div className="text-2xl font-bold text-green-600">{purchaseStats.approvedRequests}</div>
-            <div className="text-sm text-green-700 mt-1">승인됨</div>
+          <div className="text-center p-2 md:p-3 bg-green-50 rounded-xl border border-green-200">
+            <div className="text-xl md:text-2xl font-bold text-green-600">{purchaseStats.approvedRequests}</div>
+            <div className="text-xs md:text-sm text-green-700 mt-1">승인됨</div>
           </div>
-          <div className="text-center p-3 bg-red-50 rounded-xl border border-red-200">
-            <div className="text-2xl font-bold text-red-600">{purchaseStats.rejectedRequests || 0}</div>
-            <div className="text-sm text-red-700 mt-1">거절됨</div>
+          <div className="text-center p-2 md:p-3 bg-red-50 rounded-xl border border-red-200">
+            <div className="text-xl md:text-2xl font-bold text-red-600">{purchaseStats.rejectedRequests || 0}</div>
+            <div className="text-xs md:text-sm text-red-700 mt-1">거절됨</div>
           </div>
-          <div className="text-center p-3 bg-neutral-50 rounded-xl border border-neutral-200">
-            <div className="text-2xl font-bold text-neutral-700">{formatAmount(purchaseStats.totalAmount)}</div>
-            <div className="text-sm text-neutral-600 mt-1">총 금액</div>
-            <div className="text-xs text-neutral-500 mt-1">승인된 발주 cost_price</div>
+          <div className="text-center p-2 md:p-3 bg-neutral-50 rounded-xl border border-neutral-200">
+            <div className="text-lg md:text-2xl font-bold text-neutral-700 break-all">{formatAmount(purchaseStats.totalAmount)}</div>
+            <div className="text-xs md:text-sm text-neutral-600 mt-1">총 금액</div>
+            <div className="text-xs text-neutral-500 mt-1 hidden md:block">승인된 발주 cost_price</div>
           </div>
         </div>
       </div>
       )}
 
       {/* 업무 상태별 미리보기 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <MiniTable title="⏳ 진행 중" rows={previewInProgress} />
         <MiniTable title="❌ 반려" rows={previewRejected} />
         <MiniTable title="✅ 발행 대기" rows={previewPublishReady} />
       </div>
 
       {/* 미수금 현황 알림 */}
-      <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-neutral-200 shadow-card">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-neutral-800">💰 미수금 현황 알림</h3>
-          <div className="flex items-center space-x-2 text-sm text-neutral-600">
-            <span className="px-3 py-1 bg-red-50 text-red-600 rounded-full font-medium">
+      <div className="bg-white/80 backdrop-blur-md p-4 md:p-6 rounded-xl md:rounded-2xl border border-neutral-200 shadow-card">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6 space-y-2 sm:space-y-0">
+          <h3 className="text-base md:text-lg font-semibold text-neutral-800">💰 미수금 현황 알림</h3>
+          <div className="flex items-center space-x-2 text-xs md:text-sm text-neutral-600">
+            <span className="px-2 md:px-3 py-1 bg-red-50 text-red-600 rounded-full font-medium">
               총 {receivablesStatus.pending_invoices.count + receivablesStatus.pending_payments.count}건
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* 미발행 계산서 */}
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-200">
               <div>
-                <h4 className="text-base font-semibold text-red-800">🧾 미발행 계산서</h4>
-                <p className="text-sm text-red-600 mt-1">{receivablesStatus.pending_invoices.count}건 대기 중</p>
+                <h4 className="text-sm md:text-base font-semibold text-red-800">🧾 미발행 계산서</h4>
+                <p className="text-xs md:text-sm text-red-600 mt-1">{receivablesStatus.pending_invoices.count}건 대기 중</p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-red-600">
+                <div className="text-lg md:text-2xl font-bold text-red-600 break-all">
                   {formatAmount(receivablesStatus.pending_invoices.total_amount)}
                 </div>
                 <p className="text-xs text-neutral-600 mt-1">합계 금액</p>
@@ -836,19 +842,19 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
                 receivablesStatus.pending_invoices.campaigns.map((campaign) => (
                   <div
                     key={campaign.id}
-                    className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md"
+                    className="p-2 md:p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md touch-manipulation"
                     onClick={() => navigate(`/admin/campaigns/${campaign.id}`)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-neutral-800 truncate">{campaign.name}</div>
-                        <div className="text-sm text-neutral-600 mt-1">
-                          <span className="text-xs bg-neutral-200 px-2 py-0.5 rounded">{campaign.client}</span>
-                          <span className="ml-2 text-xs text-neutral-500">담당: {campaign.staff_name || '-'}</span>
+                        <div className="text-sm md:text-base font-medium text-neutral-800 truncate">{campaign.name}</div>
+                        <div className="text-xs md:text-sm text-neutral-600 mt-1">
+                          <span className="text-xs bg-neutral-200 px-1.5 md:px-2 py-0.5 rounded">{campaign.client}</span>
+                          <span className="ml-1 md:ml-2 text-xs text-neutral-500">담당: {campaign.staff_name || '-'}</span>
                         </div>
                       </div>
-                      <div className="text-right ml-3">
-                        <div className="font-bold text-red-600">{formatAmount(campaign.budget)}</div>
+                      <div className="text-right ml-2 md:ml-3">
+                        <div className="text-sm md:text-base font-bold text-red-600 break-all">{formatAmount(campaign.budget)}</div>
                         <div className="text-xs text-red-500 mt-1">{campaign.days_overdue}일 경과</div>
                       </div>
                     </div>
@@ -864,14 +870,14 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
           </div>
 
           {/* 미입금 캠페인 */}
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-200">
               <div>
-                <h4 className="text-base font-semibold text-amber-800">💸 미입금 캠페인</h4>
-                <p className="text-sm text-amber-600 mt-1">{receivablesStatus.pending_payments.count}건 대기 중</p>
+                <h4 className="text-sm md:text-base font-semibold text-amber-800">💸 미입금 캠페인</h4>
+                <p className="text-xs md:text-sm text-amber-600 mt-1">{receivablesStatus.pending_payments.count}건 대기 중</p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-amber-600">
+                <div className="text-lg md:text-2xl font-bold text-amber-600 break-all">
                   {formatAmount(receivablesStatus.pending_payments.total_amount)}
                 </div>
                 <p className="text-xs text-neutral-600 mt-1">합계 금액</p>
@@ -883,19 +889,19 @@ export default function Dashboard({ campaigns = [], activities = [], onSeeAll, u
                 receivablesStatus.pending_payments.campaigns.map((campaign) => (
                   <div
                     key={campaign.id}
-                    className="p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md"
+                    className="p-2 md:p-3 bg-neutral-50 rounded-lg border border-neutral-200 hover:bg-neutral-100 transition-colors cursor-pointer hover:shadow-md touch-manipulation"
                     onClick={() => navigate(`/admin/campaigns/${campaign.id}`)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-neutral-800 truncate">{campaign.name}</div>
-                        <div className="text-sm text-neutral-600 mt-1">
-                          <span className="text-xs bg-neutral-200 px-2 py-0.5 rounded">{campaign.client}</span>
-                          <span className="ml-2 text-xs text-neutral-500">담당: {campaign.staff_name || '-'}</span>
+                        <div className="text-sm md:text-base font-medium text-neutral-800 truncate">{campaign.name}</div>
+                        <div className="text-xs md:text-sm text-neutral-600 mt-1">
+                          <span className="text-xs bg-neutral-200 px-1.5 md:px-2 py-0.5 rounded">{campaign.client}</span>
+                          <span className="ml-1 md:ml-2 text-xs text-neutral-500">담당: {campaign.staff_name || '-'}</span>
                         </div>
                       </div>
-                      <div className="text-right ml-3">
-                        <div className="font-bold text-amber-600">{formatAmount(campaign.budget)}</div>
+                      <div className="text-right ml-2 md:ml-3">
+                        <div className="text-sm md:text-base font-bold text-amber-600 break-all">{formatAmount(campaign.budget)}</div>
                         <div className="text-xs text-amber-500 mt-1">{campaign.days_overdue}일 경과</div>
                       </div>
                     </div>
