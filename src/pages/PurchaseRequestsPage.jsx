@@ -305,20 +305,20 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">💰 리소스 구매요청</h2>
-          <p className="text-gray-600 mt-1">업무 진행을 위한 리소스 구매요청을 관리하세요</p>
-          <div className="mt-2 text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg inline-block">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+        <div className="flex-1">
+          <h2 className="text-lg md:text-2xl font-bold text-gray-800">💰 리소스 구매요청</h2>
+          <p className="text-sm md:text-base text-gray-600 mt-1">업무 진행을 위한 리소스 구매요청을 관리하세요</p>
+          <div className="mt-2 text-xs md:text-sm text-blue-600 bg-blue-50 px-2 md:px-3 py-1.5 md:py-2 rounded-lg inline-block">
             💡 <strong>Tip:</strong> 승인된 요청은 거래명세서/견적서를 PDF+JPG로 생성하여 카카오톡으로 드래그 전송할 수 있습니다!
           </div>
         </div>
         {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'TEAM_LEADER' || loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && (
           <button
             onClick={handleCreateRequest}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center justify-center space-x-2 px-4 py-2.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors min-h-[44px] touch-manipulation text-sm md:text-base whitespace-nowrap"
           >
             <Plus size={18} />
             <span>구매요청 작성</span>
@@ -327,67 +327,67 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-gray-200">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+        <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">전체 요청</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.totalRequests}</p>
+              <p className="text-xs md:text-sm text-gray-600">전체 요청</p>
+              <p className="text-xl md:text-2xl font-bold text-blue-600">{stats.totalRequests}</p>
             </div>
-            <FileText className="text-blue-400" size={24} />
+            <FileText className="text-blue-400" size={20} />
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-xl border border-gray-200">
+
+        <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">승인 대기</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pendingRequests}</p>
+              <p className="text-xs md:text-sm text-gray-600">승인 대기</p>
+              <p className="text-xl md:text-2xl font-bold text-yellow-600">{stats.pendingRequests}</p>
             </div>
-            <Clock className="text-yellow-400" size={24} />
+            <Clock className="text-yellow-400" size={20} />
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-xl border border-gray-200">
+
+        <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">승인 완료</p>
-              <p className="text-2xl font-bold text-green-600">{stats.approvedRequests}</p>
+              <p className="text-xs md:text-sm text-gray-600">승인 완료</p>
+              <p className="text-xl md:text-2xl font-bold text-green-600">{stats.approvedRequests}</p>
             </div>
-            <CheckCircle className="text-green-400" size={24} />
+            <CheckCircle className="text-green-400" size={20} />
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-xl border border-gray-200">
+
+        <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">총 승인금액</p>
-              <p className="text-lg font-bold text-purple-600">{formatAmount(stats.totalAmount)}</p>
+              <p className="text-xs md:text-sm text-gray-600 truncate">총 승인금액</p>
+              <p className="text-base md:text-lg font-bold text-purple-600 break-all">{formatAmount(stats.totalAmount)}</p>
             </div>
-            <DollarSign className="text-purple-400" size={24} />
+            <DollarSign className="text-purple-400" size={20} />
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-xl border border-gray-200">
+
+        <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">이번 달</p>
-              <p className="text-lg font-bold text-indigo-600">{formatAmount(stats.thisMonthAmount)}</p>
+              <p className="text-xs md:text-sm text-gray-600">이번 달</p>
+              <p className="text-base md:text-lg font-bold text-indigo-600 break-all">{formatAmount(stats.thisMonthAmount)}</p>
             </div>
-            <DollarSign className="text-indigo-400" size={24} />
+            <DollarSign className="text-indigo-400" size={20} />
           </div>
         </div>
       </div>
 
       {/* 필터 */}
-      <div className="bg-white p-4 rounded-xl border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white p-3 md:p-4 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">상태</label>
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 min-h-[44px] text-base touch-manipulation"
             >
               <option value="">전체</option>
               <option value="대기">⏳ 승인 대기</option>
@@ -396,13 +396,13 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
               <option value="완료">💰 구매 완료</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">지출 카테고리</label>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">지출 카테고리</label>
             <select
               value={filters.resourceType}
               onChange={(e) => setFilters(prev => ({ ...prev, resourceType: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 min-h-[44px] text-base touch-manipulation"
             >
               <option value="">전체</option>
               {RESOURCE_TYPES.map(type => (
@@ -415,28 +415,28 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
 
       {/* 요청 목록 - 승인 대기 카드 영역 */}
       {canApproveRequest() && requests.filter(r => r.status === '대기').length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">⏳ 승인 대기 중인 요청</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4">⏳ 승인 대기 중인 요청</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {requests.filter(r => r.status === '대기').map((request) => (
-              <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
+              <div key={request.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-3 md:p-4 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-2 md:mb-3">
                   <div className="flex items-center space-x-2">
                     {getPriorityIcon(request.priority)}
-                    <span className="text-xs text-gray-600">{request.resourceType}</span>
+                    <span className="text-xs text-gray-600 truncate">{request.resourceType}</span>
                   </div>
                   <span className={getStatusBadge(request.status).class}>{getStatusBadge(request.status).label}</span>
                 </div>
 
-                <h4 className="font-bold text-gray-900 mb-2">{request.title}</h4>
-                <p className="text-2xl font-bold text-blue-600 mb-3">{formatAmount(request.amount)}</p>
+                <h4 className="font-bold text-gray-900 mb-2 text-sm md:text-base truncate">{request.title}</h4>
+                <p className="text-xl md:text-2xl font-bold text-blue-600 mb-2 md:mb-3 break-all">{formatAmount(request.amount)}</p>
 
                 {request.vendor && (
-                  <p className="text-sm text-gray-600 mb-2">🏪 {request.vendor}</p>
+                  <p className="text-xs md:text-sm text-gray-600 mb-2 truncate">🏪 {request.vendor}</p>
                 )}
 
-                <div className="space-y-1 text-xs text-gray-500 mb-3">
-                  <p>👤 요청자: {request.requester?.name || '알 수 없음'}</p>
+                <div className="space-y-1 text-xs text-gray-500 mb-2 md:mb-3">
+                  <p className="truncate">👤 요청자: {request.requester?.name || '알 수 없음'}</p>
                   <p>📅 요청일: {new Date(request.requestedDate).toLocaleDateString('ko-KR')}</p>
                   {request.dueDate && (
                     <p>⏰ 희망일: {new Date(request.dueDate).toLocaleDateString('ko-KR')}</p>
@@ -459,14 +459,14 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleStatusUpdate(request.id, '승인')}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2.5 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium min-h-[44px] touch-manipulation"
                   >
                     <CheckCircle size={16} />
                     <span>승인</span>
                   </button>
                   <button
                     onClick={() => handleStatusUpdate(request.id, '거절')}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2.5 md:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium min-h-[44px] touch-manipulation"
                   >
                     <XCircle size={16} />
                     <span>거절</span>
@@ -479,7 +479,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
       )}
 
       {/* 요청 목록 - 전체 테이블 */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 overflow-hidden">
         {requests.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-4xl mb-4">💰</div>
@@ -487,65 +487,66 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
             {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'TEAM_LEADER' || loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && (
               <button
                 onClick={handleCreateRequest}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-h-[44px] touch-manipulation"
               >
                 첫 구매요청 작성하기
               </button>
             )}
           </div>
         ) : (
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
-              <tr>
-                <th className="px-6 py-3">요청 정보</th>
-                <th className="px-6 py-3">리소스 종류</th>
-                <th className="px-6 py-3">금액</th>
-                <th className="px-6 py-3">상태</th>
-                <th className="px-6 py-3">영수증</th>
-                <th className="px-6 py-3">요청자</th>
-                <th className="px-6 py-3">요청일</th>
-                <th className="px-6 py-3">희망 완료일</th>
-                <th className="px-6 py-3">문서생성</th>
-                <th className="px-6 py-3">관리</th>
-              </tr>
-            </thead>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs md:text-sm text-left text-gray-500">
+              <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+                <tr>
+                  <th className="px-3 md:px-6 py-2 md:py-3">요청 정보</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden sm:table-cell">리소스 종류</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3">금액</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3">상태</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden md:table-cell">영수증</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">요청자</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">요청일</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden xl:table-cell">희망 완료일</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">문서생성</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3">관리</th>
+                </tr>
+              </thead>
             <tbody>
               {requests.map((request) => (
                 <tr key={request.id} className="bg-white border-b hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
+                  <td className="px-3 md:px-6 py-3 md:py-4">
+                    <div className="flex items-center space-x-2 md:space-x-3">
                       {getPriorityIcon(request.priority)}
-                      <div>
-                        <div className="font-medium text-gray-900">{request.title}</div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900 text-xs md:text-sm truncate">{request.title}</div>
                         {request.description && (
-                          <div className="text-gray-500 text-xs truncate max-w-xs">
+                          <div className="text-gray-500 text-xs truncate max-w-[150px] md:max-w-xs">
                             {request.description}
                           </div>
                         )}
                         {request.campaign && (
-                          <div className="text-blue-600 text-xs">
+                          <div className="text-blue-600 text-xs truncate max-w-[150px] md:max-w-xs">
                             📁 {request.campaign.name}
                           </div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                  <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
                       {request.resourceType}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">
+                  <td className="px-3 md:px-6 py-3 md:py-4">
+                    <div className="font-medium text-gray-900 text-xs md:text-sm break-all min-w-[80px]">
                       {formatAmount(request.amount)}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3 md:py-4">
                     <span className={getStatusBadge(request.status).class}>
                       {getStatusBadge(request.status).label}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell">
                     <div className="flex items-center space-x-1">
                       {request.receiptFileUrl ? (
                         <>
@@ -560,22 +561,22 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-gray-900">{request.requester?.name}</div>
-                    <div className="text-gray-500 text-xs">{request.requester?.email}</div>
+                  <td className="px-3 md:px-6 py-3 md:py-4 hidden lg:table-cell">
+                    <div className="text-gray-900 text-xs md:text-sm truncate max-w-[120px]">{request.requester?.name}</div>
+                    <div className="text-gray-500 text-xs truncate max-w-[120px]">{request.requester?.email}</div>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-gray-500 text-xs md:text-sm hidden lg:table-cell whitespace-nowrap">
                     {new Date(request.requestedDate).toLocaleDateString('ko-KR')}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3 md:py-4 hidden xl:table-cell">
                     {request.dueDate ? (
                       <div className="flex items-center space-x-1">
-                        <span className="text-gray-900">
+                        <span className="text-gray-900 text-xs md:text-sm whitespace-nowrap">
                           {new Date(request.dueDate).toLocaleDateString('ko-KR')}
                         </span>
                         {/* 당일 요청인지 확인 */}
                         {new Date(request.dueDate).toDateString() === new Date(request.requestedDate).toDateString() && (
-                          <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                          <span className="px-1.5 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800 whitespace-nowrap">
                             🚨 당일
                           </span>
                         )}
@@ -584,12 +585,12 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 md:px-6 py-3 md:py-4 hidden lg:table-cell">
                     {request.status === '승인됨' && (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1 md:space-x-2">
                         <button
                           onClick={() => handleGenerateDocuments(request.id, 'transaction')}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group"
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] touch-manipulation"
                           title="거래명세서 생성 (PDF + JPG)"
                         >
                           <FileText size={16} />
@@ -597,7 +598,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                         </button>
                         <button
                           onClick={() => handleGenerateDocuments(request.id, 'quote')}
-                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors group"
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] touch-manipulation"
                           title="견적서 생성 (PDF + JPG)"
                         >
                           <FileImage size={16} />
@@ -606,18 +607,18 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                       </div>
                     )}
                     {request.status !== '승인됨' && (
-                      <span className="text-xs text-gray-400">승인 후 생성 가능</span>
+                      <span className="text-xs text-gray-400">승인 후 생성</span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-3 md:px-6 py-3 md:py-4">
+                    <div className="flex items-center space-x-1 md:space-x-2">
                       {/* AGENCY_ADMIN과 SUPER_ADMIN 전용 승인/완료 버튼 */}
                       {canApproveRequest() && (
                         <>
                           {request.status === '승인 대기' && (
                             <button
                               onClick={() => handleStatusUpdate(request.id, '승인됨')}
-                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] touch-manipulation"
                               title="승인"
                             >
                               <CheckCircle size={16} />
@@ -626,7 +627,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                           {request.status === '승인됨' && (
                             <button
                               onClick={() => handleStatusUpdate(request.id, '완료됨')}
-                              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] touch-manipulation"
                               title="집행 완료"
                             >
                               <DollarSign size={16} />
@@ -634,11 +635,11 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                           )}
                         </>
                       )}
-                      
+
                       {canEditRequest(request) && (
                         <button
                           onClick={() => handleEditRequest(request)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] touch-manipulation"
                           title="편집"
                         >
                           <Edit size={16} />
@@ -647,7 +648,7 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                       {canDeleteRequest(request) && (
                         <button
                           onClick={() => handleDeleteRequest(request.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] touch-manipulation"
                           title="삭제"
                         >
                           <Trash2 size={16} />
@@ -658,7 +659,8 @@ const PurchaseRequestsPage = ({ loggedInUser }) => {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         )}
       </div>
 
