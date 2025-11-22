@@ -259,88 +259,88 @@ const OrderManagement = ({ loggedInUser }) => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4 md:mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">발주 관리</h1>
-          <p className="text-gray-600 mt-1">직원들의 발주요청을 검토하고 승인/거절합니다</p>
+          <h1 className="text-lg md:text-2xl font-bold text-gray-800">발주 관리</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">직원들의 발주요청을 검토하고 승인/거절합니다</p>
         </div>
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
           <div className="flex items-center">
-            <FileText className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">총 발주</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.totalOrders}</p>
+            <FileText className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
+            <div className="ml-2 md:ml-4">
+              <p className="text-xs md:text-sm font-medium text-gray-600">총 발주</p>
+              <p className="text-lg md:text-2xl font-semibold text-gray-900">{stats.totalOrders}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
           <div className="flex items-center">
-            <Clock className="h-8 w-8 text-yellow-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">대기중</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.pendingOrders}</p>
+            <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-600" />
+            <div className="ml-2 md:ml-4">
+              <p className="text-xs md:text-sm font-medium text-gray-600">대기중</p>
+              <p className="text-lg md:text-2xl font-semibold text-gray-900">{stats.pendingOrders}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
           <div className="flex items-center">
-            <CheckCircle className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">승인됨</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.approvedOrders}</p>
+            <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-600" />
+            <div className="ml-2 md:ml-4">
+              <p className="text-xs md:text-sm font-medium text-gray-600">승인됨</p>
+              <p className="text-lg md:text-2xl font-semibold text-gray-900">{stats.approvedOrders}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
           <div className="flex items-center">
-            <XCircle className="h-8 w-8 text-red-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">거절됨</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.rejectedOrders}</p>
+            <XCircle className="h-6 w-6 md:h-8 md:w-8 text-red-600" />
+            <div className="ml-2 md:ml-4">
+              <p className="text-xs md:text-sm font-medium text-gray-600">거절됨</p>
+              <p className="text-lg md:text-2xl font-semibold text-gray-900">{stats.rejectedOrders}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
           <div className="flex items-center">
-            <DollarSign className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">총 금액</p>
-              <p className="text-lg font-semibold text-gray-900">{stats.totalAmount?.toLocaleString()}원</p>
+            <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-purple-600" />
+            <div className="ml-2 md:ml-4">
+              <p className="text-xs md:text-sm font-medium text-gray-600">총 금액</p>
+              <p className="text-base md:text-lg font-semibold text-gray-900 break-all">{stats.totalAmount?.toLocaleString()}원</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm">
           <div className="flex items-center">
-            <Calendar className="h-8 w-8 text-indigo-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">이번달</p>
-              <p className="text-lg font-semibold text-gray-900">{stats.thisMonthAmount?.toLocaleString()}원</p>
+            <Calendar className="h-6 w-6 md:h-8 md:w-8 text-indigo-600" />
+            <div className="ml-2 md:ml-4">
+              <p className="text-xs md:text-sm font-medium text-gray-600">이번달</p>
+              <p className="text-base md:text-lg font-semibold text-gray-900 break-all">{stats.thisMonthAmount?.toLocaleString()}원</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* 필터 */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex flex-wrap gap-4 items-center">
+      <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 items-stretch sm:items-center">
           {/* 상태 필터 */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">상태</label>
+          <div className="flex flex-col flex-1 min-w-[120px]">
+            <label className="text-xs md:text-sm font-medium text-gray-700 mb-1">상태</label>
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 min-w-[120px]"
+              className="border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] text-base touch-manipulation"
             >
               <option value="">전체 상태</option>
               {statusList.map(status => (
@@ -350,12 +350,12 @@ const OrderManagement = ({ loggedInUser }) => {
           </div>
 
           {/* 요청자 필터 */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-1">요청자</label>
+          <div className="flex flex-col flex-1 min-w-[120px]">
+            <label className="text-xs md:text-sm font-medium text-gray-700 mb-1">요청자</label>
             <select
               value={filters.requesterName}
               onChange={(e) => setFilters(prev => ({ ...prev, requesterName: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2 min-w-[120px]"
+              className="border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] text-base touch-manipulation"
             >
               <option value="">전체 요청자</option>
               {requesterList.map(requester => (
@@ -369,15 +369,15 @@ const OrderManagement = ({ loggedInUser }) => {
           <div className="flex flex-col justify-end">
             <button
               onClick={resetFilters}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs md:text-sm font-medium border border-gray-300 transition-colors min-h-[44px] touch-manipulation"
             >
               필터 초기화
             </button>
           </div>
 
           {/* 필터 결과 표시 */}
-          <div className="flex flex-col justify-end ml-auto">
-            <span className="text-sm text-gray-600">
+          <div className="flex flex-col justify-end sm:ml-auto">
+            <span className="text-xs md:text-sm text-gray-600 text-center sm:text-left">
               총 {orderRequests.length}건 중 {filteredOrderRequests.length}건 표시
             </span>
           </div>
@@ -385,75 +385,77 @@ const OrderManagement = ({ loggedInUser }) => {
       </div>
 
       {/* 발주요청 목록 */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-xl md:rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-xs md:text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요청번호</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요청자</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">유형</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">요청일</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">요청번호</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">요청자</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">금액</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">유형</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">요청일</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredOrderRequests.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tr key={order.id} className="hover:bg-gray-50 touch-manipulation">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-900 hidden sm:table-cell">
                     {order.orderNumber || `ORD-${order.id.toString().padStart(6, '0')}`}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{order.title}</div>
-                      <div className="text-sm text-gray-500">{order.description?.substring(0, 50)}...</div>
+                  <td className="px-3 md:px-6 py-3 md:py-4">
+                    <div className="min-w-0">
+                      <div className="text-xs md:text-sm font-medium text-gray-900 truncate max-w-[120px] md:max-w-none">{order.title}</div>
+                      <div className="text-xs text-gray-500 truncate max-w-[120px] md:max-w-xs hidden sm:block">{order.description?.substring(0, 50)}...</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-sm font-medium text-blue-600">
+                      <div className="w-7 h-7 md:w-8 md:h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3">
+                        <span className="text-xs md:text-sm font-medium text-blue-600">
                           {order.requester_name?.charAt(0) || '?'}
                         </span>
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{order.requester_name || '알 수 없음'}</div>
-                        <div className="text-sm text-gray-500">{order.campaign_name}</div>
+                      <div className="min-w-0">
+                        <div className="text-xs md:text-sm font-medium text-gray-900 truncate max-w-[100px]">{order.requester_name || '알 수 없음'}</div>
+                        <div className="text-xs text-gray-500 truncate max-w-[100px]">{order.campaign_name}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">
+                    <div className="break-all min-w-[70px]">
+                      {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
+                    </div>
                     {order.product_cost && order.quantity && (
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 mt-1 hidden lg:block">
                         {Number(order.product_cost).toLocaleString()}원 × {order.quantity}개
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-500 hidden lg:table-cell">
                     <div>
-                      <div>{order.resource_type}</div>
-                      <div className="text-xs text-gray-400">{order.work_type}</div>
+                      <div className="truncate max-w-[80px]">{order.resource_type}</div>
+                      <div className="text-xs text-gray-400 truncate max-w-[80px]">{order.work_type}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 md:px-6 py-3 md:py-4">
                     {getStatusBadge(order.status)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-500 hidden lg:table-cell whitespace-nowrap">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
+                  <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium">
+                    <div className="flex items-center space-x-1 md:space-x-2">
                       {/* 상세 보기 */}
                       <button
                         onClick={() => handleViewDetail(order)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 hover:text-blue-900 p-1.5 hover:bg-blue-50 rounded touch-manipulation min-h-[36px] min-w-[36px]"
                         title="상세 보기"
                       >
-                        <Eye size={16} />
+                        <Eye size={14} className="md:w-4 md:h-4" />
                       </button>
 
                       {/* 승인 버튼 */}
@@ -461,19 +463,19 @@ const OrderManagement = ({ loggedInUser }) => {
                         <>
                           <button
                             onClick={() => handleApproveOrder(order.id)}
-                            className="px-2 py-1 text-xs font-medium bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-1"
+                            className="px-2 py-1.5 md:py-1 text-xs font-medium bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-1 min-h-[36px] md:min-h-[auto] touch-manipulation"
                             title="승인"
                           >
                             <CheckCircle size={12} />
-                            승인
+                            <span className="hidden sm:inline">승인</span>
                           </button>
                           <button
                             onClick={() => handleRejectOrder(order.id)}
-                            className="px-2 py-1 text-xs font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-1"
+                            className="px-2 py-1.5 md:py-1 text-xs font-medium bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-1 min-h-[36px] md:min-h-[auto] touch-manipulation"
                             title="거절"
                           >
                             <XCircle size={12} />
-                            거절
+                            <span className="hidden sm:inline">거절</span>
                           </button>
                         </>
                       )}
@@ -526,20 +528,20 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-screen overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">발주요청 상세정보</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <h2 className="text-lg md:text-xl font-bold">발주요청 상세정보</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation">
             ✕
           </button>
         </div>
-        
-        <div className="space-y-4">
+
+        <div className="space-y-3 md:space-y-4">
           {/* 기본 정보 */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium mb-2">기본 정보</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+            <h3 className="font-medium mb-2 text-sm md:text-base">기본 정보</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
               <div>
                 <span className="font-medium">요청번호:</span> {order.orderNumber || `ORD-${order.id.toString().padStart(6, '0')}`}
               </div>
@@ -556,9 +558,9 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
           </div>
 
           {/* 발주 내용 */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-medium mb-2">발주 내용</h3>
-            <div className="text-sm space-y-2">
+          <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+            <h3 className="font-medium mb-2 text-sm md:text-base">발주 내용</h3>
+            <div className="text-xs md:text-sm space-y-2">
               <div>
                 <span className="font-medium">제목:</span> {order.title}
               </div>
@@ -569,7 +571,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
               <div>
                 <span className="font-medium">금액:</span> {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
                 {order.product_cost && order.quantity && (
-                  <span className="text-sm text-gray-500 ml-2">
+                  <span className="text-xs md:text-sm text-gray-500 ml-2">
                     ({Number(order.product_cost).toLocaleString()}원 × {order.quantity}개)
                   </span>
                 )}
@@ -592,9 +594,9 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
 
           {/* 연관 정보 */}
           {(order.campaign_id || order.post_id || order.work_type) && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">연관 정보</h3>
-              <div className="text-sm space-y-1">
+            <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+              <h3 className="font-medium mb-2 text-sm md:text-base">연관 정보</h3>
+              <div className="text-xs md:text-sm space-y-1">
                 {order.campaign_id && (
                   <div>
                     <span className="font-medium">연관 캠페인:</span> {order.campaign_name || `캠페인 #${order.campaign_id}`}
@@ -616,9 +618,9 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
 
           {/* 처리 정보 */}
           {(order.approverComment || order.rejectReason) && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">처리 정보</h3>
-              <div className="text-sm">
+            <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+              <h3 className="font-medium mb-2 text-sm md:text-base">처리 정보</h3>
+              <div className="text-xs md:text-sm">
                 {order.approverComment && (
                   <div>
                     <span className="font-medium">처리 의견:</span>
@@ -637,7 +639,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
         </div>
 
         {/* 액션 버튼 */}
-        <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+        <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-3 mt-4 md:mt-6 pt-4 border-t">
           {order.status === '대기' && (
             <>
               <button
@@ -645,7 +647,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
                   onReject(order.id);
                   onClose();
                 }}
-                className="px-4 py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
+                className="px-4 py-2.5 md:py-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 min-h-[44px] touch-manipulation text-sm md:text-base"
               >
                 거절
               </button>
@@ -654,7 +656,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
                   onApprove(order.id);
                   onClose();
                 }}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-4 py-2.5 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 min-h-[44px] touch-manipulation text-sm md:text-base"
               >
                 승인
               </button>
@@ -662,7 +664,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            className="px-4 py-2.5 md:py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 min-h-[44px] touch-manipulation text-sm md:text-base"
           >
             닫기
           </button>
