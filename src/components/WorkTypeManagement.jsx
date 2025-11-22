@@ -143,27 +143,27 @@ const WorkTypeManagement = ({ loggedInUser }) => {
 
   if (!canManage) {
     return (
-      <div className="p-6 text-center">
+      <div className="p-4 md:p-6 text-center">
         <div className="text-gray-500">
           <Settings size={48} className="mx-auto mb-4 text-gray-300" />
-          <p>업무타입 관리는 어드민만 가능합니다.</p>
+          <p className="text-sm md:text-base">업무타입 관리는 어드민만 가능합니다.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">업무타입 관리</h2>
-          <p className="text-gray-600 mt-1">업무 등록 시 사용할 업무타입을 관리합니다</p>
+    <div className="p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4 md:mb-6">
+        <div className="flex-1">
+          <h2 className="text-lg md:text-2xl font-bold text-gray-800">업무타입 관리</h2>
+          <p className="text-sm md:text-base text-gray-600 mt-1">업무 등록 시 사용할 업무타입을 관리합니다</p>
         </div>
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center justify-center space-x-2 px-4 py-2.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-h-[44px] touch-manipulation text-sm md:text-base whitespace-nowrap"
         >
-          <Plus size={18} />
+          <Plus size={16} className="md:w-[18px] md:h-[18px]" />
           <span>새 업무타입 추가</span>
         </button>
       </div>
@@ -173,73 +173,75 @@ const WorkTypeManagement = ({ loggedInUser }) => {
           <div className="text-gray-500">로딩 중...</div>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
-              <tr>
-                <th className="px-6 py-3">이름</th>
-                <th className="px-6 py-3">설명</th>
-                <th className="px-6 py-3">상태</th>
-                <th className="px-6 py-3">정렬순서</th>
-                <th className="px-6 py-3">생성일</th>
-                <th className="px-6 py-3">관리</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(Array.isArray(workTypes) ? workTypes : []).map((workType) => (
-                <tr key={workType.id} className="bg-white border-b hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{workType.name}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-gray-500">{workType.description || '-'}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleToggleActive(workType)}
-                      className={`flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-medium ${
-                        workType.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {workType.isActive ? <Eye size={12} /> : <EyeOff size={12} />}
-                      <span>{workType.isActive ? '활성' : '비활성'}</span>
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-gray-500">{workType.sortOrder}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-gray-500">
-                      {workType.createdAt ? new Date(workType.createdAt).toLocaleDateString() : '-'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedWorkType(workType);
-                          setEditModalOpen(true);
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="수정"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteWorkType(workType)}
-                        className="text-red-600 hover:text-red-900"
-                        title="비활성화"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+        <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs md:text-sm text-left text-gray-500">
+              <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
+                <tr>
+                  <th className="px-3 md:px-6 py-2 md:py-3">이름</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden sm:table-cell">설명</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3">상태</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden md:table-cell">정렬순서</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 hidden lg:table-cell">생성일</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3">관리</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(Array.isArray(workTypes) ? workTypes : []).map((workType) => (
+                  <tr key={workType.id} className="bg-white border-b hover:bg-gray-50 touch-manipulation">
+                    <td className="px-3 md:px-6 py-3 md:py-4">
+                      <div className="font-medium text-gray-900 text-xs md:text-sm truncate max-w-[120px] md:max-w-none">{workType.name}</div>
+                    </td>
+                    <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
+                      <div className="text-gray-500 text-xs md:text-sm truncate max-w-[150px] md:max-w-none">{workType.description || '-'}</div>
+                    </td>
+                    <td className="px-3 md:px-6 py-3 md:py-4">
+                      <button
+                        onClick={() => handleToggleActive(workType)}
+                        className={`flex items-center space-x-1 px-2 md:px-3 py-1 md:py-1 rounded-full text-xs font-medium min-h-[36px] touch-manipulation ${
+                          workType.isActive
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {workType.isActive ? <Eye size={12} /> : <EyeOff size={12} />}
+                        <span>{workType.isActive ? '활성' : '비활성'}</span>
+                      </button>
+                    </td>
+                    <td className="px-3 md:px-6 py-3 md:py-4 hidden md:table-cell">
+                      <div className="text-gray-500 text-xs md:text-sm">{workType.sortOrder}</div>
+                    </td>
+                    <td className="px-3 md:px-6 py-3 md:py-4 hidden lg:table-cell">
+                      <div className="text-gray-500 text-xs md:text-sm whitespace-nowrap">
+                        {workType.createdAt ? new Date(workType.createdAt).toLocaleDateString() : '-'}
+                      </div>
+                    </td>
+                    <td className="px-3 md:px-6 py-3 md:py-4">
+                      <div className="flex items-center space-x-1 md:space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedWorkType(workType);
+                            setEditModalOpen(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center touch-manipulation"
+                          title="수정"
+                        >
+                          <Edit size={14} className="md:w-4 md:h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteWorkType(workType)}
+                          className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center touch-manipulation"
+                          title="비활성화"
+                        >
+                          <Trash2 size={14} className="md:w-4 md:h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {workTypes.length === 0 && (
             <div className="text-center py-12">
@@ -318,64 +320,64 @@ const WorkTypeModal = ({ workType, onSave, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h3 className="text-lg font-bold mb-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+      <div className="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <h3 className="text-base md:text-lg font-bold mb-3 md:mb-4">
           {workType ? '업무타입 수정' : '새 업무타입 추가'}
         </h3>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
               업무타입 이름 *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg min-h-[44px] text-base"
               placeholder="예: SNS 마케팅"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
               설명
             </label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg min-h-[88px] text-base"
               rows="3"
               placeholder="업무타입에 대한 설명을 입력하세요"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
               정렬 순서
             </label>
             <input
               type="number"
               value={formData.sortOrder}
               onChange={(e) => setFormData(prev => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
-              className="w-full p-2 border border-gray-300 rounded-lg"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg min-h-[44px] text-base"
               min="0"
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 md:gap-2 pt-3 md:pt-4 border-t">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              className="px-4 py-2.5 md:py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
               취소
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-h-[44px] touch-manipulation text-sm md:text-base"
             >
               {workType ? '수정' : '생성'}
             </button>
