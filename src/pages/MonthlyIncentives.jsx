@@ -457,104 +457,105 @@ const MonthlyIncentives = ({ loggedInUser }) => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">월간 인센티브 관리</h1>
-          <p className="text-gray-600 mt-1">직원들의 월간 인센티브를 계산하고 관리합니다</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0">
+        <div className="flex-1">
+          <h1 className="text-lg md:text-2xl font-bold text-gray-800">월간 인센티브 관리</h1>
+          <p className="text-sm md:text-base text-gray-600 mt-1">직원들의 월간 인센티브를 계산하고 관리합니다</p>
         </div>
         {canManageIncentives && (
           <LoadingButton
             onClick={handleCalculateIncentives}
             loading={isCalculating}
             loadingText="계산 중..."
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            className="bg-blue-600 text-white px-3 md:px-4 py-2.5 md:py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 min-h-[44px] text-sm md:text-base touch-manipulation whitespace-nowrap"
           >
-            <Calculator size={20} />
-            인센티브 계산
+            <Calculator size={16} className="md:w-5 md:h-5" />
+            <span className="hidden sm:inline">인센티브 계산</span>
+            <span className="sm:hidden">계산</span>
           </LoadingButton>
         )}
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-white p-3 md:p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">대상 직원</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.totalEmployees}</p>
+              <p className="text-xs md:text-sm text-gray-600">대상 직원</p>
+              <p className="text-lg md:text-2xl font-bold text-blue-600">{stats.totalEmployees}</p>
             </div>
-            <Users className="h-8 w-8 text-blue-400" />
+            <Users className="h-6 w-6 md:h-8 md:w-8 text-blue-400" />
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+
+        <div className="bg-white p-3 md:p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">검토대기</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.pendingIncentives}</p>
+              <p className="text-xs md:text-sm text-gray-600">검토대기</p>
+              <p className="text-lg md:text-2xl font-bold text-yellow-600">{stats.pendingIncentives}</p>
             </div>
-            <Clock className="h-8 w-8 text-yellow-400" />
+            <Clock className="h-6 w-6 md:h-8 md:w-8 text-yellow-400" />
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+
+        <div className="bg-white p-3 md:p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">승인완료</p>
-              <p className="text-2xl font-bold text-green-600">{stats.approvedIncentives}</p>
+              <p className="text-xs md:text-sm text-gray-600">승인완료</p>
+              <p className="text-lg md:text-2xl font-bold text-green-600">{stats.approvedIncentives}</p>
             </div>
-            <CheckCircle className="h-8 w-8 text-green-400" />
+            <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-400" />
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+
+        <div className="bg-white p-3 md:p-6 rounded-lg shadow-sm border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">총 지급액</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.totalFinalAmount.toLocaleString()}원</p>
+              <p className="text-xs md:text-sm text-gray-600">총 지급액</p>
+              <p className="text-lg md:text-2xl font-bold text-gray-800">{stats.totalFinalAmount.toLocaleString()}원</p>
             </div>
-            <DollarSign className="h-8 w-8 text-gray-400" />
+            <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-gray-400" />
           </div>
         </div>
       </div>
 
       {/* 필터 */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">연도</label>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">연도</label>
             <select
               value={filters.year}
               onChange={(e) => setFilters(prev => ({ ...prev, year: parseInt(e.target.value) }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] text-base touch-manipulation"
             >
               {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
                 <option key={year} value={year}>{year}년</option>
               ))}
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">월</label>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">월</label>
             <select
               value={filters.month}
               onChange={(e) => setFilters(prev => ({ ...prev, month: parseInt(e.target.value) }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] text-base touch-manipulation"
             >
               {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
                 <option key={month} value={month}>{month}월</option>
               ))}
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">상태</label>
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] text-base touch-manipulation"
             >
               <option value="">전체</option>
               <option value="검토대기">검토대기</option>
@@ -564,18 +565,18 @@ const MonthlyIncentives = ({ loggedInUser }) => {
               <option value="취소">취소</option>
             </select>
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">직원</label>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">직원</label>
             {loggedInUser?.role === 'STAFF' ? (
-              <div className="w-full border border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-gray-700">
+              <div className="w-full border border-gray-300 bg-gray-100 rounded-lg px-3 py-2 text-gray-700 min-h-[44px] flex items-center text-base">
                 {loggedInUser.name} (본인)
               </div>
             ) : (
               <select
                 value={filters.userId}
                 onChange={(e) => setFilters(prev => ({ ...prev, userId: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 min-h-[44px] text-base touch-manipulation"
               >
                 <option value="">전체 직원</option>
                 {users.map(user => (
@@ -589,90 +590,90 @@ const MonthlyIncentives = ({ loggedInUser }) => {
 
       {/* 인센티브 목록 */}
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="overflow-x-auto touch-pan-x" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <table className="w-full text-xs md:text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">직원</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">기간</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">매출/이익</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">인센티브율</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">계산금액</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">조정금액</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">최종금액</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">직원</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">기간</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">매출/이익</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">인센티브율</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">계산금액</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden xl:table-cell">조정금액</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">최종금액</th>
+                <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
                 {canManageIncentives && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+                  <th className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
                 )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {incentives.map((incentive) => (
                 <tr key={incentive.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-sm font-medium text-blue-600">
+                      <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2 md:mr-3">
+                        <span className="text-xs md:text-sm font-medium text-blue-600">
                           {incentive.user?.name?.charAt(0) || 'U'}
                         </span>
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{incentive.user?.name}</div>
-                        <div className="text-sm text-gray-500">{incentive.user?.company}</div>
-                        <div className="text-sm text-gray-400">{incentive.user?.email}</div>
+                        <div className="text-xs md:text-sm font-medium text-gray-900">{incentive.user?.name}</div>
+                        <div className="text-xs md:text-sm text-gray-500">{incentive.user?.company}</div>
+                        <div className="text-xs md:text-sm text-gray-400 hidden sm:block">{incentive.user?.email}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900 hidden sm:table-cell">
                     {incentive.year}년 {incentive.month}월
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap hidden lg:table-cell">
+                    <div className="text-xs md:text-sm text-gray-900">
                       매출: {incentive.totalRevenue?.toLocaleString() || '0'}원
                     </div>
-                    <div className="text-sm text-gray-900">
+                    <div className="text-xs md:text-sm text-gray-900">
                       이익: {incentive.totalProfit?.toLocaleString() || '0'}원
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-xs md:text-sm text-gray-500">
                       캠페인: {incentive.campaignCount || 0}개
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900 hidden md:table-cell">
                     {(() => {
                       const rate = incentive.user?.incentiveRate || 0;
                       console.log(`🎯 테이블 표시 인센티브율 - 사용자 ${incentive.user?.name}: ${rate}%`);
                       return `${rate}%`;
                     })()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900 hidden lg:table-cell">
                     {incentive.baseIncentiveAmount?.toLocaleString() || '0'}원
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {incentive.adjustmentAmount ? 
-                      `${incentive.adjustmentAmount > 0 ? '+' : ''}${incentive.adjustmentAmount.toLocaleString()}원` : 
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm text-gray-900 hidden xl:table-cell">
+                    {incentive.adjustmentAmount ?
+                      `${incentive.adjustmentAmount > 0 ? '+' : ''}${incentive.adjustmentAmount.toLocaleString()}원` :
                       '-'
                     }
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium text-gray-900">
                     {incentive.finalIncentiveAmount?.toLocaleString() || '0'}원
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap">
                     {getStatusBadge(incentive.status)}
                   </td>
                   {canManageIncentives && (
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap text-xs md:text-sm font-medium">
+                      <div className="flex items-center space-x-1 md:space-x-2">
                         {incentive.status === '검토대기' && (
                           <>
                             <button
                               onClick={() => handleStatusUpdate(incentive.id, '승인완료')}
-                              className="text-green-600 hover:text-green-900 text-xs"
+                              className="text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50 text-xs min-h-[36px] min-w-[36px] flex items-center justify-center touch-manipulation"
                             >
                               승인
                             </button>
                             <button
                               onClick={() => handleStatusUpdate(incentive.id, '보류')}
-                              className="text-orange-600 hover:text-orange-900 text-xs"
+                              className="text-orange-600 hover:text-orange-900 px-2 py-1 rounded hover:bg-orange-50 text-xs min-h-[36px] min-w-[36px] flex items-center justify-center touch-manipulation"
                             >
                               보류
                             </button>
@@ -681,7 +682,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
                         {incentive.status === '승인완료' && (
                           <button
                             onClick={() => handleStatusUpdate(incentive.id, '지급완료')}
-                            className="text-blue-600 hover:text-blue-900 text-xs"
+                            className="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50 text-xs min-h-[36px] min-w-[36px] flex items-center justify-center touch-manipulation"
                           >
                             지급완료
                           </button>
@@ -696,7 +697,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
         </div>
 
         {incentives.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-6 md:py-8 text-sm md:text-base text-gray-500">
             해당 조건의 인센티브 데이터가 없습니다.
           </div>
         )}
