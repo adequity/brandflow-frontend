@@ -44,56 +44,7 @@ const MonthlyIncentives = ({ loggedInUser }) => {
 
     setIsLoading(true);
     try {
-      // 먼저 백엔드에서 저장된 인센티브 데이터 조회 시도
-      const { data: savedIncentives } = await api.get('/api/monthly-incentives/', {
-        params: {
-          year: filters.year,
-          month: filters.month,
-          status: filters.status || undefined,
-          user_id: filters.userId || undefined,
-          limit: 100
-        }
-      });
-
-      if (savedIncentives && savedIncentives.length > 0) {
-        // 저장된 데이터가 있으면 그것을 사용
-        console.log('💾 저장된 인센티브 데이터 사용:', savedIncentives);
-
-        const transformedIncentives = savedIncentives.map(incentive => ({
-          id: incentive.id,
-          userId: incentive.user_id,
-          user: {
-            name: incentive.user?.name || '알 수 없음',
-            email: incentive.user?.email || '',
-            company: incentive.user?.company || incentive.company || '미설정',
-            incentiveRate: incentive.incentive_rate
-          },
-          year: incentive.year,
-          month: incentive.month,
-          totalRevenue: incentive.total_revenue,
-          totalProfit: incentive.total_profit,
-          totalCost: incentive.total_revenue - incentive.total_profit, // 매출 - 이익 = 원가
-          baseIncentiveAmount: incentive.profit_incentive_amount,
-          adjustmentAmount: incentive.adjustment_amount,
-          finalIncentiveAmount: incentive.final_incentive_amount,
-          status: incentive.status === 'CALCULATED' ? '계산 완료' :
-                  incentive.status === 'PENDING' ? '검토대기' :
-                  incentive.status === 'APPROVED' ? '승인완료' :
-                  incentive.status === 'PAID' ? '지급완료' :
-                  incentive.status === 'ON_HOLD' ? '보류' :
-                  incentive.status === 'CANCELLED' ? '취소' : incentive.status,
-          calculatedAt: incentive.created_at,
-          campaignCount: incentive.campaign_count,
-          notes: incentive.notes
-        }));
-
-        setIncentives(transformedIncentives);
-        return;
-      }
-
-      console.log('🔄 저장된 데이터 없음, 실시간 계산 진행');
-
-      // 저장된 데이터가 없으면 기존 실시간 계산 로직 사용
+      // 1. 먼저 모든 대상 직원 목록을 가져옴
       const { data: usersData } = await api.get('/api/users');
 
       // 인센티브 대상 직원 필터링
@@ -107,8 +58,68 @@ const MonthlyIncentives = ({ loggedInUser }) => {
         return (user.role === 'STAFF' || user.role === 'AGENCY_ADMIN');
       });
 
-      // 각 사용자의 캠페인 데이터를 기반으로 인센티브 계산
+      console.log(`📋 대상 직원 수: ${eligibleUsers.length}명`, eligibleUsers.map(u => u.name));
+
+      // 2. 백엔드에서 저장된 인센티브 데이터 조회 시도
+      const { data: savedIncentives } = await api.get('/api/monthly-incentives/', {
+        params: {
+          year: filters.year,
+          month: filters.month,
+          status: filters.status || undefined,
+          user_id: filters.userId || undefined,
+          limit: 100
+        }
+      });
+
+      // 3. 저장된 데이터를 Map으로 변환 (user_id를 키로)
+      const savedIncentivesMap = new Map();
+      if (savedIncentives && savedIncentives.length > 0) {
+        console.log('💾 저장된 인센티브 데이터:', savedIncentives.length, '건');
+        savedIncentives.forEach(incentive => {
+          savedIncentivesMap.set(incentive.user_id, {
+            id: incentive.id,
+            userId: incentive.user_id,
+            user: {
+              name: incentive.user?.name || '알 수 없음',
+              email: incentive.user?.email || '',
+              company: incentive.user?.company || incentive.company || '미설정',
+              incentiveRate: incentive.incentive_rate
+            },
+            year: incentive.year,
+            month: incentive.month,
+            totalRevenue: incentive.total_revenue,
+            totalProfit: incentive.total_profit,
+            totalCost: incentive.total_revenue - incentive.total_profit,
+            baseIncentiveAmount: incentive.profit_incentive_amount,
+            adjustmentAmount: incentive.adjustment_amount,
+            finalIncentiveAmount: incentive.final_incentive_amount,
+            status: incentive.status === 'CALCULATED' ? '계산 완료' :
+                    incentive.status === 'PENDING' ? '검토대기' :
+                    incentive.status === 'APPROVED' ? '승인완료' :
+                    incentive.status === 'PAID' ? '지급완료' :
+                    incentive.status === 'ON_HOLD' ? '보류' :
+                    incentive.status === 'CANCELLED' ? '취소' : incentive.status,
+            calculatedAt: incentive.created_at,
+            campaignCount: incentive.campaign_count,
+            notes: incentive.notes
+          });
+        });
+      }
+
+      console.log('🔄 모든 대상 직원에 대해 데이터 준비 중...');
+
+      // 4. 모든 대상 직원에 대해 데이터 생성 (저장된 데이터 우선, 없으면 실시간 계산)
       const incentivePromises = eligibleUsers.map(async (user) => {
+        // 저장된 데이터가 있으면 그것을 사용
+        if (savedIncentivesMap.has(user.id)) {
+          console.log(`✅ ${user.name}: 저장된 데이터 사용`);
+          return savedIncentivesMap.get(user.id);
+        }
+
+        // 저장된 데이터가 없으면 실시간 계산
+        console.log(`🔄 ${user.name}: 실시간 계산`);
+
+        // 각 사용자의 캠페인 데이터를 기반으로 인센티브 계산
         try {
           const campaignsResponse = await api.get('/api/campaigns/', {
             params: {
