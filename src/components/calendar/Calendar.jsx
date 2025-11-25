@@ -24,11 +24,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
     const [showCampaignModal, setShowCampaignModal] = useState(false);
     const [workTypes, setWorkTypes] = useState([]); // 업무타입 색상 매핑용
 
-    // 업무타입 색상 로드
+    // 업무타입 색상 로드 (WorkTypeManagement와 동일한 API 사용)
     useEffect(() => {
         const fetchWorkTypes = async () => {
             try {
-                const response = await api.get('/api/v1/work-types/');
+                const response = await api.get('/api/work-types');
                 setWorkTypes(response.data.map(wt => ({
                     name: wt.name,
                     color: wt.color || '#6B7280'
@@ -780,13 +780,13 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             <div className="mt-4 md:mt-6 space-y-2 md:space-y-3 text-xs md:text-sm">
                 <div className="flex flex-wrap items-center gap-2 md:gap-4">
                     <span className="font-medium text-gray-700">업무타입:</span>
-                    {filterOptions.workTypes.map(type => (
-                        <div key={type} className="flex items-center space-x-1">
+                    {workTypes.map(wt => (
+                        <div key={wt.name} className="flex items-center space-x-1">
                             <div
                                 className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full"
-                                style={{ backgroundColor: getTaskColor(type) }}
+                                style={{ backgroundColor: wt.color }}
                             ></div>
-                            <span className="text-gray-600 text-[10px] md:text-sm">{type}</span>
+                            <span className="text-gray-600 text-[10px] md:text-sm">{wt.name}</span>
                         </div>
                     ))}
                 </div>
