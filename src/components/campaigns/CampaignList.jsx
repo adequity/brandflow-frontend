@@ -784,20 +784,20 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                             e.stopPropagation();
                             setContractModal(campaign);
                           }}
-                          className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 min-h-[44px] text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors touch-manipulation"
+                          className="flex items-center justify-center w-11 h-11 text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors touch-manipulation"
+                          title="계약서 관리"
                         >
-                          <FileText size={16} />
-                          <span>계약서</span>
+                          <FileText size={18} />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setChatContentModal(campaign);
                           }}
-                          className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 min-h-[44px] text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors touch-manipulation"
+                          className="flex items-center justify-center w-11 h-11 text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors touch-manipulation"
+                          title="카톡 내용"
                         >
-                          <MessageSquare size={16} />
-                          <span>카톡</span>
+                          <MessageSquare size={18} />
                         </button>
                       </>
                     )}
@@ -806,9 +806,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                         e.stopPropagation();
                         handleEditCampaign(campaign);
                       }}
-                      className="flex items-center justify-center px-3 py-2 min-h-[44px] text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation"
+                      className="flex items-center justify-center w-11 h-11 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation"
+                      title="편집"
                     >
-                      <Edit size={16} />
+                      <Edit size={18} />
                     </button>
                     <button
                       onClick={(e) => {
@@ -816,12 +817,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                         handleDuplicateCampaign(campaign);
                       }}
                       disabled={duplicatingCampaignId === campaign.id}
-                      className="flex items-center justify-center px-3 py-2 min-h-[44px] text-sm text-green-600 bg-green-50 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
+                      className="flex items-center justify-center w-11 h-11 text-sm text-green-600 bg-green-50 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
+                      title="복사"
                     >
                       {duplicatingCampaignId === campaign.id ? (
                         <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        <Copy size={16} />
+                        <Copy size={18} />
                       )}
                     </button>
                     <button
@@ -830,12 +832,13 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                         handleDeleteCampaign(campaign.id, campaign.name);
                       }}
                       disabled={deletingCampaignId === campaign.id}
-                      className="flex items-center justify-center px-3 py-2 min-h-[44px] text-sm text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
+                      className="flex items-center justify-center w-11 h-11 text-sm text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
+                      title="삭제"
                     >
                       {deletingCampaignId === campaign.id ? (
                         <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
                       ) : (
-                        <Trash2 size={16} />
+                        <Trash2 size={18} />
                       )}
                     </button>
                   </div>
