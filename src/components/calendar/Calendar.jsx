@@ -307,7 +307,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
         
         // 빈 셀들 (이전 달)
         for (let i = 0; i < startingDayOfWeek; i++) {
-            days.push(<div key={`empty-${i}`} className="h-20 md:h-32 border border-gray-200 bg-gray-50"></div>);
+            days.push(<div key={`empty-${i}`} className="h-24 md:h-32 border border-gray-200 bg-gray-50"></div>);
         }
 
         // 현재 달의 날짜들
@@ -320,36 +320,74 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                        taskDate.getDate() === currentDay.getDate();
             });
 
+            // 오늘 날짜인지 확인
+            const today = new Date();
+            const isToday = currentDay.getFullYear() === today.getFullYear() &&
+                          currentDay.getMonth() === today.getMonth() &&
+                          currentDay.getDate() === today.getDate();
+
+            // 선택된 날짜인지 확인
+            const isSelected = selectedDate === currentDay.toISOString().split('T')[0];
+
             days.push(
                 <div
                     key={day}
-                    className="h-20 md:h-32 border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors touch-manipulation"
+                    className={`h-24 md:h-32 border border-gray-200 cursor-pointer transition-all touch-manipulation relative ${
+                        isSelected ? 'bg-blue-50 border-blue-400 shadow-md' :
+                        isToday ? 'bg-yellow-50 border-yellow-300' :
+                        'bg-white hover:bg-gray-50'
+                    }`}
                     onClick={() => setSelectedDate(currentDay.toISOString().split('T')[0])}
                 >
-                    <div className="p-0.5 md:p-1">
-                        <div className="text-xs md:text-sm font-medium text-gray-900 mb-0.5 md:mb-1">{day}</div>
-                        <div className="space-y-0.5 md:space-y-1 max-h-14 md:max-h-20 overflow-y-auto">
-                            {dayTasks.slice(0, 3).map(task => {
-                                const typeStyle = getTaskTypeStyle(task.type, task.priority);
-                                return (
-                                    <div
-                                        key={task.id}
-                                        className={`text-[10px] md:text-xs px-1 md:px-2 py-0.5 md:py-1 rounded-md truncate cursor-pointer hover:opacity-80 transition-opacity ${getTaskColor(task.workType)} ${typeStyle.border} touch-manipulation`}
-                                        title={`${typeStyle.icon} ${task.title} (${task.status})\n담당자: ${task.assignee}\n${task.description}\n클릭하여 캠페인 상세 보기`}
-                                        onClick={(e) => handleCampaignClick(task, e)}
-                                    >
-                                        <span className="mr-0.5 md:mr-1">{typeStyle.icon}</span>
-                                        <span className="hidden sm:inline">{task.title}</span>
-                                        <span className="sm:hidden">{task.title.slice(0, 8)}{task.title.length > 8 ? '...' : ''}</span>
-                                    </div>
-                                );
-                            })}
-                            {dayTasks.length > 3 && (
-                                <div className="text-[10px] md:text-xs text-gray-500 px-1 md:px-2">
-                                    +{dayTasks.length - 3}
-                                </div>
+                    <div className="p-1.5 md:p-2 h-full flex flex-col">
+                        {/* 날짜 표시 */}
+                        <div className={`text-xs md:text-sm font-bold mb-1 md:mb-2 ${
+                            isToday ? 'text-blue-600' :
+                            isSelected ? 'text-blue-700' :
+                            'text-gray-900'
+                        }`}>
+                            {isToday ? (
+                                <span className="inline-flex items-center justify-center w-6 h-6 md:w-7 md:h-7 rounded-full bg-blue-600 text-white text-xs md:text-sm">
+                                    {day}
+                                </span>
+                            ) : (
+                                day
                             )}
                         </div>
+
+                        {/* 일정 점 표시 */}
+                        {dayTasks.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                                {dayTasks.slice(0, 6).map((task, idx) => {
+                                    const typeStyle = getTaskTypeStyle(task.type, task.priority);
+                                    const colorClass = getTaskColor(task.workType).split(' ')[0];
+
+                                    return (
+                                        <div
+                                            key={task.id}
+                                            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${colorClass} cursor-pointer hover:scale-150 transition-transform`}
+                                            title={`${typeStyle.icon} ${task.title}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedDate(currentDay.toISOString().split('T')[0]);
+                                            }}
+                                        />
+                                    );
+                                })}
+                                {dayTasks.length > 6 && (
+                                    <div className="text-[8px] md:text-[10px] text-gray-500 font-medium ml-0.5">
+                                        +{dayTasks.length - 6}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* 일정 개수 표시 (모바일) */}
+                        {dayTasks.length > 0 && (
+                            <div className="mt-auto text-[9px] md:text-[10px] text-gray-500 font-medium">
+                                {dayTasks.length}개
+                            </div>
+                        )}
                     </div>
                 </div>
             );
