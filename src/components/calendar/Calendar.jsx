@@ -307,7 +307,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
         
         // 빈 셀들 (이전 달)
         for (let i = 0; i < startingDayOfWeek; i++) {
-            days.push(<div key={`empty-${i}`} className="h-32 border border-gray-200 bg-gray-50"></div>);
+            days.push(<div key={`empty-${i}`} className="h-20 md:h-32 border border-gray-200 bg-gray-50"></div>);
         }
 
         // 현재 달의 날짜들
@@ -321,31 +321,32 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             });
 
             days.push(
-                <div 
-                    key={day} 
-                    className="h-32 border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors"
+                <div
+                    key={day}
+                    className="h-20 md:h-32 border border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-colors touch-manipulation"
                     onClick={() => setSelectedDate(currentDay.toISOString().split('T')[0])}
                 >
-                    <div className="p-1">
-                        <div className="text-sm font-medium text-gray-900 mb-1">{day}</div>
-                        <div className="space-y-1 max-h-20 overflow-y-auto">
+                    <div className="p-0.5 md:p-1">
+                        <div className="text-xs md:text-sm font-medium text-gray-900 mb-0.5 md:mb-1">{day}</div>
+                        <div className="space-y-0.5 md:space-y-1 max-h-14 md:max-h-20 overflow-y-auto">
                             {dayTasks.slice(0, 3).map(task => {
                                 const typeStyle = getTaskTypeStyle(task.type, task.priority);
                                 return (
                                     <div
                                         key={task.id}
-                                        className={`text-xs px-2 py-1 rounded-md truncate cursor-pointer hover:opacity-80 transition-opacity ${getTaskColor(task.workType)} ${typeStyle.border}`}
+                                        className={`text-[10px] md:text-xs px-1 md:px-2 py-0.5 md:py-1 rounded-md truncate cursor-pointer hover:opacity-80 transition-opacity ${getTaskColor(task.workType)} ${typeStyle.border} touch-manipulation`}
                                         title={`${typeStyle.icon} ${task.title} (${task.status})\n담당자: ${task.assignee}\n${task.description}\n클릭하여 캠페인 상세 보기`}
                                         onClick={(e) => handleCampaignClick(task, e)}
                                     >
-                                        <span className="mr-1">{typeStyle.icon}</span>
-                                        {task.title}
+                                        <span className="mr-0.5 md:mr-1">{typeStyle.icon}</span>
+                                        <span className="hidden sm:inline">{task.title}</span>
+                                        <span className="sm:hidden">{task.title.slice(0, 8)}{task.title.length > 8 ? '...' : ''}</span>
                                     </div>
                                 );
                             })}
                             {dayTasks.length > 3 && (
-                                <div className="text-xs text-gray-500 px-2">
-                                    +{dayTasks.length - 3}개 더
+                                <div className="text-[10px] md:text-xs text-gray-500 px-1 md:px-2">
+                                    +{dayTasks.length - 3}
                                 </div>
                             )}
                         </div>
@@ -452,11 +453,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
     const todayTasks = getTodayTasks();
 
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-6">
             {/* 오늘의 할 일 */}
             {todayTasks.length > 0 && (
-                <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+                <div className="mb-4 md:mb-6 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 className="text-base md:text-lg font-semibold text-blue-800 mb-2 md:mb-3 flex items-center">
                         📅 오늘의 할 일 ({todayTasks.length}개)
                     </h3>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -465,24 +466,24 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                             return (
                                 <div
                                     key={task.id}
-                                    className={`flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors border-l-4 ${typeStyle.border.split(' ').slice(-2).join(' ')}`}
+                                    className={`flex items-center justify-between p-2 md:p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors border-l-4 ${typeStyle.border.split(' ').slice(-2).join(' ')} touch-manipulation min-h-[44px]`}
                                     onClick={(e) => handleCampaignClick(task, e)}
                                     title="클릭하여 캠페인 상세 보기"
                                 >
-                                    <div className="flex items-center space-x-3">
-                                        <div className="text-lg">{typeStyle.icon}</div>
-                                        <div className="flex-1">
-                                            <div className="font-medium text-gray-900 flex items-center">
-                                                {task.title}
-                                                {task.priority === 'high' && <span className="ml-2 text-red-500 text-xs">🔥</span>}
+                                    <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
+                                        <div className="text-base md:text-lg flex-shrink-0">{typeStyle.icon}</div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium text-gray-900 flex items-center text-xs md:text-base truncate">
+                                                <span className="truncate">{task.title}</span>
+                                                {task.priority === 'high' && <span className="ml-1 md:ml-2 text-red-500 text-xs flex-shrink-0">🔥</span>}
                                             </div>
-                                            <div className="text-sm text-gray-600">
+                                            <div className="text-[10px] md:text-sm text-gray-600 truncate">
                                                 👤 {task.assignee} • 📊 {task.status}
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-sm text-gray-500 text-right">
-                                        <span className={`px-2 py-1 rounded-full text-xs ${getTaskColor(task.workType)}`}>
+                                    <div className="text-xs md:text-sm text-gray-500 text-right flex-shrink-0 ml-2">
+                                        <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs ${getTaskColor(task.workType)}`}>
                                             {task.workType}
                                         </span>
                                     </div>
@@ -494,41 +495,41 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             )}
 
             {/* 헤더 */}
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center space-x-4">
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                        <CalendarIcon className="mr-2" size={24} />
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0 mb-4 md:mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <h2 className="text-lg md:text-2xl font-bold text-gray-800 flex items-center">
+                        <CalendarIcon className="mr-2" size={20} />
                         일정 관리
                     </h2>
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={() => navigateMonth(-1)}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            className="p-2 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
                         >
                             <ChevronLeft size={20} />
                         </button>
-                        <span className="text-lg font-semibold min-w-[120px] text-center">
+                        <span className="text-sm md:text-lg font-semibold min-w-[100px] md:min-w-[120px] text-center">
                             {currentDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}
                         </span>
                         <button
                             onClick={() => navigateMonth(1)}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            className="p-2 hover:bg-gray-100 rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
                         >
                             <ChevronRight size={20} />
                         </button>
                     </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                     {/* 뷰 모드 선택 */}
                     <div className="flex bg-gray-100 rounded-lg p-1">
                         {['month', 'week', 'day'].map(viewType => (
                             <button
                                 key={viewType}
                                 onClick={() => setView(viewType)}
-                                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                                    view === viewType 
-                                        ? 'bg-white text-gray-900 shadow-sm' 
+                                className={`px-3 md:px-4 py-2 md:py-2.5 rounded-md text-xs md:text-sm font-medium transition-colors min-h-[44px] touch-manipulation ${
+                                    view === viewType
+                                        ? 'bg-white text-gray-900 shadow-sm'
                                         : 'text-gray-600 hover:text-gray-900'
                                 }`}
                             >
@@ -540,7 +541,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                     {/* 필터 버튼 */}
                     <button
                         onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`flex items-center px-3 md:px-4 py-2 md:py-2.5 rounded-lg text-xs md:text-sm font-medium transition-colors min-h-[44px] touch-manipulation ${
                             showFilters ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                     >
@@ -552,15 +553,15 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
             {/* 필터 패널 */}
             {showFilters && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                         {/* 업무타입 필터 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">업무타입</label>
+                            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">업무타입</label>
                             <select
                                 value={filters.workType}
                                 onChange={(e) => setFilters({...filters, workType: e.target.value})}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2.5 md:py-2 text-base md:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                             >
                                 <option value="all">전체</option>
                                 {filterOptions.workTypes.map(type => (
@@ -571,11 +572,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
                         {/* 상태 필터 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">상태</label>
+                            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">상태</label>
                             <select
                                 value={filters.status}
                                 onChange={(e) => setFilters({...filters, status: e.target.value})}
-                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2.5 md:py-2 text-base md:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                             >
                                 <option value="all">전체</option>
                                 {filterOptions.statuses.map(status => (
@@ -587,11 +588,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                         {/* 담당자 필터 (대행사 관리자 이상만) */}
                         {filterOptions.assignees && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">담당자</label>
+                                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">담당자</label>
                                 <select
                                     value={filters.assignee}
                                     onChange={(e) => setFilters({...filters, assignee: e.target.value})}
-                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2.5 md:py-2 text-base md:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                                 >
                                     <option value="all">전체</option>
                                     {filterOptions.assignees.map(assignee => (
@@ -604,11 +605,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                         {/* 대행사 필터 (슈퍼 관리자만) */}
                         {filterOptions.agencies && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">대행사</label>
+                                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">대행사</label>
                                 <select
                                     value={filters.agency}
                                     onChange={(e) => setFilters({...filters, agency: e.target.value})}
-                                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-3 py-2.5 md:py-2 text-base md:text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] touch-manipulation"
                                 >
                                     <option value="all">전체</option>
                                     {filterOptions.agencies.map(agency => (
@@ -626,7 +627,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                 <div className="grid grid-cols-7 gap-0 border border-gray-200 rounded-lg overflow-hidden">
                     {/* 요일 헤더 */}
                     {['일', '월', '화', '수', '목', '금', '토'].map(day => (
-                        <div key={day} className="bg-gray-100 p-3 text-center text-sm font-medium text-gray-700 border-b border-gray-200">
+                        <div key={day} className="bg-gray-100 p-2 md:p-3 text-center text-xs md:text-sm font-medium text-gray-700 border-b border-gray-200">
                             {day}
                         </div>
                     ))}
@@ -637,11 +638,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
 
             {/* 선택된 날짜의 상세 정보 */}
             {selectedDate && (
-                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                        {new Date(selectedDate).toLocaleDateString('ko-KR', { 
-                            year: 'numeric', 
-                            month: 'long', 
+                <div className="mt-4 md:mt-6 p-3 md:p-4 bg-blue-50 rounded-lg">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-2 md:mb-3">
+                        {new Date(selectedDate).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
                             day: 'numeric',
                             weekday: 'long'
                         })} 일정
@@ -658,22 +659,22 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                             .map(task => (
                                 <div
                                     key={task.id}
-                                    className={`flex items-center justify-between p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${getTaskTypeStyle(task.type, task.priority).border}`}
+                                    className={`flex items-start sm:items-center justify-between p-2 md:p-3 bg-white rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${getTaskTypeStyle(task.type, task.priority).border} touch-manipulation min-h-[44px]`}
                                     onClick={(e) => handleCampaignClick(task, e)}
                                     title="클릭하여 캠페인 상세 보기"
                                 >
-                                    <div className="flex items-center space-x-3">
-                                        <div className="text-lg">{getTaskTypeStyle(task.type, task.priority).icon}</div>
-                                        <div className="flex-1">
-                                            <div className="font-medium text-gray-900 flex items-center">
-                                                {task.title}
-                                                {task.priority === 'high' && <span className="ml-2 text-red-500 text-xs">🔥</span>}
+                                    <div className="flex items-start sm:items-center space-x-2 md:space-x-3 flex-1 min-w-0">
+                                        <div className="text-base md:text-lg flex-shrink-0">{getTaskTypeStyle(task.type, task.priority).icon}</div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-medium text-gray-900 flex items-center text-xs md:text-base">
+                                                <span className="truncate">{task.title}</span>
+                                                {task.priority === 'high' && <span className="ml-1 md:ml-2 text-red-500 text-xs flex-shrink-0">🔥</span>}
                                             </div>
-                                            <div className="text-sm text-gray-600">
+                                            <div className="text-[10px] md:text-sm text-gray-600 truncate">
                                                 📋 {task.campaign?.name || '캠페인 정보 없음'} • 👤 {task.assignee} • 📊 {task.status}
                                             </div>
                                             {task.detail && (
-                                                <div className="text-xs text-gray-500 mt-1 space-y-1">
+                                                <div className="text-[10px] md:text-xs text-gray-500 mt-1 space-y-0.5 md:space-y-1">
                                                     {task.detail.outline && (
                                                         <div className="truncate">📝 {task.detail.outline}</div>
                                                     )}
@@ -683,7 +684,7 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                                                 href={task.detail.publishedUrl}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="text-blue-500 hover:underline ml-1"
+                                                                className="text-blue-500 hover:underline ml-1 min-h-[44px] inline-flex items-center touch-manipulation"
                                                                 onClick={(e) => e.stopPropagation()}
                                                             >
                                                                 링크 보기
@@ -697,10 +698,10 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="text-sm text-gray-500 text-right">
-                                        <div>{task.date ? new Date(task.date).toLocaleDateString('ko-KR') : '날짜 없음'}</div>
-                                        <div className="text-xs mt-1">
-                                            <span className={`px-2 py-1 rounded-full text-xs ${getTaskColor(task.workType)}`}>
+                                    <div className="text-xs md:text-sm text-gray-500 text-right flex-shrink-0 ml-2">
+                                        <div className="hidden sm:block">{task.date ? new Date(task.date).toLocaleDateString('ko-KR') : '날짜 없음'}</div>
+                                        <div className="text-[10px] md:text-xs mt-0.5 md:mt-1">
+                                            <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs ${getTaskColor(task.workType)}`}>
                                                 {task.workType}
                                             </span>
                                         </div>
@@ -724,37 +725,37 @@ const Calendar = ({ user, viewMode = 'month' }) => {
             )}
 
             {/* 범례 */}
-            <div className="mt-6 space-y-3 text-sm">
-                <div className="flex flex-wrap items-center gap-4">
+            <div className="mt-4 md:mt-6 space-y-2 md:space-y-3 text-xs md:text-sm">
+                <div className="flex flex-wrap items-center gap-2 md:gap-4">
                     <span className="font-medium text-gray-700">업무타입:</span>
                     {filterOptions.workTypes.map(type => (
                         <div key={type} className="flex items-center space-x-1">
-                            <div className={`w-3 h-3 rounded-full ${getTaskColor(type).split(' ')[0]}`}></div>
-                            <span className="text-gray-600">{type}</span>
+                            <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getTaskColor(type).split(' ')[0]}`}></div>
+                            <span className="text-gray-600 text-[10px] md:text-sm">{type}</span>
                         </div>
                     ))}
                 </div>
-                <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2 md:gap-4">
                     <span className="font-medium text-gray-700">일정타입:</span>
                     <div className="flex items-center space-x-1">
-                        <span>🚀</span>
-                        <span className="text-gray-600">시작일</span>
+                        <span className="text-sm">🚀</span>
+                        <span className="text-gray-600 text-[10px] md:text-sm">시작일</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                        <span>⏰</span>
-                        <span className="text-gray-600">마감일</span>
+                        <span className="text-sm">⏰</span>
+                        <span className="text-gray-600 text-[10px] md:text-sm">마감일</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                        <span>📝</span>
-                        <span className="text-gray-600">일반업무</span>
+                        <span className="text-sm">📝</span>
+                        <span className="text-gray-600 text-[10px] md:text-sm">일반업무</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                        <span>📋</span>
-                        <span className="text-gray-600">캠페인</span>
+                        <span className="text-sm">📋</span>
+                        <span className="text-gray-600 text-[10px] md:text-sm">캠페인</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                        <span>📅</span>
-                        <span className="text-gray-600">재무마감</span>
+                        <span className="text-sm">📅</span>
+                        <span className="text-gray-600 text-[10px] md:text-sm">재무마감</span>
                     </div>
                 </div>
             </div>
