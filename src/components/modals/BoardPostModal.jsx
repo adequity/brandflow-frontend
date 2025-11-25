@@ -140,54 +140,54 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* 헤더 */}
-        <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="flex justify-between items-center p-3 md:p-6 border-b">
+          <h2 className="text-base md:text-2xl font-bold text-gray-900">
             {isViewMode && '게시글 상세'}
             {isEditMode && '게시글 수정'}
             {isCreateMode && '게시글 작성'}
           </h2>
           <button
             onClick={() => onClose(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
           >
-            <X size={24} />
+            <X size={20} className="md:w-6 md:h-6" />
           </button>
         </div>
 
         {/* 바디 */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6">
           {isViewMode ? (
             // 조회 모드
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* 메타 정보 */}
-              <div className="flex items-center gap-4 text-sm text-gray-600 pb-4 border-b">
+              <div className="flex items-center gap-2 md:gap-4 text-xs md:text-sm text-gray-600 pb-3 md:pb-4 border-b flex-wrap">
                 <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(post.createdAt).toLocaleString('ko-KR')}
+                  <Calendar className="w-3 h-3 md:w-4 md:h-4" />
+                  {new Date(post.createdAt).toLocaleDateString('ko-KR')}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Eye className="w-4 h-4" />
+                  <Eye className="w-3 h-3 md:w-4 md:h-4" />
                   {post.viewCount}
                 </span>
-                <span>작성자: {post.authorName}</span>
+                <span className="hidden sm:inline">작성자: {post.authorName}</span>
               </div>
 
               {/* 뱃지 */}
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 md:gap-2 flex-wrap">
                 {post.isNotice && (
-                  <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-semibold rounded-full">
+                  <span className="px-2 md:px-3 py-0.5 md:py-1 bg-red-100 text-red-800 text-[10px] md:text-sm font-semibold rounded-full">
                     공지사항
                   </span>
                 )}
                 {post.isPopup && (
-                  <span className="px-3 py-1 bg-orange-100 text-orange-800 text-sm font-semibold rounded-full">
+                  <span className="px-2 md:px-3 py-0.5 md:py-1 bg-orange-100 text-orange-800 text-[10px] md:text-sm font-semibold rounded-full">
                     팝업
                   </span>
                 )}
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full">
+                <span className="px-2 md:px-3 py-0.5 md:py-1 bg-blue-100 text-blue-800 text-[10px] md:text-sm font-semibold rounded-full">
                   {post.postType === 'notice' && '공지'}
                   {post.postType === 'general' && '일반'}
                   {post.postType === 'manual' && '메뉴얼'}
@@ -196,33 +196,33 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
               </div>
 
               {/* 제목 */}
-              <h1 className="text-2xl font-bold text-gray-900">{post.title}</h1>
+              <h1 className="text-base md:text-2xl font-bold text-gray-900">{post.title}</h1>
 
               {/* 내용 */}
-              <div className="prose max-w-none bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">
+              <div className="prose max-w-none bg-gray-50 p-3 md:p-4 rounded-lg whitespace-pre-wrap text-sm md:text-base">
                 {post.content}
               </div>
 
               {/* 첨부파일 */}
               {post.attachments && post.attachments.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-gray-700">첨부파일 ({post.attachments.length})</h3>
+                  <h3 className="text-xs md:text-sm font-medium text-gray-700">첨부파일 ({post.attachments.length})</h3>
                   {post.attachments.map((attachment) => (
-                    <div key={attachment.id} className="bg-blue-50 p-4 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Download className="w-5 h-5 text-blue-600" />
-                          <span className="text-sm font-medium text-gray-900">
+                    <div key={attachment.id} className="bg-blue-50 p-3 md:p-4 rounded-lg">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <Download className="w-4 h-4 md:w-5 md:h-5 text-blue-600 flex-shrink-0" />
+                          <span className="text-xs md:text-sm font-medium text-gray-900 truncate">
                             {attachment.fileName}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-[10px] md:text-xs text-gray-500 flex-shrink-0">
                             ({(attachment.fileSize / 1024).toFixed(1)} KB)
                           </span>
                         </div>
                         <a
                           href={attachment.fileUrl}
                           download={attachment.fileName}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                          className="px-3 md:px-4 py-2 md:py-2 bg-blue-600 text-white text-xs md:text-sm rounded-lg hover:bg-blue-700 transition-colors min-h-[44px] flex items-center justify-center touch-manipulation w-full sm:w-auto whitespace-nowrap"
                         >
                           다운로드
                         </a>
@@ -234,17 +234,17 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
             </div>
           ) : (
             // 작성/수정 모드
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
               {/* 제목 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   제목 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base touch-manipulation min-h-[44px]"
                   placeholder="제목을 입력하세요"
                   required
                 />
@@ -252,13 +252,13 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
 
               {/* 게시글 타입 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   게시글 타입
                 </label>
                 <select
                   value={postType}
                   onChange={(e) => setPostType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base touch-manipulation min-h-[44px]"
                 >
                   <option value="general">일반</option>
                   <option value="notice">공지사항</option>
@@ -268,51 +268,51 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
               </div>
 
               {/* 옵션 */}
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+                <label className="flex items-center gap-2 cursor-pointer min-h-[44px] touch-manipulation">
                   <input
                     type="checkbox"
                     checked={isNotice}
                     onChange={(e) => setIsNotice(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-5 h-5 md:w-4 md:h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">공지사항으로 등록</span>
+                  <span className="text-xs md:text-sm text-gray-700">공지사항으로 등록</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer min-h-[44px] touch-manipulation">
                   <input
                     type="checkbox"
                     checked={isPopup}
                     onChange={(e) => setIsPopup(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-5 h-5 md:w-4 md:h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
-                  <span className="text-sm text-gray-700">대시보드 팝업으로 표시</span>
+                  <span className="text-xs md:text-sm text-gray-700">대시보드 팝업으로 표시</span>
                 </label>
               </div>
 
               {/* 팝업 기간 */}
               {isPopup && (
-                <div className="grid grid-cols-2 gap-4 bg-orange-50 p-4 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 bg-orange-50 p-3 md:p-4 rounded-lg">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                       팝업 시작일
                     </label>
                     <input
                       type="date"
                       value={popupStartDate}
                       onChange={(e) => setPopupStartDate(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base touch-manipulation min-h-[44px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                       팝업 종료일
                     </label>
                     <input
                       type="date"
                       value={popupEndDate}
                       onChange={(e) => setPopupEndDate(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base touch-manipulation min-h-[44px]"
                     />
                   </div>
                 </div>
@@ -320,14 +320,14 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
 
               {/* 내용 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   내용 <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  rows={12}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={8}
+                  className="w-full px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base touch-manipulation"
                   placeholder="내용을 입력하세요"
                   required
                 />
@@ -335,31 +335,31 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
 
               {/* 파일 첨부 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                   파일 첨부 (다중 선택 가능)
                 </label>
 
                 {/* 기존 파일 목록 (수정 모드) */}
                 {isEditMode && post?.attachments && post.attachments.length > 0 && (
                   <div className="space-y-2 mb-3">
-                    <p className="text-xs text-gray-500">기존 첨부파일</p>
+                    <p className="text-[10px] md:text-xs text-gray-500">기존 첨부파일</p>
                     {post.attachments
                       .filter(att => !removeAttachmentIds.includes(att.id))
                       .map((attachment) => (
-                        <div key={attachment.id} className="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Download className="w-4 h-4 text-gray-600" />
-                            <span className="text-sm text-gray-700">{attachment.fileName}</span>
-                            <span className="text-xs text-gray-500">
+                        <div key={attachment.id} className="bg-gray-50 p-2 md:p-3 rounded-lg flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1 md:gap-2 min-w-0 flex-1">
+                            <Download className="w-3 h-3 md:w-4 md:h-4 text-gray-600 flex-shrink-0" />
+                            <span className="text-xs md:text-sm text-gray-700 truncate">{attachment.fileName}</span>
+                            <span className="text-[10px] md:text-xs text-gray-500 flex-shrink-0">
                               ({(attachment.fileSize / 1024).toFixed(1)} KB)
                             </span>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleRemoveExistingFile(attachment.id)}
-                            className="text-red-600 hover:text-red-700"
+                            className="text-red-600 hover:text-red-700 p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center touch-manipulation"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} className="md:w-4 md:h-4" />
                           </button>
                         </div>
                       ))}
@@ -369,22 +369,22 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
                 {/* 새로 추가할 파일 목록 */}
                 {files.length > 0 && (
                   <div className="space-y-2 mb-3">
-                    <p className="text-xs text-gray-500">새로 추가할 파일</p>
+                    <p className="text-[10px] md:text-xs text-gray-500">새로 추가할 파일</p>
                     {files.map((file, index) => (
-                      <div key={index} className="bg-blue-50 p-3 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Upload className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-700">{file.name}</span>
-                          <span className="text-xs text-gray-500">
+                      <div key={index} className="bg-blue-50 p-2 md:p-3 rounded-lg flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1 md:gap-2 min-w-0 flex-1">
+                          <Upload className="w-3 h-3 md:w-4 md:h-4 text-blue-600 flex-shrink-0" />
+                          <span className="text-xs md:text-sm text-gray-700 truncate">{file.name}</span>
+                          <span className="text-[10px] md:text-xs text-gray-500 flex-shrink-0">
                             ({(file.size / 1024).toFixed(1)} KB)
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={() => handleRemoveNewFile(index)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 p-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center touch-manipulation"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} className="md:w-4 md:h-4" />
                         </button>
                       </div>
                     ))}
@@ -403,15 +403,15 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
                   />
                   <label
                     htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center gap-2 px-4 py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                    className="flex flex-col items-center justify-center gap-2 px-3 md:px-4 py-3 md:py-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors min-h-[44px] touch-manipulation"
                   >
                     <div className="flex items-center gap-2">
-                      <Upload className="w-5 h-5 text-gray-400" />
-                      <span className="text-sm text-gray-600 font-medium">
+                      <Upload className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+                      <span className="text-xs md:text-sm text-gray-600 font-medium text-center">
                         파일 추가 (여러 개 선택 가능, 최대 10MB/개)
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-[10px] md:text-xs text-gray-500 text-center hidden sm:block">
                       파일 선택창에서 Ctrl(Cmd) 또는 Shift 키를 누른 채 여러 파일 클릭
                     </span>
                   </label>
@@ -419,18 +419,18 @@ const BoardPostModal = ({ isOpen, onClose, mode, post, loggedInUser }) => {
               </div>
 
               {/* 버튼 */}
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="flex justify-end gap-2 md:gap-3 pt-3 md:pt-4">
                 <button
                   type="button"
                   onClick={() => onClose(false)}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-4 md:px-6 py-2.5 md:py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-xs md:text-base min-h-[44px] touch-manipulation"
                   disabled={loading}
                 >
                   취소
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-4 md:px-6 py-2.5 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 text-xs md:text-base min-h-[44px] touch-manipulation"
                   disabled={loading}
                 >
                   {loading ? '저장 중...' : isEditMode ? '수정' : '등록'}

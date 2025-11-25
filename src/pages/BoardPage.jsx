@@ -128,21 +128,21 @@ const BoardPage = ({ loggedInUser }) => {
   const totalPages = Math.ceil(total / itemsPerPage);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-white to-primary-50/30 p-3 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
-        <div className="mb-8">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-800 mb-2">📋 게시판</h1>
-              <p className="text-neutral-500 text-sm">공지사항, 메뉴얼, 자료 등을 확인하세요</p>
+        <div className="mb-4 md:mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-2">
+            <div className="flex-1">
+              <h1 className="text-lg md:text-3xl font-bold text-neutral-800 mb-2">📋 게시판</h1>
+              <p className="text-neutral-500 text-xs md:text-sm">공지사항, 메뉴얼, 자료 등을 확인하세요</p>
             </div>
             {isAgencyAdmin && (
               <button
                 onClick={handleCreatePost}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 bg-primary-600 text-white rounded-xl hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl font-medium text-sm md:text-base min-h-[44px] touch-manipulation whitespace-nowrap"
               >
-                <Plus size={20} />
+                <Plus size={18} className="md:w-5 md:h-5" />
                 게시글 작성
               </button>
             )}
@@ -150,14 +150,14 @@ const BoardPage = ({ loggedInUser }) => {
         </div>
 
         {/* 필터 */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-5 mb-6 border border-neutral-200/50 shadow-sm">
-          <div className="flex gap-4 items-center flex-wrap">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 md:p-5 mb-4 md:mb-6 border border-neutral-200/50 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-stretch sm:items-center">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-semibold text-neutral-700">타입</label>
+              <label className="text-xs md:text-sm font-semibold text-neutral-700 whitespace-nowrap">타입</label>
               <select
                 value={postType}
                 onChange={(e) => setPostType(e.target.value)}
-                className="px-4 py-2 border border-neutral-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white"
+                className="flex-1 sm:flex-initial px-3 md:px-4 py-2.5 md:py-2 border border-neutral-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white min-h-[44px] text-base touch-manipulation"
               >
                 <option value="all">전체</option>
                 <option value="notice">공지사항</option>
@@ -167,14 +167,14 @@ const BoardPage = ({ loggedInUser }) => {
               </select>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg hover:bg-neutral-50 transition-colors">
+            <label className="flex items-center gap-2 cursor-pointer px-3 py-2.5 md:py-2 rounded-lg hover:bg-neutral-50 transition-colors min-h-[44px] touch-manipulation">
               <input
                 type="checkbox"
                 checked={showNoticeOnly}
                 onChange={(e) => setShowNoticeOnly(e.target.checked)}
-                className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
+                className="w-5 h-5 md:w-4 md:h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
               />
-              <span className="text-sm text-neutral-700 font-medium">공지사항만 보기</span>
+              <span className="text-xs md:text-sm text-neutral-700 font-medium">공지사항만 보기</span>
             </label>
           </div>
         </div>
@@ -190,75 +190,75 @@ const BoardPage = ({ loggedInUser }) => {
               {posts.map((post) => (
                 <div
                   key={post.id}
-                  className="p-5 hover:bg-neutral-50/70 transition-all cursor-pointer group"
+                  className="p-3 md:p-5 hover:bg-neutral-50/70 transition-all cursor-pointer group touch-manipulation"
                   onClick={() => handleViewPost(post)}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-2 md:gap-4">
                     {/* 아이콘 */}
-                    <div className="flex-shrink-0 mt-1">
+                    <div className="flex-shrink-0 mt-1 hidden sm:block">
                       {post.isNotice ? (
-                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                          <Megaphone className="w-5 h-5 text-red-600" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-red-100 flex items-center justify-center">
+                          <Megaphone className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
                         </div>
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
-                          <FileText className="w-5 h-5 text-neutral-400 group-hover:text-primary-600 transition-colors" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-neutral-100 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
+                          <FileText className="w-4 h-4 md:w-5 md:h-5 text-neutral-400 group-hover:text-primary-600 transition-colors" />
                         </div>
                       )}
                     </div>
 
                     {/* 콘텐츠 */}
                     <div className="flex-grow min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2 flex-wrap">
                         {post.isNotice && (
-                          <span className="inline-flex px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
+                          <span className="inline-flex px-2 md:px-2.5 py-0.5 bg-red-100 text-red-700 text-[10px] md:text-xs font-bold rounded-full">
                             공지
                           </span>
                         )}
-                        <span className={`inline-flex px-2.5 py-0.5 text-xs font-bold rounded-full ${getPostTypeBadgeColor(post.postType)}`}>
+                        <span className={`inline-flex px-2 md:px-2.5 py-0.5 text-[10px] md:text-xs font-bold rounded-full ${getPostTypeBadgeColor(post.postType)}`}>
                           {getPostTypeLabel(post.postType)}
                         </span>
                         {post.attachments && post.attachments.length > 0 && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
-                            <Download className="w-3 h-3" />
-                            첨부파일 {post.attachments.length}개
+                          <span className="inline-flex items-center gap-0.5 md:gap-1 px-2 md:px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] md:text-xs font-semibold rounded-full">
+                            <Download className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                            <span className="hidden sm:inline">첨부파일 </span>{post.attachments.length}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-primary-600 transition-colors">
+                      <h3 className="text-sm md:text-lg font-bold text-neutral-900 mb-1.5 md:mb-2 group-hover:text-primary-600 transition-colors line-clamp-2">
                         {post.title}
                       </h3>
 
-                      <div className="flex items-center gap-4 text-sm text-neutral-500">
-                        <span className="flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4" />
+                      <div className="flex items-center gap-2 md:gap-4 text-[10px] md:text-sm text-neutral-500 flex-wrap">
+                        <span className="flex items-center gap-1 md:gap-1.5">
+                          <Calendar className="w-3 h-3 md:w-4 md:h-4" />
                           {new Date(post.createdAt).toLocaleDateString('ko-KR')}
                         </span>
-                        <span className="flex items-center gap-1.5">
-                          <Eye className="w-4 h-4" />
+                        <span className="flex items-center gap-1 md:gap-1.5">
+                          <Eye className="w-3 h-3 md:w-4 md:h-4" />
                           {post.viewCount}
                         </span>
-                        <span className="font-medium">{post.authorName}</span>
+                        <span className="font-medium hidden sm:inline">{post.authorName}</span>
                       </div>
                     </div>
 
                     {/* 액션 버튼 (agency_admin만) */}
                     {isAgencyAdmin && (
-                      <div className="flex-shrink-0 flex gap-2" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex-shrink-0 flex gap-1 md:gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => handleEditPost(post)}
-                          className="p-2.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          className="p-2 md:p-2.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center touch-manipulation"
                           title="수정"
                         >
-                          <Edit size={18} />
+                          <Edit size={16} className="md:w-[18px] md:h-[18px]" />
                         </button>
                         <button
                           onClick={() => handleDeletePost(post.id)}
-                          className="p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 md:p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center touch-manipulation"
                           title="삭제"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={16} className="md:w-[18px] md:h-[18px]" />
                         </button>
                       </div>
                     )}
@@ -271,23 +271,23 @@ const BoardPage = ({ loggedInUser }) => {
 
         {/* 페이지네이션 */}
         {totalPages > 1 && (
-          <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-4 md:mt-6 flex justify-center gap-2">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-5 py-2.5 border-2 border-neutral-300 rounded-xl text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-4 md:px-5 py-2.5 border-2 border-neutral-300 rounded-xl text-xs md:text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[44px] touch-manipulation"
             >
               이전
             </button>
 
-            <span className="px-5 py-2.5 text-sm font-bold text-neutral-700 flex items-center">
+            <span className="px-4 md:px-5 py-2.5 text-xs md:text-sm font-bold text-neutral-700 flex items-center min-h-[44px]">
               {currentPage} / {totalPages}
             </span>
 
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-5 py-2.5 border-2 border-neutral-300 rounded-xl text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="px-4 md:px-5 py-2.5 border-2 border-neutral-300 rounded-xl text-xs md:text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all min-h-[44px] touch-manipulation"
             >
               다음
             </button>
