@@ -371,20 +371,20 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 md:p-6 space-y-4 md:space-y-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-0">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">
             {loggedInUser?.role === 'STAFF' ? '클라이언트 관리' : '팀 & 사용자 관리'}
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm md:text-base text-gray-600 mt-1">
             {loggedInUser?.role === 'STAFF' ? '클라이언트를 관리하세요' : '팀원과 클라이언트를 관리하세요'}
           </p>
         </div>
         <button
           onClick={() => handleOpenEditModal()}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center space-x-2 px-4 py-2.5 min-h-[44px] bg-blue-600 text-white text-sm md:text-base rounded-lg hover:bg-blue-700 transition-colors touch-manipulation w-full sm:w-auto"
         >
           <Plus size={18} />
           <span>{loggedInUser?.role === 'STAFF' ? '클라이언트 추가' : (activeTab === 'staff' ? '팀원 초대' : '클라이언트 추가')}</span>
@@ -393,53 +393,53 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
 
       {/* 요약 통계 */}
       {loggedInUser?.role === 'STAFF' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 min-h-[100px]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">관리 중인 클라이언트</p>
-                <p className="text-2xl font-bold text-orange-600">{clientUsers.length}</p>
+                <p className="text-xs md:text-sm text-gray-600">관리 중인 클라이언트</p>
+                <p className="text-xl md:text-2xl font-bold text-orange-600 mt-1">{clientUsers.length}</p>
               </div>
-              <div className="text-orange-400">CLIENT</div>
+              <div className="text-sm md:text-base text-orange-400">CLIENT</div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 min-h-[100px]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">본인 소속</p>
-                <p className="text-lg font-bold text-gray-800">{loggedInUser?.company}</p>
+                <p className="text-xs md:text-sm text-gray-600">본인 소속</p>
+                <p className="text-base md:text-lg font-bold text-gray-800 mt-1">{loggedInUser?.company}</p>
               </div>
-              <div className="text-gray-400">OFFICE</div>
+              <div className="text-sm md:text-base text-gray-400">OFFICE</div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 min-h-[100px]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">전체 팀원</p>
-                <p className="text-2xl font-bold text-blue-600">{staffUsers.length}</p>
+                <p className="text-xs md:text-sm text-gray-600">전체 팀원</p>
+                <p className="text-xl md:text-2xl font-bold text-blue-600 mt-1">{staffUsers.length}</p>
               </div>
-              <div className="text-blue-400">TEAM</div>
+              <div className="text-sm md:text-base text-blue-400">TEAM</div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 min-h-[100px]">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">활성 클라이언트</p>
-                <p className="text-2xl font-bold text-orange-600">{clientUsers.length}</p>
+                <p className="text-xs md:text-sm text-gray-600">활성 클라이언트</p>
+                <p className="text-xl md:text-2xl font-bold text-orange-600 mt-1">{clientUsers.length}</p>
               </div>
-              <div className="text-orange-400">CLIENT</div>
+              <div className="text-sm md:text-base text-orange-400">CLIENT</div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-4 md:p-6 rounded-xl border border-gray-200 min-h-[100px] sm:col-span-2 lg:col-span-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">전체 사용자</p>
-                <p className="text-2xl font-bold text-gray-800">{users.length}</p>
+                <p className="text-xs md:text-sm text-gray-600">전체 사용자</p>
+                <p className="text-xl md:text-2xl font-bold text-gray-800 mt-1">{users.length}</p>
               </div>
-              <div className="text-gray-400">STATS</div>
+              <div className="text-sm md:text-base text-gray-400">STATS</div>
             </div>
           </div>
         </div>
@@ -447,26 +447,30 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
 
       {/* 탭 네비게이션 - 직원은 숨김 */}
       {loggedInUser?.role !== 'STAFF' && (
-        <div className="bg-white p-1 rounded-xl border border-gray-200 inline-flex">
+        <div className="bg-white p-1 rounded-xl border border-gray-200 flex w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'staff' 
-                ? 'bg-blue-600 text-white' 
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 min-h-[44px] text-xs sm:text-sm font-medium rounded-lg transition-colors touch-manipulation ${
+              activeTab === 'staff'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:text-blue-600'
             }`}
           >
-            TEAM 팀원 관리 ({staffUsers.length})
+            <span className="hidden sm:inline">TEAM 팀원 관리</span>
+            <span className="sm:hidden">팀원</span>
+            {' '}({staffUsers.length})
           </button>
           <button
             onClick={() => setActiveTab('clients')}
-            className={`px-6 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'clients' 
-                ? 'bg-blue-600 text-white' 
+            className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 min-h-[44px] text-xs sm:text-sm font-medium rounded-lg transition-colors touch-manipulation ${
+              activeTab === 'clients'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-600 hover:text-blue-600'
             }`}
           >
-            CLIENT 클라이언트 ({clientUsers.length})
+            <span className="hidden sm:inline">CLIENT 클라이언트</span>
+            <span className="sm:hidden">클라이언트</span>
+            {' '}({clientUsers.length})
           </button>
         </div>
       )}
@@ -474,22 +478,24 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
       {/* 사용자 목록 */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {currentUsers.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-4">
+          <div className="text-center py-8 md:py-12 px-4">
+            <div className="text-3xl md:text-4xl mb-3 md:mb-4">
               {activeTab === 'staff' ? 'TEAM' : 'CLIENT'}
             </div>
-            <p className="text-gray-500 mb-4">
+            <p className="text-sm md:text-base text-gray-500 mb-4">
               {activeTab === 'staff' ? '등록된 팀원이 없습니다.' : '등록된 클라이언트가 없습니다.'}
             </p>
             <button
               onClick={() => handleOpenEditModal()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-4 py-2.5 min-h-[44px] bg-blue-600 text-white text-sm md:text-base rounded-lg hover:bg-blue-700 touch-manipulation"
             >
               {activeTab === 'staff' ? '첫 팀원 초대하기' : '첫 클라이언트 추가하기'}
             </button>
           </div>
         ) : (
-          <table className="w-full text-sm text-left text-gray-500">
+          <>
+          {/* Desktop 테이블 뷰 */}
+          <table className="hidden md:table w-full text-sm text-left text-gray-500">
             <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
               <tr>
                 <th className="px-6 py-3">사용자 정보</th>
@@ -617,6 +623,139 @@ ${errorMessages.map(msg => `• ${msg}`).join('\n')}
               ))}
             </tbody>
           </table>
+
+          {/* Mobile 카드 뷰 */}
+          <div className="block md:hidden divide-y divide-gray-200">
+            {currentUsers.map((user) => (
+              <div key={user.id} className="p-4 hover:bg-gray-50 transition-colors">
+                {/* 사용자 기본 정보 */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600 flex-shrink-0">
+                      {user.name?.charAt(0) || '?'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 text-sm truncate">{user.name}</div>
+                      <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                      <div className="mt-1">
+                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(user.role)}`}>
+                          {user.role}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="ml-2 flex-shrink-0">
+                    {getUserStatusBadge(user)}
+                  </div>
+                </div>
+
+                {/* 세부 정보 */}
+                <div className="space-y-2 text-xs mb-3">
+                  {user.contact && (
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-20">연락처</span>
+                      <span className="text-gray-900">{user.contact}</span>
+                    </div>
+                  )}
+                  {user.company && (
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-20">소속</span>
+                      <span className="text-gray-900">{user.company}</span>
+                    </div>
+                  )}
+                  {(() => {
+                    // 팀 정보 표시 로직 (테이블과 동일)
+                    if (user.role === 'TEAM_LEADER' && user.teamName) {
+                      return (
+                        <div className="flex items-center">
+                          <span className="text-gray-500 w-20">팀 정보</span>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-indigo-600 font-medium">👔 {user.teamName}</span>
+                            <span className="text-xs text-gray-500">(리더)</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    if (user.role === 'STAFF' && user.teamName) {
+                      return (
+                        <div className="flex items-center">
+                          <span className="text-gray-500 w-20">팀 정보</span>
+                          <span className="text-green-600">👥 {user.teamName}</span>
+                        </div>
+                      );
+                    }
+                    if (user.role === 'CLIENT' && user.assignedStaffId) {
+                      const assignedStaff = users.find(u => u.id === user.assignedStaffId);
+                      if (assignedStaff && assignedStaff.teamName) {
+                        return (
+                          <div className="flex items-start">
+                            <span className="text-gray-500 w-20">팀 정보</span>
+                            <div className="flex flex-col">
+                              <span className="text-orange-600">🤝 {assignedStaff.teamName}</span>
+                              <span className="text-xs text-gray-500">담당: {assignedStaff.name}</span>
+                            </div>
+                          </div>
+                        );
+                      } else if (assignedStaff) {
+                        return (
+                          <div className="flex items-start">
+                            <span className="text-gray-500 w-20">팀 정보</span>
+                            <div className="flex flex-col">
+                              <span className="text-gray-500">팀 미배정</span>
+                              <span className="text-xs text-gray-500">담당: {assignedStaff.name}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
+                  {activeTab === 'staff' && (user.role === 'STAFF' || user.role === 'TEAM_LEADER' || user.role === 'AGENCY_ADMIN') && (
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-20">인센티브율</span>
+                      <span className="text-sm font-medium text-blue-600">{user.incentiveRate || 0}%</span>
+                    </div>
+                  )}
+                  {user.createdAt && (
+                    <div className="flex items-center">
+                      <span className="text-gray-500 w-20">가입일</span>
+                      <span className="text-gray-900">{new Date(user.createdAt).toLocaleDateString('ko-KR')}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 관리 버튼 */}
+                {(() => {
+                  // SUPER_ADMIN은 모든 계정 관리 가능
+                  if (loggedInUser?.role === 'SUPER_ADMIN') return true;
+                  // AGENCY_ADMIN은 SUPER_ADMIN 제외하고 관리 가능
+                  if (loggedInUser?.role === 'AGENCY_ADMIN' && user.role !== 'SUPER_ADMIN') return true;
+                  // STAFF은 CLIENT만 관리 가능
+                  if (loggedInUser?.role === 'STAFF' && user.role === 'CLIENT') return true;
+                  // 그 외에는 관리 불가
+                  return false;
+                })() && (
+                  <div className="flex items-center space-x-2 pt-3 border-t border-gray-100">
+                    <button
+                      onClick={() => handleOpenEditModal(user)}
+                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 min-h-[44px] text-sm text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
+                    >
+                      <Edit size={16} />
+                      <span>편집</span>
+                    </button>
+                    <button
+                      onClick={() => handleOpenDeleteModal(user)}
+                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 min-h-[44px] text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors touch-manipulation"
+                    >
+                      <Trash2 size={16} />
+                      <span>삭제</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 
