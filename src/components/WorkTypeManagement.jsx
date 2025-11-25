@@ -29,6 +29,7 @@ const WorkTypeManagement = ({ loggedInUser }) => {
         id: wt.id,
         name: wt.name,
         description: wt.description,
+        color: wt.color || '#6B7280',  // 색상 필드 추가
         isActive: wt.is_active,  // snake_case → camelCase
         sortOrder: wt.sortOrder || wt.sort_order || 0,
         createdAt: wt.created_at || wt.createdAt,
@@ -190,7 +191,14 @@ const WorkTypeManagement = ({ loggedInUser }) => {
                 {(Array.isArray(workTypes) ? workTypes : []).map((workType) => (
                   <tr key={workType.id} className="bg-white border-b hover:bg-gray-50 touch-manipulation">
                     <td className="px-3 md:px-6 py-3 md:py-4">
-                      <div className="font-medium text-gray-900 text-xs md:text-sm truncate max-w-[120px] md:max-w-none">{workType.name}</div>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 md:w-8 md:h-8 rounded-lg border-2 border-gray-300 flex-shrink-0"
+                          style={{ backgroundColor: workType.color || '#6B7280' }}
+                          title={`색상: ${workType.color || '#6B7280'}`}
+                        />
+                        <div className="font-medium text-gray-900 text-xs md:text-sm truncate max-w-[100px] md:max-w-none">{workType.name}</div>
+                      </div>
                     </td>
                     <td className="px-3 md:px-6 py-3 md:py-4 hidden sm:table-cell">
                       <div className="text-gray-500 text-xs md:text-sm truncate max-w-[150px] md:max-w-none">{workType.description || '-'}</div>
@@ -305,6 +313,7 @@ const WorkTypeModal = ({ workType, onSave, onClose }) => {
   const [formData, setFormData] = useState({
     name: workType?.name || '',
     description: workType?.description || '',
+    color: workType?.color || '#6B7280',
     sortOrder: workType?.sortOrder || 0
   });
 
@@ -352,6 +361,33 @@ const WorkTypeModal = ({ workType, onSave, onClose }) => {
               rows="3"
               placeholder="업무타입에 대한 설명을 입력하세요"
             />
+          </div>
+
+          <div>
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+              색상 *
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={formData.color}
+                onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                className="w-16 h-12 md:w-20 md:h-14 border-2 border-gray-300 rounded-lg cursor-pointer touch-manipulation"
+                title="색상 선택"
+              />
+              <div className="flex-1">
+                <div
+                  className="w-full h-12 md:h-14 rounded-lg border-2 border-gray-300 flex items-center justify-center font-medium text-sm"
+                  style={{
+                    backgroundColor: formData.color,
+                    color: formData.color === '#FFFFFF' || formData.color === '#ffffff' ? '#000000' : '#FFFFFF'
+                  }}
+                >
+                  {formData.color.toUpperCase()}
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">캘린더와 목록에서 표시될 색상을 선택하세요</p>
           </div>
 
           <div>
