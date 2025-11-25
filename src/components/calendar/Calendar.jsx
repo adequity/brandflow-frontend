@@ -355,17 +355,17 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                             )}
                         </div>
 
-                        {/* 일정 점 표시 */}
+                        {/* 일정 바 표시 */}
                         {dayTasks.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                                {dayTasks.slice(0, 6).map((task, idx) => {
+                            <div className="flex flex-col gap-0.5">
+                                {dayTasks.slice(0, 3).map((task, idx) => {
                                     const typeStyle = getTaskTypeStyle(task.type, task.priority);
                                     const colorClass = getTaskColor(task.workType).split(' ')[0];
 
                                     return (
                                         <div
                                             key={task.id}
-                                            className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${colorClass} cursor-pointer hover:scale-150 transition-transform`}
+                                            className={`h-1 md:h-1.5 rounded-full ${colorClass} cursor-pointer hover:opacity-80 transition-opacity shadow-sm`}
                                             title={`${typeStyle.icon} ${task.title}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -374,9 +374,9 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                         />
                                     );
                                 })}
-                                {dayTasks.length > 6 && (
-                                    <div className="text-[8px] md:text-[10px] text-gray-500 font-medium ml-0.5">
-                                        +{dayTasks.length - 6}
+                                {dayTasks.length > 3 && (
+                                    <div className="text-[8px] md:text-[10px] text-gray-600 font-bold mt-0.5">
+                                        +{dayTasks.length - 3}
                                     </div>
                                 )}
                             </div>
