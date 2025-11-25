@@ -389,9 +389,9 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
   const canCreate = currentUser?.role && currentUser.role !== 'CLIENT';
 
   return (
-    <div className="p-4 md:p-6">
+    <div className="p-3 md:p-6">
       {/* 검색 & 필터 영역 */}
-      <div className="flex flex-col gap-4 mb-4 md:mb-6">
+      <div className="flex flex-col gap-3 md:gap-4 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           {/* 검색창 */}
           <div className="relative flex-1 max-w-full sm:max-w-xs">
@@ -453,7 +453,8 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
       </div>
 
       <div className="bg-white rounded-xl md:rounded-2xl border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop 테이블 뷰 */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-xs md:text-sm text-left text-gray-500">
             <thead className="bg-gray-50 text-xs text-gray-700 uppercase">
               <tr>
@@ -689,6 +690,159 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
             })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile 카드 뷰 */}
+        <div className="block md:hidden divide-y divide-gray-200">
+          {filteredCampaigns.map((campaign) => {
+            const posts = campaign.posts || [];
+            const completedCount = posts.filter((p) => p.publishedUrl || p.published_url).length;
+            const totalCount = posts.length || campaign.post_count || 0;
+            const salesData = campaignSales[campaign.id] || { totalSales: 0, totalRevenue: 0, totalMargin: 0, totalCost: 0 };
+
+            return (
+              <div
+                key={campaign.id}
+                className="p-4 hover:bg-gray-50 transition-colors touch-manipulation"
+                onClick={() => onSelectCampaign(campaign.id)}
+              >
+                {/* 캠페인 기본 정보 */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-gray-900 text-sm mb-1 truncate">{campaign.name}</div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                      <span>👤 {getClientDisplayName(campaign.client_company || campaign.client)}</span>
+                      <span>•</span>
+                      <span>담당: {campaign.creator_name || campaign.staff_name || campaign.User?.name || 'N/A'}</span>
+                    </div>
+                    {campaign.memo && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        특이사항: {campaign.memo}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 진행 상태 및 매출 */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">진행률</div>
+                    <div className="font-medium text-sm">{`${completedCount}/${totalCount}`}</div>
+                    <div className="text-xs text-gray-500">
+                      {totalCount > 0 ? Math.round((completedCount/totalCount) * 100) : 0}%
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">예산</div>
+                    <div className="font-medium text-sm text-blue-600 break-all">
+                      {safeFormatCurrency(campaign.budget || 0)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 날짜 정보 */}
+                <div className="flex items-center justify-between text-xs mb-3">
+                  <div>
+                    {campaign.end_date && (() => {
+                      const endDate = new Date(campaign.end_date);
+                      const today = new Date();
+                      const isOverdue = endDate < today;
+                      const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+                      return (
+                        <div>
+                          <span className="text-gray-500">종료일: </span>
+                          <span className={`font-medium ${isOverdue ? 'text-red-600' : daysLeft <= 7 ? 'text-amber-600' : 'text-gray-900'}`}>
+                            {endDate.toLocaleDateString('ko-KR')}
+                          </span>
+                          {!isOverdue && daysLeft <= 30 && (
+                            <span className={`ml-1 ${daysLeft <= 7 ? 'text-amber-500' : 'text-gray-500'}`}>
+                              ({daysLeft}일 남음)
+                            </span>
+                          )}
+                          {isOverdue && (
+                            <span className="ml-1 text-red-500">
+                              ({Math.abs(daysLeft)}일 경과)
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <div className="text-gray-500">
+                    {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleDateString('ko-KR') : '-'}
+                  </div>
+                </div>
+
+                {/* 관리 버튼 */}
+                {canEditCampaign(currentUser, campaign) && (
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                    {currentUser?.role !== 'CLIENT' && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setContractModal(campaign);
+                          }}
+                          className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 min-h-[44px] text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors touch-manipulation"
+                        >
+                          <FileText size={16} />
+                          <span>계약서</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChatContentModal(campaign);
+                          }}
+                          className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 min-h-[44px] text-sm text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors touch-manipulation"
+                        >
+                          <MessageSquare size={16} />
+                          <span>카톡</span>
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditCampaign(campaign);
+                      }}
+                      className="flex items-center justify-center px-3 py-2 min-h-[44px] text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation"
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicateCampaign(campaign);
+                      }}
+                      disabled={duplicatingCampaignId === campaign.id}
+                      className="flex items-center justify-center px-3 py-2 min-h-[44px] text-sm text-green-600 bg-green-50 hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
+                    >
+                      {duplicatingCampaignId === campaign.id ? (
+                        <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Copy size={16} />
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCampaign(campaign.id, campaign.name);
+                      }}
+                      disabled={deletingCampaignId === campaign.id}
+                      className="flex items-center justify-center px-3 py-2 min-h-[44px] text-sm text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors touch-manipulation"
+                    >
+                      {deletingCampaignId === campaign.id ? (
+                        <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Trash2 size={16} />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
