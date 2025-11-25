@@ -22,6 +22,23 @@ const Calendar = ({ user, viewMode = 'month' }) => {
     const [showFilters, setShowFilters] = useState(false);
     const [selectedCampaign, setSelectedCampaign] = useState(null);
     const [showCampaignModal, setShowCampaignModal] = useState(false);
+    const [workTypes, setWorkTypes] = useState([]); // 업무타입 색상 매핑용
+
+    // 업무타입 색상 로드
+    useEffect(() => {
+        const fetchWorkTypes = async () => {
+            try {
+                const response = await api.get('/api/v1/work-types/');
+                setWorkTypes(response.data.map(wt => ({
+                    name: wt.name,
+                    color: wt.color || '#6B7280'
+                })));
+            } catch (error) {
+                console.error('업무타입 조회 실패:', error);
+            }
+        };
+        fetchWorkTypes();
+    }, []);
 
     // 권한별 데이터 로드
     useEffect(() => {
@@ -360,12 +377,13 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                             <div className="flex flex-col gap-0.5">
                                 {dayTasks.slice(0, 3).map((task, idx) => {
                                     const typeStyle = getTaskTypeStyle(task.type, task.priority);
-                                    const colorClass = getTaskColor(task.workType).split(' ')[0];
+                                    const color = getTaskColor(task.workType);
 
                                     return (
                                         <div
                                             key={task.id}
-                                            className={`h-1 md:h-1.5 rounded-full ${colorClass} cursor-pointer hover:opacity-80 transition-opacity shadow-sm`}
+                                            className="h-1 md:h-1.5 rounded-full cursor-pointer hover:opacity-80 transition-opacity shadow-sm"
+                                            style={{ backgroundColor: color }}
                                             title={`${typeStyle.icon} ${task.title}`}
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -396,21 +414,11 @@ const Calendar = ({ user, viewMode = 'month' }) => {
         return days;
     };
 
-    // 업무타입별 색상
+    // 업무타입별 색상 (데이터베이스에서 가져온 색상 사용)
     const getTaskColor = (workType) => {
-        const colors = {
-            '블로그': 'bg-blue-600 text-white',
-            '인스타그램': 'bg-red-600 text-white',
-            '유튜브': 'bg-orange-600 text-white',
-            '페이스북': 'bg-yellow-600 text-white',
-            '리워드 광고': 'bg-green-600 text-white',
-            '캠페인': 'bg-indigo-600 text-white',
-            '송장': 'bg-purple-600 text-white',
-            '결제': 'bg-pink-600 text-white',
-            '기타': 'bg-gray-600 text-white',
-            'default': 'bg-gray-600 text-white'
-        };
-        return colors[workType] || colors.default;
+        const workTypeData = workTypes.find(wt => wt.name === workType);
+        const color = workTypeData?.color || '#6B7280'; // 기본 회색
+        return color;
     };
 
     // 일정 타입별 아이콘과 스타일
@@ -521,7 +529,10 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                         </div>
                                     </div>
                                     <div className="text-xs md:text-sm text-gray-500 text-right flex-shrink-0 ml-2">
-                                        <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs ${getTaskColor(task.workType)}`}>
+                                        <span
+                                            className="px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs text-white"
+                                            style={{ backgroundColor: getTaskColor(task.workType) }}
+                                        >
                                             {task.workType}
                                         </span>
                                     </div>
@@ -739,7 +750,10 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                                     <div className="text-xs md:text-sm text-gray-500 text-right flex-shrink-0 ml-2">
                                         <div className="hidden sm:block">{task.date ? new Date(task.date).toLocaleDateString('ko-KR') : '날짜 없음'}</div>
                                         <div className="text-[10px] md:text-xs mt-0.5 md:mt-1">
-                                            <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs ${getTaskColor(task.workType)}`}>
+                                            <span
+                                                className="px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs text-white"
+                                                style={{ backgroundColor: getTaskColor(task.workType) }}
+                                            >
                                                 {task.workType}
                                             </span>
                                         </div>
@@ -768,7 +782,10 @@ const Calendar = ({ user, viewMode = 'month' }) => {
                     <span className="font-medium text-gray-700">업무타입:</span>
                     {filterOptions.workTypes.map(type => (
                         <div key={type} className="flex items-center space-x-1">
-                            <div className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getTaskColor(type).split(' ')[0]}`}></div>
+                            <div
+                                className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full"
+                                style={{ backgroundColor: getTaskColor(type) }}
+                            ></div>
                             <span className="text-gray-600 text-[10px] md:text-sm">{type}</span>
                         </div>
                     ))}
