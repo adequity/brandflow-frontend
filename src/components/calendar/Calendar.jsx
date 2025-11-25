@@ -399,16 +399,16 @@ const Calendar = ({ user, viewMode = 'month' }) => {
     // 업무타입별 색상
     const getTaskColor = (workType) => {
         const colors = {
-            '블로그': 'bg-blue-100 text-blue-800',
-            '인스타그램': 'bg-pink-100 text-pink-800',
-            '유튜브': 'bg-red-100 text-red-800',
-            '페이스북': 'bg-indigo-100 text-indigo-800',
-            '리워드 광고': 'bg-yellow-100 text-yellow-800',
-            '캠페인': 'bg-green-100 text-green-800',
-            '송장': 'bg-orange-100 text-orange-800',
-            '결제': 'bg-purple-100 text-purple-800',
-            '기타': 'bg-gray-100 text-gray-800',
-            'default': 'bg-gray-100 text-gray-800'
+            '블로그': 'bg-blue-600 text-white',
+            '인스타그램': 'bg-red-600 text-white',
+            '유튜브': 'bg-orange-600 text-white',
+            '페이스북': 'bg-yellow-600 text-white',
+            '리워드 광고': 'bg-green-600 text-white',
+            '캠페인': 'bg-indigo-600 text-white',
+            '송장': 'bg-purple-600 text-white',
+            '결제': 'bg-pink-600 text-white',
+            '기타': 'bg-gray-600 text-white',
+            'default': 'bg-gray-600 text-white'
         };
         return colors[workType] || colors.default;
     };
