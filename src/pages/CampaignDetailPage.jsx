@@ -1036,7 +1036,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                             <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-700 to-primary-900 bg-clip-text text-transparent">
                                 {campaign.name}
                             </h1>
-                            <p className="text-neutral-600 mt-2 text-sm md:text-lg">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
+                            <p className="text-neutral-600 mt-2 text-sm md:text-lg">담당자: {campaign.creator_name || campaign.staff_name || campaign.User?.name || '지정되지 않음'}</p>
                         </div>
                         <button
                             onClick={handleCampaignEdit}
