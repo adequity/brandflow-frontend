@@ -1205,7 +1205,6 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                             </div>
                         </div>
                     </div>
-                    </div>
                     {/* Desktop Table Section */}
                     <div className="hidden md:block overflow-x-auto" style={{ overflowY: 'visible' }}>
                         <table className="w-full text-sm" style={{ position: 'relative', zIndex: 1 }}>
