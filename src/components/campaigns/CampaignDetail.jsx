@@ -372,18 +372,18 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
   const canRegisterLink = selectedRows.length === 1;
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-3 md:p-6 h-full flex flex-col">
       <div className="flex-shrink-0">
-        <button onClick={onBack} className="text-sm text-blue-600 hover:underline mb-2">
+        <button onClick={onBack} className="text-xs md:text-sm text-blue-600 hover:underline mb-2 md:mb-2 min-h-[44px] flex items-center touch-manipulation">
           &larr; 전체 캠페인 목록으로
         </button>
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">{campaign.name}</h2>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0">
+          <h2 className="text-lg md:text-2xl font-bold text-gray-800">{campaign.name}</h2>
 
           {/* 총 매출 표시 */}
-          <div className="bg-purple-50 border-2 border-purple-200 rounded-lg px-6 py-3">
+          <div className="bg-purple-50 border-2 border-purple-200 rounded-lg px-4 md:px-6 py-2 md:py-3">
             <div className="text-xs text-gray-600 mb-1">캠페인 총 매출</div>
-            <div className="text-2xl font-bold text-purple-700">
+            <div className="text-xl md:text-2xl font-bold text-purple-700">
               {(() => {
                 const totalBudget = posts.reduce((sum, post) => sum + (post.budget || 0), 0);
                 return safeFormatCurrency(totalBudget);
@@ -396,40 +396,44 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
         </div>
       </div>
 
-      <div className="flex-grow bg-white p-6 rounded-xl border border-gray-200 flex flex-col mt-4">
-        <div className="flex justify-between items-center mb-4 flex-shrink-0">
-          <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-semibold text-gray-800">콘텐츠 기획 및 승인</h3>
-            <AdvancedFilter 
+      <div className="flex-grow bg-white p-3 md:p-6 rounded-xl border border-gray-200 flex flex-col mt-3 md:mt-4">
+        {/* Header Section - 모바일 최적화 */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0 mb-4 flex-shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <h3 className="text-base md:text-lg font-semibold text-gray-800">콘텐츠 기획 및 승인</h3>
+            <AdvancedFilter
               onFilterChange={handleFilterChange}
               users={users}
             />
           </div>
-          <div className="space-x-2">
+
+          {/* 액션 버튼 - 모바일에서 세로 스택 */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
             <button
               onClick={() => setTopicModalOpen(true)}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700"
+              className="px-3 py-2.5 min-h-[44px] bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 touch-manipulation"
             >
               업무 등록
             </button>
             <button
               onClick={() => setOutlineModalOpen(true)}
               disabled={!canRegisterOutline}
-              className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700"
+              className="px-3 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-700 touch-manipulation"
             >
               세부사항 등록
             </button>
             <button
               onClick={() => setLinkModalOpen(true)}
               disabled={!canRegisterLink}
-              className="px-3 py-1.5 text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700"
+              className="px-3 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700 touch-manipulation"
             >
               {selected?.publishedUrl ? '결과물 수정' : '결과물 등록'}
             </button>
           </div>
         </div>
 
-        <div className="flex-grow overflow-x-auto">
+        {/* Desktop 테이블 뷰 */}
+        <div className="flex-grow overflow-x-auto hidden md:block">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50">
               <tr>
@@ -566,6 +570,169 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile 카드 뷰 */}
+        <div className="block md:hidden divide-y divide-gray-200">
+          {filteredPosts.map((post) => {
+            const created = post.creationTime || post.createdAt;
+            return (
+              <div key={post.id} className="p-4 hover:bg-gray-50 transition-colors">
+                {/* 체크박스와 업무 타입 */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start space-x-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.includes(post.id)}
+                      onChange={() => handleRowSelect(post.id)}
+                      className="mt-1 w-5 h-5 touch-manipulation"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          {post.workType || DEFAULT_VALUES.WORK_TYPE}
+                        </span>
+                        <StatusBadge status={post.topicStatus} />
+                      </div>
+                      <div className="font-medium text-gray-900 text-sm mb-2">{post.title}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 세부사항 정보 */}
+                {post.outline && (
+                  <div className="mb-3 bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs font-medium text-gray-600">세부사항</div>
+                      <button
+                        onClick={() => openEditModal(post, 'outline')}
+                        className="text-gray-400 hover:text-blue-600 p-1 min-w-[44px] min-h-[44px] flex items-center justify-center touch-manipulation"
+                        title="세부사항 수정"
+                      >
+                        <Edit size={16} />
+                      </button>
+                    </div>
+                    <div className="text-xs text-gray-700 mb-2">{post.outline}</div>
+                    {post.outlineStatus && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600">승인 상태:</span>
+                        <StatusBadge status={post.outlineStatus} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 매출, 원가, 결과물 정보 */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-purple-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">매출</div>
+                    <div className="font-medium text-sm text-purple-600">
+                      {post.budget !== null && post.budget !== undefined && post.budget !== 0 ? (
+                        <span className={post.budget > 0 ? 'text-purple-600' : 'text-red-600'}>
+                          {safeFormatCurrency(post.budget)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-yellow-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">원가</div>
+                    <div className="font-medium text-sm text-orange-600">
+                      {post.productId && post.publishedUrl ? (
+                        <span>{safeFormatCurrency((post.product?.costPrice || 0) * (post.quantity || 1))}</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 결과물 링크와 날짜 */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">결과물</div>
+                    {post.publishedUrl ? (
+                      <a
+                        href={formatUrl(post.publishedUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+                      >
+                        <LinkIcon size={12} />
+                        링크 보기
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 text-xs">-</span>
+                    )}
+                  </div>
+                  <div className="bg-gray-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">작성일</div>
+                    <div className="text-xs text-gray-700">{safeFormatDate(created)}</div>
+                  </div>
+                </div>
+
+                {/* 구매요청 상태 */}
+                {renderPurchaseStatusBadge(post.id) && (
+                  <div className="mb-3 bg-blue-50 p-2 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">구매요청</div>
+                    <div className="flex items-center justify-between">
+                      {renderPurchaseStatusBadge(post.id)}
+                      {(loggedInUser?.role === 'STAFF' || loggedInUser?.role === 'AGENCY_ADMIN') && (
+                        <button
+                          onClick={() => handlePurchaseRequest(post.id)}
+                          className="p-2 min-w-[44px] min-h-[44px] text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded touch-manipulation"
+                          title="구매요청"
+                        >
+                          <ShoppingCart size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 승인 버튼 영역 */}
+                <div className="mb-3 bg-green-50 p-2 rounded-lg">
+                  <div className="text-xs text-gray-600 mb-2">승인/반려</div>
+                  <ApprovalButtons
+                    resourceType="post"
+                    resource={{ ...post, Campaign: campaign }}
+                    onApproved={(updatedPost) => {
+                      const updatedPosts = posts.map(p =>
+                        p.id === updatedPost.id ? updatedPost : p
+                      );
+                      setPosts(updatedPosts);
+                    }}
+                    onRejected={(updatedPost) => {
+                      const updatedPosts = posts.map(p =>
+                        p.id === updatedPost.id ? updatedPost : p
+                      );
+                      setPosts(updatedPosts);
+                    }}
+                    compact={true}
+                  />
+                </div>
+
+                {/* 관리 버튼 */}
+                <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => openEditModal(post, 'topic')}
+                    className="flex items-center justify-center w-11 h-11 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation"
+                    title="업무 수정"
+                  >
+                    <Edit size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClick(post)}
+                    className="flex items-center justify-center w-11 h-11 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors touch-manipulation"
+                    title="삭제"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex justify-center items-center mt-4 flex-shrink-0">
