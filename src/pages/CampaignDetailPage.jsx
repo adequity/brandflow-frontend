@@ -1022,83 +1022,83 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-neutral-50">
             {/* Header Section */}
             <div className="bg-white/80 backdrop-blur-xl border-b border-neutral-200/50">
-                <div className="max-w-[95%] mx-auto px-4 py-6">
+                <div className="max-w-[95%] mx-auto px-3 md:px-4 py-4 md:py-6">
                     <button
                         onClick={() => navigate('/admin/campaigns')}
-                        className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 mb-6 group transition-colors duration-200"
+                        className="inline-flex items-center text-xs md:text-sm text-primary-600 hover:text-primary-700 mb-4 md:mb-6 group transition-colors duration-200 min-h-[44px] touch-manipulation"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1 group-hover:-translate-x-1 transition-transform duration-200" />
                         전체 캠페인 목록으로
                     </button>
 
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-700 to-primary-900 bg-clip-text text-transparent">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4 md:mb-6 gap-3">
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-700 to-primary-900 bg-clip-text text-transparent">
                                 {campaign.name}
                             </h1>
-                            <p className="text-neutral-600 mt-2 text-lg">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
+                            <p className="text-neutral-600 mt-2 text-sm md:text-lg">담당자: {campaign.Manager?.name || '지정되지 않음'}</p>
                         </div>
                         <button
                             onClick={handleCampaignEdit}
-                            className="px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2"
+                            className="px-4 md:px-6 py-2.5 md:py-3 min-h-[44px] bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 touch-manipulation w-full md:w-auto"
                         >
                             <Edit className="w-4 h-4" />
-                            <span>캠페인 편집</span>
+                            <span className="text-sm md:text-base">캠페인 편집</span>
                         </button>
                     </div>
 
                     {/* Campaign Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 md:p-6 border border-neutral-200/50">
                             <div className="flex items-center">
-                                <div className="p-3 bg-blue-100 rounded-lg">
-                                    <FileText className="w-6 h-6 text-blue-600" />
+                                <div className="p-2 md:p-3 bg-blue-100 rounded-lg flex-shrink-0">
+                                    <FileText className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
                                 </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-neutral-500">총 업무</p>
-                                    <p className="text-2xl font-bold text-neutral-900">{posts.length}개</p>
+                                <div className="ml-2 md:ml-4 min-w-0">
+                                    <p className="text-xs md:text-sm font-medium text-neutral-500">총 업무</p>
+                                    <p className="text-lg md:text-2xl font-bold text-neutral-900">{posts.length}개</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 md:p-6 border border-neutral-200/50">
                             <div className="flex items-center">
-                                <div className="p-3 bg-green-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-2 md:p-3 bg-green-100 rounded-lg flex-shrink-0">
+                                    <svg className="w-5 h-5 md:w-6 md:h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-neutral-500">완료된 업무</p>
-                                    <p className="text-2xl font-bold text-neutral-900">{posts.filter(p => p.status === 'approved').length}개</p>
+                                <div className="ml-2 md:ml-4 min-w-0">
+                                    <p className="text-xs md:text-sm font-medium text-neutral-500">완료된 업무</p>
+                                    <p className="text-lg md:text-2xl font-bold text-neutral-900">{posts.filter(p => p.status === 'approved').length}개</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 md:p-6 border border-neutral-200/50">
                             <div className="flex items-center">
-                                <div className="p-3 bg-yellow-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-2 md:p-3 bg-yellow-100 rounded-lg flex-shrink-0">
+                                    <svg className="w-5 h-5 md:w-6 md:h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-neutral-500">진행 중</p>
-                                    <p className="text-2xl font-bold text-neutral-900">{posts.filter(p => p.status === 'pending').length}개</p>
+                                <div className="ml-2 md:ml-4 min-w-0">
+                                    <p className="text-xs md:text-sm font-medium text-neutral-500">진행 중</p>
+                                    <p className="text-lg md:text-2xl font-bold text-neutral-900">{posts.filter(p => p.status === 'pending').length}개</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-6 border border-neutral-200/50">
+                        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 md:p-6 border border-neutral-200/50">
                             <div className="flex items-center">
-                                <div className="p-3 bg-purple-100 rounded-lg">
-                                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-2 md:p-3 bg-purple-100 rounded-lg flex-shrink-0">
+                                    <svg className="w-5 h-5 md:w-6 md:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-neutral-500">총 매출</p>
-                                    <p className="text-2xl font-bold text-neutral-900">
+                                <div className="ml-2 md:ml-4 min-w-0">
+                                    <p className="text-xs md:text-sm font-medium text-neutral-500">총 매출</p>
+                                    <p className="text-lg md:text-2xl font-bold text-neutral-900 truncate">
                                         {(campaign?.budget || 0).toLocaleString()}원
                                     </p>
                                 </div>
@@ -1108,42 +1108,50 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 </div>
             </div>
             {/* Main Content Section */}
-            <div className="max-w-[95%] mx-auto px-4 py-6">
+            <div className="max-w-[95%] mx-auto px-3 md:px-4 py-4 md:py-6">
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-neutral-200/50 shadow-xl overflow-visible">
                     {/* Control Panel Header */}
-                    <div className="bg-gradient-to-r from-neutral-50 to-neutral-100/80 border-b border-neutral-200/70 p-6">
-                        <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-6">
-                                <h2 className="text-2xl font-bold text-neutral-800">콘텐츠 기획 및 승인</h2>
+                    <div className="bg-gradient-to-r from-neutral-50 to-neutral-100/80 border-b border-neutral-200/70 p-3 md:p-6">
+                        {/* 제목과 필터 영역 */}
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3 md:gap-0 mb-3 md:mb-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+                                <h2 className="text-lg md:text-2xl font-bold text-neutral-800">콘텐츠 기획 및 승인</h2>
                                 <AdvancedFilter
                                     onFilterChange={handleFilterChange}
                                     users={users}
                                 />
                             </div>
-                            <div className="flex items-center space-x-4">
-                                <div className="flex space-x-3">
-                                    <button
-                                        onClick={() => setTopicModalOpen(true)}
-                                        className="px-5 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl"
-                                    >
-                                        업무 등록
-                                    </button>
-                                    <button
-                                        onClick={() => setOutlineModalOpen(true)}
-                                        disabled={!canRegisterOutline}
-                                        className="px-5 py-2.5 font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800"
-                                    >
-                                        세부사항 등록
-                                    </button>
-                                    <button
-                                        onClick={() => setLinkModalOpen(true)}
-                                        disabled={!canRegisterLink}
-                                        className="px-5 py-2.5 font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800"
-                                    >
-                                        {(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl ? '결과물 수정' : '결과물 등록'}
-                                    </button>
-                                </div>
-                                <div className="h-8 w-px bg-neutral-300 mx-4"></div>
+                        </div>
+
+                        {/* 액션 버튼 영역 */}
+                        <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                            {/* 주요 액션 버튼 */}
+                            <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                                <button
+                                    onClick={() => setTopicModalOpen(true)}
+                                    className="px-4 md:px-5 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium text-sm md:text-base rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+                                >
+                                    업무 등록
+                                </button>
+                                <button
+                                    onClick={() => setOutlineModalOpen(true)}
+                                    disabled={!canRegisterOutline}
+                                    className="px-4 md:px-5 py-2.5 min-h-[44px] font-medium text-sm md:text-base rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800 touch-manipulation"
+                                >
+                                    세부사항 등록
+                                </button>
+                                <button
+                                    onClick={() => setLinkModalOpen(true)}
+                                    disabled={!canRegisterLink}
+                                    className="px-4 md:px-5 py-2.5 min-h-[44px] font-medium text-sm md:text-base rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 touch-manipulation"
+                                >
+                                    {(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl ? '결과물 수정' : '결과물 등록'}
+                                </button>
+                            </div>
+
+                            {/* 문서생성 버튼 - 데스크톱만 표시 */}
+                            <div className="hidden md:flex items-center space-x-4">
+                                <div className="h-8 w-px bg-neutral-300"></div>
                                 <div className="flex items-center space-x-4">
                                     <div className="flex items-center space-x-2">
                                         <span className="text-sm font-medium text-neutral-600">📄 문서생성</span>
@@ -1197,8 +1205,9 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                             </div>
                         </div>
                     </div>
-                    {/* Table Section */}
-                    <div className="overflow-x-auto" style={{ overflowY: 'visible' }}>
+                    </div>
+                    {/* Desktop Table Section */}
+                    <div className="hidden md:block overflow-x-auto" style={{ overflowY: 'visible' }}>
                         <table className="w-full text-sm" style={{ position: 'relative', zIndex: 1 }}>
                             <thead className="bg-white/50 border-b border-neutral-200">
                                     <tr>
@@ -1582,6 +1591,121 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                             ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="block md:hidden divide-y divide-neutral-200">
+                        {filteredPosts.map((post) => {
+                            const created = post.creationTime || post.createdAt;
+                            return (
+                                <div key={post.id} className="p-4 hover:bg-neutral-50/50 transition-colors">
+                                    {/* 체크박스와 업무 타입 */}
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="flex items-start space-x-3 flex-1 min-w-0">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedRows.includes(post.id)}
+                                                onChange={() => handleRowSelect(post.id)}
+                                                className="mt-1 w-5 h-5 text-primary-600 bg-white border-neutral-300 rounded focus:ring-primary-500 focus:ring-2 touch-manipulation"
+                                            />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                        {post.workType || '블로그'}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    onClick={() => setTitleDetailModal({ isOpen: true, post: post })}
+                                                    className="text-left text-sm font-medium text-blue-600 hover:text-blue-700 underline"
+                                                >
+                                                    {post.title || '업무 내용'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 매출 정보 */}
+                                    {post.budget && post.budget > 0 && (
+                                        <div className="mb-3 bg-purple-50 p-3 rounded-lg">
+                                            <div className="text-xs text-gray-600 mb-1">매출</div>
+                                            <div className="font-medium text-sm text-purple-600">
+                                                {post.budget.toLocaleString()}원
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 제품/수량/원가 정보 */}
+                                    {post.productName && (
+                                        <div className="grid grid-cols-3 gap-2 mb-3">
+                                            <div className="bg-gray-50 p-2 rounded-lg">
+                                                <div className="text-xs text-gray-600 mb-1">제품</div>
+                                                <div className="text-xs text-gray-900 truncate">{post.productName}</div>
+                                            </div>
+                                            <div className="bg-gray-50 p-2 rounded-lg">
+                                                <div className="text-xs text-gray-600 mb-1">수량</div>
+                                                <div className="text-xs text-gray-900">{post.quantity || 1}</div>
+                                            </div>
+                                            <div className="bg-gray-50 p-2 rounded-lg">
+                                                <div className="text-xs text-gray-600 mb-1">원가</div>
+                                                <div className="text-xs text-gray-900">{getPostProductCost(post) ? `${getPostProductCost(post).toLocaleString()}원` : '-'}</div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 결과물 링크 */}
+                                    {post.publishedUrl && (
+                                        <div className="mb-3 bg-gray-50 p-2 rounded-lg">
+                                            <div className="text-xs text-gray-600 mb-1">결과물</div>
+                                            <a
+                                                href={post.publishedUrl.startsWith('http') ? post.publishedUrl : `https://${post.publishedUrl}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:underline text-xs flex items-center gap-1"
+                                            >
+                                                <LinkIcon size={12} />
+                                                링크 보기
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    {/* 작성 시간 */}
+                                    <div className="text-xs text-gray-500 mb-3">
+                                        작성: {created ? new Date(created).toLocaleString('ko-KR') : '-'}
+                                    </div>
+
+                                    {/* 관리 버튼 */}
+                                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                                        <button
+                                            onClick={() => setTitleDetailModal({ isOpen: true, post: post })}
+                                            className="flex-1 flex items-center justify-center px-3 py-2.5 min-h-[44px] text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation"
+                                        >
+                                            상세보기
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedPost(post);
+                                                setModalType('topic');
+                                                setEditModalOpen(true);
+                                            }}
+                                            className="flex items-center justify-center w-11 h-11 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
+                                            title="편집"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedPost(post);
+                                                setDeleteModalOpen(true);
+                                            }}
+                                            className="flex items-center justify-center w-11 h-11 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors touch-manipulation"
+                                            title="삭제"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {/* Pagination */}
