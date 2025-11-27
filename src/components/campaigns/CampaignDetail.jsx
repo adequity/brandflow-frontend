@@ -1,7 +1,7 @@
 // src/components/campaigns/CampaignDetail.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../../api/client';
-import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, ShoppingCart, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 import { safeFormatCurrency, safeFormatDate } from '../../utils/dataUtils';
 
@@ -13,6 +13,7 @@ import OutlineRegisterModal from '../modals/OutlineRegisterModal';
 import TopicRegisterModal from '../modals/TopicRegisterModal';
 import LinkRegisterModal from '../modals/LinkRegisterModal';
 import PurchaseRequestModal from '../modals/PurchaseRequestModal';
+import ExcelUploadModal from '../modals/ExcelUploadModal';
 import ApprovalButtons from '../ApprovalButtons';
 import { WORK_TYPES, POST_STATUSES, DEFAULT_VALUES } from '../../constants/campaignConstants';
 
@@ -47,6 +48,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
   const [isTopicModalOpen, setTopicModalOpen] = useState(false);
   const [isLinkModalOpen, setLinkModalOpen] = useState(false);
   const [isPurchaseModalOpen, setPurchaseModalOpen] = useState(false);
+  const [isExcelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
   const [modalType, setModalType] = useState('topic');
   const [selectedPost, setSelectedPost] = useState(null);
   const [purchaseRequests, setPurchaseRequests] = useState([]);
@@ -306,6 +308,19 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     }
   };
 
+  // Excel 일괄 업로드 성공 핸들러
+  const handleExcelUploadSuccess = async () => {
+    try {
+      // 캠페인 데이터 새로고침하여 최신 포스트 목록 가져오기
+      const { data: updatedCampaign } = await api.get(`/api/campaigns/${campaign.id}`);
+      const updatedPosts = updatedCampaign.posts || [];
+      setPosts(updatedPosts);
+      updateParentCampaign(updatedPosts);
+    } catch (err) {
+      console.error('캠페인 데이터 새로고침 실패:', err);
+    }
+  };
+
   // 구매요청 처리
   const handlePurchaseRequest = (postId) => {
     const post = posts.find(p => p.id === postId);
@@ -409,6 +424,15 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
 
           {/* 액션 버튼 - 모바일에서 세로 스택 */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            <button
+              onClick={() => setExcelUploadModalOpen(true)}
+              className="px-3 py-2.5 min-h-[44px] bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-blue-700 touch-manipulation flex items-center justify-center gap-2"
+              title="Excel 파일로 여러 업무를 한 번에 등록"
+            >
+              <FileSpreadsheet size={18} />
+              <span className="hidden sm:inline">Excel 일괄등록</span>
+              <span className="sm:hidden">Excel</span>
+            </button>
             <button
               onClick={() => setTopicModalOpen(true)}
               className="px-3 py-2.5 min-h-[44px] bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 touch-manipulation"
@@ -785,6 +809,13 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
             campaignId: campaign.id,
             postId: selectedPost.id
           }}
+        />
+      )}
+      {isExcelUploadModalOpen && (
+        <ExcelUploadModal
+          campaignId={campaign.id}
+          onClose={() => setExcelUploadModalOpen(false)}
+          onSuccess={handleExcelUploadSuccess}
         />
       )}
     </div>
