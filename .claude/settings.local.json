@@ -18,7 +18,8 @@
       "Bash(python:*)",
       "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/docs\")",
       "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/health\")",
-      "Bash(start \"C:\\Users\\User\\Desktop\\test_campaign_details.html\")"
+      "Bash(start \"C:\\Users\\User\\Desktop\\test_campaign_details.html\")",
+      "Bash(python add_color_column.py:*)"
     ],
     "deny": [],
     "ask": [],

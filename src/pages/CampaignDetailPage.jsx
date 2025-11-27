@@ -16,6 +16,7 @@ import DeleteModal from '../components/modals/DeleteModal';
 import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
 import TopicRegisterModal from '../components/modals/TopicRegisterModal';
 import LinkRegisterModal from '../components/modals/LinkRegisterModal';
+import BulkLinkRegisterModal from '../components/modals/BulkLinkRegisterModal';
 
 const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const { campaignId } = useParams();
@@ -57,6 +58,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const [rejectReasonModal, setRejectReasonModal] = useState({ isOpen: false, reason: '' });
     const [outlineDetailModal, setOutlineDetailModal] = useState({ isOpen: false, post: null, outline: '' });
     const [titleDetailModal, setTitleDetailModal] = useState({ isOpen: false, post: null });
+    const [isBulkLinkModalOpen, setBulkLinkModalOpen] = useState(false);
 
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
@@ -989,9 +991,35 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         setIsCampaignEditing(false);
         setCampaignEditData({ name: '', description: '' });
     };
-    
+
+    // 다중 결과물 저장
+    const handleBulkLinkSave = async (updates) => {
+        try {
+            // 각 업무의 결과물을 업데이트
+            const updatePromises = updates.map(({ postId, publishedUrl }) =>
+                api.put(`/api/campaigns/${campaignId}/posts/${postId}`, {
+                    publishedUrl: publishedUrl
+                })
+            );
+
+            await Promise.all(updatePromises);
+
+            // 전체 데이터 다시 불러오기
+            await fetchCampaignDetail();
+
+            showSuccess(`${updates.length}개의 결과물이 저장되었습니다.`);
+            setBulkLinkModalOpen(false);
+            setSelectedRows([]);
+        } catch (error) {
+            console.error('다중 결과물 저장 실패:', error);
+            showError('결과물 저장에 실패했습니다.');
+            throw error;
+        }
+    };
+
     const canRegisterOutline = selectedRows.length === 1 && (filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.topicStatus === '주제 승인' && !(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.outline;
     const canRegisterLink = selectedRows.length === 1;
+    const canBulkRegisterLink = selectedRows.length >= 2;
 
     if (isLoading) {
         return <div className="p-6">캠페인 상세 정보를 불러오는 중...</div>;
@@ -1146,6 +1174,13 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                     className="px-4 md:px-5 py-2.5 min-h-[44px] font-medium text-sm md:text-base rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 touch-manipulation"
                                 >
                                     {(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.publishedUrl ? '결과물 수정' : '결과물 등록'}
+                                </button>
+                                <button
+                                    onClick={() => setBulkLinkModalOpen(true)}
+                                    disabled={!canBulkRegisterLink}
+                                    className="px-4 md:px-5 py-2.5 min-h-[44px] font-medium text-sm md:text-base rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed disabled:shadow-none bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 touch-manipulation"
+                                >
+                                    다중 결과물 등록 ({selectedRows.length})
                                 </button>
                             </div>
 
@@ -2022,6 +2057,15 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* 다중 결과물 등록 모달 */}
+            {isBulkLinkModalOpen && (
+                <BulkLinkRegisterModal
+                    posts={selectedRows.map(id => filteredPosts.find(p => p.id === id) || posts.find(p => p.id === id)).filter(Boolean)}
+                    onSave={handleBulkLinkSave}
+                    onClose={() => setBulkLinkModalOpen(false)}
+                />
             )}
         </div>
     );
