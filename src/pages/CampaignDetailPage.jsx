@@ -1317,13 +1317,30 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                                 )}
                                             </td>
 
-                                    <td className="p-2">
-                                        <button
-                                            onClick={() => setTitleDetailModal({ isOpen: true, post: post })}
-                                            className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                                        >
-                                            상세보기
-                                        </button>
+                                    <td className="p-2 relative">
+                                        <div className="group relative inline-block max-w-xs">
+                                            <button
+                                                onClick={() => setTitleDetailModal({ isOpen: true, post: post })}
+                                                className="text-sm text-left text-neutral-700 hover:text-blue-600 cursor-pointer underline decoration-dotted hover:decoration-solid transition-colors"
+                                            >
+                                                <span className="line-clamp-2">
+                                                    {post.title || '-'}
+                                                </span>
+                                            </button>
+
+                                            {/* 호버 시 미리보기 툴팁 - PC 전용 */}
+                                            {post.title && post.title.length > 50 && (
+                                                <div className="hidden group-hover:block absolute z-50 left-0 top-full mt-2 p-3 bg-white border border-gray-200 rounded-lg shadow-lg max-w-sm">
+                                                    <div className="text-xs text-gray-500 mb-1 font-semibold">업무 내용 미리보기</div>
+                                                    <div className="text-sm text-gray-700 line-clamp-6">
+                                                        {post.title}
+                                                    </div>
+                                                    <div className="text-xs text-blue-600 mt-2 border-t border-gray-100 pt-2">
+                                                        클릭하여 전체 보기 →
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="p-2">
                                         {editingCell?.postId === post.id && editingCell?.field === 'startDate' ? (
