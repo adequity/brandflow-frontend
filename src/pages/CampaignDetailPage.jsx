@@ -412,7 +412,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         setFilters(newFilters);
     };
 
-    const handleRowSelect = (id) => { setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [id]); };
+    const handleRowSelect = (id) => { setSelectedRows(prev => prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]); };
     const handleSelectAll = (e) => { setSelectedRows(e.target.checked ? filteredPosts.map(p => p.id) : []); };
     const openEditModal = (post, type) => { setSelectedPost(post); setModalType(type); setEditModalOpen(true); };
     const handleDeleteClick = (post) => { setSelectedPost(post); setDeleteModalOpen(true); };
