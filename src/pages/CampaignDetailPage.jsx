@@ -998,7 +998,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
             // 각 업무의 결과물을 업데이트
             const updatePromises = updates.map(({ postId, publishedUrl }) =>
                 api.put(`/api/campaigns/${campaignId}/posts/${postId}`, {
-                    publishedUrl: publishedUrl
+                    publishedUrl: publishedUrl,
+                    published_url: publishedUrl // 백엔드 호환성을 위한 스네이크 케이스
                 })
             );
 
