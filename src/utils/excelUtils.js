@@ -30,8 +30,10 @@ export const VALID_VALUES = {
 
 /**
  * Excel 템플릿 다운로드
+ * @param {Array} workTypes - 업무 타입 목록 (API에서 가져온 데이터)
+ * @param {Array} products - 제품 목록 (API에서 가져온 데이터)
  */
-export const downloadExcelTemplate = () => {
+export const downloadExcelTemplate = (workTypes = [], products = []) => {
     // 워크북 생성
     const wb = XLSX.utils.book_new();
 
@@ -152,6 +154,81 @@ export const downloadExcelTemplate = () => {
     ];
 
     XLSX.utils.book_append_sheet(wb, guideWs, '사용 가이드');
+
+    // 사용 가능한 값 목록 시트 생성
+    const availableValuesData = [
+        ['📋 현재 사용 가능한 업무 타입 및 제품명 목록'],
+        [],
+        ['※ 이 목록은 현재 로그인한 계정의 "상품 관리"에 등록된 데이터입니다.'],
+        ['※ Excel 업로드 시 아래 목록에 있는 값만 사용 가능합니다.'],
+        []
+    ];
+
+    // 업무 타입 목록 추가
+    if (workTypes.length > 0) {
+        availableValuesData.push(['1. 사용 가능한 업무 타입']);
+        availableValuesData.push(['번호', '업무 타입']);
+        workTypes.forEach((type, index) => {
+            availableValuesData.push([index + 1, type.name || type]);
+        });
+        availableValuesData.push([]);
+    } else {
+        availableValuesData.push(['1. 사용 가능한 업무 타입']);
+        availableValuesData.push(['⚠️ 등록된 업무 타입이 없습니다. 상품 관리 메뉴에서 먼저 업무 타입을 등록해주세요.']);
+        availableValuesData.push([]);
+    }
+
+    // 제품 목록을 업무 타입별로 그룹화
+    if (products.length > 0) {
+        availableValuesData.push(['2. 사용 가능한 제품명 (업무 타입별)']);
+        availableValuesData.push([]);
+
+        // 업무 타입별로 제품 분류
+        const productsByType = {};
+        products.forEach(product => {
+            const category = product.category || '기타';
+            if (!productsByType[category]) {
+                productsByType[category] = [];
+            }
+            productsByType[category].push(product);
+        });
+
+        // 업무 타입별로 제품 목록 추가
+        Object.entries(productsByType).forEach(([category, categoryProducts]) => {
+            availableValuesData.push([`📌 ${category}`]);
+            availableValuesData.push(['번호', '제품명', '원가', '판매가']);
+            categoryProducts.forEach((product, index) => {
+                availableValuesData.push([
+                    index + 1,
+                    product.name,
+                    product.costPrice ? `${product.costPrice.toLocaleString()}원` : '-',
+                    product.sellingPrice ? `${product.sellingPrice.toLocaleString()}원` : '-'
+                ]);
+            });
+            availableValuesData.push([]);
+        });
+    } else {
+        availableValuesData.push(['2. 사용 가능한 제품명']);
+        availableValuesData.push(['⚠️ 등록된 제품이 없습니다. 상품 관리 메뉴에서 먼저 제품을 등록해주세요.']);
+    }
+
+    availableValuesData.push([]);
+    availableValuesData.push(['💡 중요 안내']);
+    availableValuesData.push(['• Excel에 입력할 때는 위 목록의 "업무 타입"과 "제품명"을 정확히 복사하여 사용하세요.']);
+    availableValuesData.push(['• 띄어쓰기, 대소문자까지 정확히 일치해야 합니다.']);
+    availableValuesData.push(['• 목록에 없는 값을 입력하면 업로드가 거부됩니다.']);
+
+    const availableValuesWs = XLSX.utils.aoa_to_sheet(availableValuesData);
+
+    // 사용 가능한 값 시트 컬럼 너비 설정
+    availableValuesWs['!cols'] = [
+        { wch: 15 },  // 번호
+        { wch: 40 },  // 제품명/업무타입
+        { wch: 20 },  // 원가
+        { wch: 20 }   // 판매가
+    ];
+
+    XLSX.utils.book_append_sheet(wb, availableValuesWs, '사용가능한 값');
 
     // 파일 다운로드
     const fileName = `캠페인_업무_템플릿_${new Date().toISOString().split('T')[0]}.xlsx`;

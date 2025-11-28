@@ -19,6 +19,7 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
     const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
     const [uploadResults, setUploadResults] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [workTypes, setWorkTypes] = useState([]); // 업무 타입 목록 (템플릿 다운로드용)
     const [products, setProducts] = useState([]); // 제품 목록 (원가 매칭용)
     const fileInputRef = useRef(null);
 
@@ -29,6 +30,7 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
                 const response = await fetch(`${API_BASE_URL}/api/work-types`);
                 if (response.ok) {
                     const data = await response.json();
+                    setWorkTypes(data); // 전체 데이터 저장 (템플릿 다운로드용)
                     // VALID_VALUES.workType 배열을 동적으로 설정
                     VALID_VALUES.workType = data.map(item => item.name);
                     console.log('✅ 업무 타입 로드 완료:', VALID_VALUES.workType);
@@ -259,7 +261,7 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
                             </p>
                         </div>
                         <button
-                            onClick={downloadExcelTemplate}
+                            onClick={() => downloadExcelTemplate(workTypes, products)}
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg flex items-center gap-2 whitespace-nowrap"
                         >
                             <Download size={18} />
