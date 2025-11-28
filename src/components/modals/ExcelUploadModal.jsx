@@ -179,7 +179,7 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
             for (let i = 0; i < apiData.length; i++) {
                 try {
                     const token = localStorage.getItem('authToken');
-                    const response = await fetch(`${API_BASE_URL}/api/v1/campaigns/${campaignId}/posts/`, {
+                    const response = await fetch(`${API_BASE_URL}/api/campaigns/${campaignId}/posts/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
