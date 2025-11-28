@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 // Excel 컬럼 정의 (순서대로) - 단순화된 7개 필수 컬럼
 export const EXCEL_COLUMNS = [
