@@ -179,7 +179,7 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
             for (let i = 0; i < apiData.length; i++) {
                 try {
                     const token = localStorage.getItem('authToken');
-                    const response = await fetch(`${API_BASE_URL}/api/v1/posts`, {
+                    const response = await fetch(`${API_BASE_URL}/api/v1/campaigns/${campaignId}/posts/`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -194,11 +194,18 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
                             title: parsedData[i].title
                         });
                     } else {
-                        const errorData = await response.json();
+                        let errorMessage = '업로드 실패';
+                        try {
+                            const errorData = await response.json();
+                            errorMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
+                        } catch (e) {
+                            const errorText = await response.text();
+                            errorMessage = `HTTP ${response.status}: ${errorText.substring(0, 100)}`;
+                        }
                         results.failed.push({
                             rowNumber: parsedData[i].rowNumber,
                             title: parsedData[i].title,
-                            error: errorData.message || '업로드 실패'
+                            error: errorMessage
                         });
                     }
                 } catch (error) {
