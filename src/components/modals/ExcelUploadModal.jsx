@@ -95,8 +95,8 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
             const rows = await parseExcelFile(selectedFile);
             setParsedData(rows);
 
-            // 데이터 유효성 검증
-            const validation = validateExcelData(rows);
+            // 데이터 유효성 검증 (제품 목록도 함께 전달하여 제품명 검증)
+            const validation = validateExcelData(rows, products);
             if (!validation.valid) {
                 setValidationErrors(validation.errors);
             }

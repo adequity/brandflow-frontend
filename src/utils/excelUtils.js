@@ -121,13 +121,24 @@ export const downloadExcelTemplate = () => {
         ['발행완료', '세금계산서를 발행했으나 지급은 완료되지 않음'],
         ['지급완료', '세금계산서를 발행하고 지급도 완료됨'],
         [],
-        ['5. 주의사항'],
-        ['• 첫 번째 행(헤더)은 수정하지 마세요.'],
-        ['• 모든 7개 컬럼은 필수 입력 항목입니다.'],
-        ['• 날짜는 반드시 YYYY-MM-DD 형식으로 입력하세요.'],
-        ['• 숫자 항목(수량, 매출)에는 숫자만 입력하세요.'],
-        ['• 업무 타입과 제품명은 상품 관리에 등록된 것만 사용하세요.'],
-        ['• 잘못된 데이터는 업로드 시 오류 메시지가 표시됩니다.']
+        ['5. 주의사항 (⚠️ 필독)'],
+        ['• 첫 번째 행(헤더)은 절대 수정하지 마세요.'],
+        ['• 모든 7개 컬럼은 필수 입력 항목입니다. 빈 칸이 있으면 업로드가 실패합니다.'],
+        ['• 날짜는 반드시 YYYY-MM-DD 형식으로 입력하세요. (예: 2025-01-15)'],
+        ['• 숫자 항목(수량, 매출)에는 숫자만 입력하세요. 쉼표나 원 기호는 입력하지 마세요.'],
+        [''],
+        ['⚠️ 업무 타입 및 제품명 입력 시 주의사항'],
+        ['• 업무 타입은 "상품 관리" 메뉴에 등록된 타입명과 100% 일치해야 합니다.'],
+        ['• 제품명도 "상품 관리" 메뉴에 등록된 제품명과 100% 일치해야 합니다.'],
+        ['• 띄어쓰기, 대소문자, 특수문자까지 정확히 일치해야 합니다.'],
+        ['• 등록되지 않은 업무 타입이나 제품명은 업로드가 거부됩니다.'],
+        ['• 업무 타입과 제품명이 일치하지 않으면 원가가 자동 매칭되지 않습니다.'],
+        [''],
+        ['💡 올바른 업무 타입과 제품명을 확인하는 방법:'],
+        ['1. BrandFlow에 로그인합니다.'],
+        ['2. "상품 관리" 메뉴로 이동합니다.'],
+        ['3. 등록된 업무 타입과 제품명을 정확히 확인하여 복사합니다.'],
+        ['4. Excel에 붙여넣기하여 사용합니다.']
     ];
 
     const guideWs = XLSX.utils.aoa_to_sheet(guideData);
@@ -216,9 +227,10 @@ export const parseExcelFile = (file) => {
 /**
  * 데이터 유효성 검증
  * @param {Array} rows - 파싱된 데이터 배열
+ * @param {Array} products - 제품 목록 (제품명 검증용, optional)
  * @returns {Object} { valid: boolean, errors: Array }
  */
-export const validateExcelData = (rows) => {
+export const validateExcelData = (rows, products = []) => {
     const errors = [];
 
     rows.forEach((row) => {
@@ -234,9 +246,20 @@ export const validateExcelData = (rows) => {
             }
         });
 
-        // 업무 타입 검증 (동적 검증은 ExcelUploadModal에서 수행)
+        // 업무 타입 검증 (상품 관리에 등록된 타입만 허용)
         if (row.workType && VALID_VALUES.workType.length > 0 && !VALID_VALUES.workType.includes(row.workType)) {
-            rowErrors.push(`업무 타입이 올바르지 않습니다. 가이드를 참고해주세요.`);
+            rowErrors.push(`업무 타입 "${row.workType}"은(는) 상품 관리에 등록되지 않았습니다. 등록된 업무 타입: ${VALID_VALUES.workType.join(', ')}`);
+        }
+
+        // 제품명 검증 (상품 관리에 등록된 제품만 허용)
+        if (row.productName && row.workType && products.length > 0) {
+            // 해당 업무 타입의 제품 목록 조회
+            const validProducts = products.filter(p => p.category === row.workType);
+            const productNames = validProducts.map(p => p.name);
+
+            if (productNames.length > 0 && !productNames.includes(row.productName)) {
+                rowErrors.push(`제품명 "${row.productName}"은(는) 업무 타입 "${row.workType}"에 등록되지 않았습니다. 등록된 제품: ${productNames.join(', ')}`);
+            }
         }
 
         // 수량 검증 (양수)
