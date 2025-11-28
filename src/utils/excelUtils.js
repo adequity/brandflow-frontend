@@ -1,9 +1,10 @@
 import * as XLSX from 'xlsx-js-style';
 
-// Excel 컬럼 정의 (순서대로) - 단순화된 7개 필수 컬럼
+// Excel 컬럼 정의 (순서대로) - 8개 필수 컬럼
 export const EXCEL_COLUMNS = [
     { key: 'workType', label: '업무 타입', required: true },
     { key: 'productName', label: '제품명', required: true },
+    { key: 'title', label: '업무내용', required: true },
     { key: 'quantity', label: '수량', required: true },
     { key: 'startDate', label: '시작일', required: true },
     { key: 'dueDate', label: '마감일', required: true },
@@ -14,7 +15,6 @@ export const EXCEL_COLUMNS = [
 // 자동 설정되는 필드 (사용자 입력 불필요)
 export const AUTO_FIELDS = {
     cost: 0, // 업무타입 + 제품명으로 자동 매칭
-    title: '', // 제품명을 title로 자동 설정
     topicStatus: '미정', // 기본값
     outline: '', // 빈 값
     outlineStatus: '미정', // 기본값
@@ -44,6 +44,7 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
     const exampleRow1 = [
         '블로그', // 업무 타입
         '블로그 포스팅', // 제품명
+        '신제품 리뷰 작성', // 업무내용
         '1', // 수량
         '2025-01-01', // 시작일
         '2025-01-31', // 마감일
@@ -55,6 +56,7 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
     const exampleRow2 = [
         'SNS', // 업무 타입
         '인스타그램 포스팅', // 제품명
+        'SNS 이벤트 홍보', // 업무내용
         '5', // 수량
         '2025-02-01', // 시작일
         '2025-02-28', // 마감일
@@ -66,6 +68,7 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
     const exampleRow3 = [
         '비디오', // 업무 타입
         '유튜브 영상', // 제품명
+        '브랜드 소개 영상 제작', // 업무내용
         '2', // 수량
         '2025-03-01', // 시작일
         '2025-03-15', // 마감일
@@ -135,10 +138,11 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
     const guideData = [
         ['📋 Excel 일괄 업무 등록 가이드'],
         [],
-        ['1. 필수 입력 항목 (7개)'],
+        ['1. 필수 입력 항목 (8개)'],
         ['컬럼명', '설명', '입력 예시', '비고'],
         ['업무 타입', '업무의 종류', '블로그, SNS, 비디오 등', '상품 관리에 등록된 업무 타입만 사용 가능'],
         ['제품명', '제품 이름', '블로그 포스팅, 인스타그램 포스팅', '업무 타입에 맞는 제품명 입력'],
+        ['업무내용', '업무의 구체적 내용', '신제품 리뷰 작성, SNS 이벤트 홍보', '실제 수행할 업무 내용 설명'],
         ['수량', '업무 수량', '1, 5, 10', '1 이상의 숫자'],
         ['시작일', '업무 시작 날짜', '2025-01-01', 'YYYY-MM-DD 형식'],
         ['마감일', '업무 마감 날짜', '2025-01-31', 'YYYY-MM-DD 형식'],
@@ -148,7 +152,6 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         ['2. 자동 설정 항목'],
         ['항목', '설명'],
         ['원가 (cost)', '업무 타입 + 제품명으로 자동 매칭'],
-        ['업무 내용 (title)', '제품명으로 자동 설정'],
         ['승인 상태', '기본값: 미정'],
         ['세부사항 검토', '빈 값으로 설정'],
         ['세부사항 승인 상태', '기본값: 미정'],
@@ -166,7 +169,7 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         [],
         ['5. 주의사항 (⚠️ 필독)'],
         ['• 첫 번째 행(헤더)은 절대 수정하지 마세요.'],
-        ['• 모든 7개 컬럼은 필수 입력 항목입니다. 빈 칸이 있으면 업로드가 실패합니다.'],
+        ['• 모든 8개 컬럼은 필수 입력 항목입니다. 빈 칸이 있으면 업로드가 실패합니다.'],
         ['• 날짜는 반드시 YYYY-MM-DD 형식으로 입력하세요. (예: 2025-01-15)'],
         ['• 숫자 항목(수량, 매출)에는 숫자만 입력하세요. 쉼표나 원 기호는 입력하지 마세요.'],
         [''],
@@ -257,8 +260,8 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         }
     }
 
-    // 1. 필수 입력 항목 테이블 데이터 (4-10행)
-    for (let row = 4; row <= 10; row++) {
+    // 1. 필수 입력 항목 테이블 데이터 (4-11행) - 8개 항목으로 증가
+    for (let row = 4; row <= 11; row++) {
         for (let col = 0; col < 4; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             if (guideWs[cellAddress]) {
@@ -267,16 +270,16 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         }
     }
 
-    // 2. 자동 설정 항목 테이블 헤더 (13행)
+    // 2. 자동 설정 항목 테이블 헤더 (14행) - 행 번호 조정
     for (let col = 0; col < 2; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: 13, c: col });
+        const cellAddress = XLSX.utils.encode_cell({ r: 14, c: col });
         if (guideWs[cellAddress]) {
             guideWs[cellAddress].s = guideTableHeaderStyle;
         }
     }
 
-    // 2. 자동 설정 항목 테이블 데이터 (14-20행)
-    for (let row = 14; row <= 20; row++) {
+    // 2. 자동 설정 항목 테이블 데이터 (15-20행) - 항목이 6개로 감소
+    for (let row = 15; row <= 20; row++) {
         for (let col = 0; col < 2; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             if (guideWs[cellAddress]) {
@@ -285,8 +288,8 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         }
     }
 
-    // 4. 재무 상태 설명 테이블 데이터 (27-29행)
-    for (let row = 27; row <= 29; row++) {
+    // 4. 재무 상태 설명 테이블 데이터 (28-30행) - 행 번호 조정
+    for (let row = 28; row <= 30; row++) {
         for (let col = 0; col < 2; col++) {
             const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
             if (guideWs[cellAddress]) {
@@ -295,8 +298,8 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         }
     }
 
-    // ⚠️ 주의사항 스타일 적용 (31-37행, 39-43행)
-    const warningRows = [31, 32, 33, 34, 35, 39, 40, 41, 42, 43];
+    // ⚠️ 주의사항 스타일 적용 (32-38행, 40-44행) - 행 번호 조정
+    const warningRows = [32, 33, 34, 35, 36, 40, 41, 42, 43, 44];
     warningRows.forEach(rowIndex => {
         const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: 0 });
         if (guideWs[cellAddress]) {
@@ -304,8 +307,8 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         }
     });
 
-    // 💡 팁 스타일 적용 (45-48행)
-    const tipRows = [45, 46, 47, 48, 49];
+    // 💡 팁 스타일 적용 (46-50행) - 행 번호 조정
+    const tipRows = [46, 47, 48, 49, 50];
     tipRows.forEach(rowIndex => {
         const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: 0 });
         if (guideWs[cellAddress]) {
@@ -758,7 +761,7 @@ export const convertToApiFormat = (rows, campaignId, products = []) => {
             productName: row.productName,
             quantity: Number(row.quantity),
             cost: matchedCost, // 업무타입 + 제품명으로 자동 매칭된 원가
-            title: row.productName, // 제품명을 title로 자동 설정
+            title: row.title, // 업무내용 (사용자 입력)
             startDate: convertExcelDate(row.startDate),
             dueDate: convertExcelDate(row.dueDate),
             topicStatus: AUTO_FIELDS.topicStatus,
