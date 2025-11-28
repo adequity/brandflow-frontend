@@ -87,6 +87,47 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
     // 컬럼 너비 설정
     ws['!cols'] = EXCEL_COLUMNS.map(() => ({ wch: 20 }));
 
+    // 헤더 스타일 적용 (1행)
+    const headerStyle = {
+        fill: { fgColor: { rgb: "4472C4" } }, // 파란색 배경
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 }, // 흰색 굵은 글씨
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+        }
+    };
+
+    // 예시 데이터 스타일 (2-4행)
+    const exampleStyle = {
+        fill: { fgColor: { rgb: "E7E6E6" } }, // 연한 회색 배경
+        alignment: { horizontal: "left", vertical: "center" },
+        border: {
+            top: { style: "thin", color: { rgb: "D3D3D3" } },
+            bottom: { style: "thin", color: { rgb: "D3D3D3" } },
+            left: { style: "thin", color: { rgb: "D3D3D3" } },
+            right: { style: "thin", color: { rgb: "D3D3D3" } }
+        }
+    };
+
+    // 헤더 셀에 스타일 적용
+    EXCEL_COLUMNS.forEach((col, colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
+        if (!ws[cellAddress]) ws[cellAddress] = {};
+        ws[cellAddress].s = headerStyle;
+    });
+
+    // 예시 데이터 행에 스타일 적용
+    for (let row = 1; row <= 3; row++) {
+        EXCEL_COLUMNS.forEach((col, colIndex) => {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: colIndex });
+            if (!ws[cellAddress]) ws[cellAddress] = {};
+            ws[cellAddress].s = exampleStyle;
+        });
+    }
+
     // 워크북에 워크시트 추가
     XLSX.utils.book_append_sheet(wb, ws, '캠페인 업무');
 
@@ -145,6 +186,133 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
 
     const guideWs = XLSX.utils.aoa_to_sheet(guideData);
 
+    // 가이드 시트 스타일 정의
+    const guideTitleStyle = {
+        fill: { fgColor: { rgb: "2E75B6" } }, // 진한 파란색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 16 },
+        alignment: { horizontal: "center", vertical: "center" }
+    };
+
+    const guideSectionStyle = {
+        fill: { fgColor: { rgb: "44546A" } }, // 진한 회색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    const guideTableHeaderStyle = {
+        fill: { fgColor: { rgb: "4472C4" } }, // 파란색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+        }
+    };
+
+    const guideTableCellStyle = {
+        alignment: { horizontal: "left", vertical: "center", wrapText: true },
+        border: {
+            top: { style: "thin", color: { rgb: "D3D3D3" } },
+            bottom: { style: "thin", color: { rgb: "D3D3D3" } },
+            left: { style: "thin", color: { rgb: "D3D3D3" } },
+            right: { style: "thin", color: { rgb: "D3D3D3" } }
+        }
+    };
+
+    const guideWarningStyle = {
+        fill: { fgColor: { rgb: "FFF2CC" } }, // 연한 노란색
+        font: { bold: true, color: { rgb: "C65911" }, sz: 10 }, // 주황색 글씨
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    const guideTipStyle = {
+        fill: { fgColor: { rgb: "E2EFDA" } }, // 연한 녹색
+        font: { bold: true, color: { rgb: "385723" }, sz: 10 }, // 진한 녹색 글씨
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    // 가이드 시트 스타일 적용
+    // 제목 (0행)
+    const guideTitleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
+    if (!guideWs[guideTitleCell]) guideWs[guideTitleCell] = {};
+    guideWs[guideTitleCell].s = guideTitleStyle;
+
+    // 섹션 제목들 (2, 7, 12, 17, 22행)
+    const sectionRows = [2, 12, 17, 21, 26];
+    sectionRows.forEach(rowIndex => {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: 0 });
+        if (guideWs[cellAddress]) {
+            guideWs[cellAddress].s = guideSectionStyle;
+        }
+    });
+
+    // 테이블 헤더들
+    // 1. 필수 입력 항목 테이블 헤더 (3행)
+    for (let col = 0; col < 4; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 3, c: col });
+        if (guideWs[cellAddress]) {
+            guideWs[cellAddress].s = guideTableHeaderStyle;
+        }
+    }
+
+    // 1. 필수 입력 항목 테이블 데이터 (4-10행)
+    for (let row = 4; row <= 10; row++) {
+        for (let col = 0; col < 4; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (guideWs[cellAddress]) {
+                guideWs[cellAddress].s = guideTableCellStyle;
+            }
+        }
+    }
+
+    // 2. 자동 설정 항목 테이블 헤더 (13행)
+    for (let col = 0; col < 2; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 13, c: col });
+        if (guideWs[cellAddress]) {
+            guideWs[cellAddress].s = guideTableHeaderStyle;
+        }
+    }
+
+    // 2. 자동 설정 항목 테이블 데이터 (14-20행)
+    for (let row = 14; row <= 20; row++) {
+        for (let col = 0; col < 2; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (guideWs[cellAddress]) {
+                guideWs[cellAddress].s = guideTableCellStyle;
+            }
+        }
+    }
+
+    // 4. 재무 상태 설명 테이블 데이터 (27-29행)
+    for (let row = 27; row <= 29; row++) {
+        for (let col = 0; col < 2; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (guideWs[cellAddress]) {
+                guideWs[cellAddress].s = guideTableCellStyle;
+            }
+        }
+    }
+
+    // ⚠️ 주의사항 스타일 적용 (31-37행, 39-43행)
+    const warningRows = [31, 32, 33, 34, 35, 39, 40, 41, 42, 43];
+    warningRows.forEach(rowIndex => {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: 0 });
+        if (guideWs[cellAddress]) {
+            guideWs[cellAddress].s = guideWarningStyle;
+        }
+    });
+
+    // 💡 팁 스타일 적용 (45-48행)
+    const tipRows = [45, 46, 47, 48, 49];
+    tipRows.forEach(rowIndex => {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: 0 });
+        if (guideWs[cellAddress]) {
+            guideWs[cellAddress].s = guideTipStyle;
+        }
+    });
+
     // 가이드 시트 컬럼 너비 설정
     guideWs['!cols'] = [
         { wch: 25 },  // 첫 번째 컬럼
@@ -152,6 +320,10 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         { wch: 30 },  // 세 번째 컬럼
         { wch: 50 }   // 네 번째 컬럼
     ];
+
+    // 행 높이 설정
+    guideWs['!rows'] = [];
+    guideWs['!rows'][0] = { hpt: 25 }; // 제목 행 높이
 
     XLSX.utils.book_append_sheet(wb, guideWs, '사용 가이드');
 
@@ -220,6 +392,134 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
 
     const availableValuesWs = XLSX.utils.aoa_to_sheet(availableValuesData);
 
+    // 사용가능한 값 시트 스타일 정의
+    const valuesTitleStyle = {
+        fill: { fgColor: { rgb: "2E75B6" } }, // 진한 파란색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 16 },
+        alignment: { horizontal: "center", vertical: "center" }
+    };
+
+    const valuesNoticeStyle = {
+        fill: { fgColor: { rgb: "FFF2CC" } }, // 연한 노란색
+        font: { bold: false, color: { rgb: "C65911" }, sz: 10 },
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    const valuesSectionStyle = {
+        fill: { fgColor: { rgb: "5B9BD5" } }, // 밝은 파란색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 12 },
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    const valuesCategoryStyle = {
+        fill: { fgColor: { rgb: "70AD47" } }, // 녹색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    const valuesTableHeaderStyle = {
+        fill: { fgColor: { rgb: "4472C4" } }, // 파란색
+        font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+        }
+    };
+
+    const valuesTableCellStyle = {
+        alignment: { horizontal: "left", vertical: "center" },
+        border: {
+            top: { style: "thin", color: { rgb: "D3D3D3" } },
+            bottom: { style: "thin", color: { rgb: "D3D3D3" } },
+            left: { style: "thin", color: { rgb: "D3D3D3" } },
+            right: { style: "thin", color: { rgb: "D3D3D3" } }
+        }
+    };
+
+    const valuesTipStyle = {
+        fill: { fgColor: { rgb: "E2EFDA" } }, // 연한 녹색
+        font: { bold: true, color: { rgb: "385723" }, sz: 10 },
+        alignment: { horizontal: "left", vertical: "center" }
+    };
+
+    // 사용가능한 값 시트 스타일 적용
+    let currentRow = 0;
+
+    // 제목 (0행)
+    const valuesTitleCell = XLSX.utils.encode_cell({ r: currentRow, c: 0 });
+    if (availableValuesWs[valuesTitleCell]) {
+        availableValuesWs[valuesTitleCell].s = valuesTitleStyle;
+    }
+    currentRow += 2; // 빈 줄 건너뛰기
+
+    // 안내 메시지 (2-3행)
+    for (let i = 0; i < 2; i++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: currentRow + i, c: 0 });
+        if (availableValuesWs[cellAddress]) {
+            availableValuesWs[cellAddress].s = valuesNoticeStyle;
+        }
+    }
+    currentRow += 3; // 안내 메시지 2줄 + 빈 줄
+
+    // 동적으로 스타일 적용 (업무 타입 및 제품 섹션)
+    // 스타일을 적용할 때는 실제 데이터 구조를 추적해야 함
+    for (let r = currentRow; r < availableValuesData.length; r++) {
+        const firstCell = availableValuesData[r][0];
+
+        if (!firstCell) continue; // 빈 행 건너뛰기
+
+        const cellAddress = XLSX.utils.encode_cell({ r: r, c: 0 });
+
+        // "1. 사용 가능한 업무 타입" 또는 "2. 사용 가능한 제품명" 섹션 제목
+        if (typeof firstCell === 'string' && firstCell.match(/^\d+\./)) {
+            if (availableValuesWs[cellAddress]) {
+                availableValuesWs[cellAddress].s = valuesSectionStyle;
+            }
+        }
+        // "📌 카테고리명" 형태의 카테고리 헤더
+        else if (typeof firstCell === 'string' && firstCell.startsWith('📌')) {
+            if (availableValuesWs[cellAddress]) {
+                availableValuesWs[cellAddress].s = valuesCategoryStyle;
+            }
+        }
+        // "번호" 로 시작하는 테이블 헤더
+        else if (firstCell === '번호') {
+            // 테이블 헤더 행 스타일 적용
+            const numCols = availableValuesData[r].length;
+            for (let col = 0; col < numCols; col++) {
+                const headerCell = XLSX.utils.encode_cell({ r: r, c: col });
+                if (availableValuesWs[headerCell]) {
+                    availableValuesWs[headerCell].s = valuesTableHeaderStyle;
+                }
+            }
+        }
+        // 숫자로 시작하는 데이터 행 (테이블 내용)
+        else if (typeof firstCell === 'number') {
+            const numCols = availableValuesData[r].length;
+            for (let col = 0; col < numCols; col++) {
+                const dataCell = XLSX.utils.encode_cell({ r: r, c: col });
+                if (availableValuesWs[dataCell]) {
+                    availableValuesWs[dataCell].s = valuesTableCellStyle;
+                }
+            }
+        }
+        // "⚠️" 또는 "💡" 로 시작하는 경고/팁 메시지
+        else if (typeof firstCell === 'string') {
+            if (firstCell.startsWith('⚠️')) {
+                if (availableValuesWs[cellAddress]) {
+                    availableValuesWs[cellAddress].s = valuesNoticeStyle;
+                }
+            } else if (firstCell.startsWith('💡') || firstCell.startsWith('•')) {
+                if (availableValuesWs[cellAddress]) {
+                    availableValuesWs[cellAddress].s = valuesTipStyle;
+                }
+            }
+        }
+    }
+
     // 사용 가능한 값 시트 컬럼 너비 설정
     availableValuesWs['!cols'] = [
         { wch: 15 },  // 번호
@@ -227,6 +527,10 @@ export const downloadExcelTemplate = (workTypes = [], products = []) => {
         { wch: 20 },  // 원가
         { wch: 20 }   // 판매가
     ];
+
+    // 행 높이 설정
+    availableValuesWs['!rows'] = [];
+    availableValuesWs['!rows'][0] = { hpt: 25 }; // 제목 행 높이
 
     XLSX.utils.book_append_sheet(wb, availableValuesWs, '사용가능한 값');
 
