@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/client';
-import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, FileText, FileImage } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, ChevronLeft, ChevronRight, FileText, FileImage, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { useOrder } from '../contexts/OrderContext';
 import ConfirmModal from '../components/ui/ConfirmModal';
@@ -17,6 +17,7 @@ import OutlineRegisterModal from '../components/modals/OutlineRegisterModal';
 import TopicRegisterModal from '../components/modals/TopicRegisterModal';
 import LinkRegisterModal from '../components/modals/LinkRegisterModal';
 import BulkLinkRegisterModal from '../components/modals/BulkLinkRegisterModal';
+import ExcelUploadModal from '../components/modals/ExcelUploadModal';
 
 const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const { campaignId } = useParams();
@@ -59,6 +60,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const [outlineDetailModal, setOutlineDetailModal] = useState({ isOpen: false, post: null, outline: '' });
     const [titleDetailModal, setTitleDetailModal] = useState({ isOpen: false, post: null });
     const [isBulkLinkModalOpen, setBulkLinkModalOpen] = useState(false);
+    const [isExcelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
 
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
@@ -1018,6 +1020,12 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         }
     };
 
+    const handleExcelUploadSuccess = async () => {
+        // Excel 업로드 성공 후 데이터 새로고침
+        await fetchCampaignDetail();
+        setExcelUploadModalOpen(false);
+    };
+
     const canRegisterOutline = selectedRows.length === 1 && (filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.topicStatus === '주제 승인' && !(filteredPosts.find(p => p.id === selectedRows[0]) || posts.find(p => p.id === selectedRows[0]))?.outline;
     const canRegisterLink = selectedRows.length === 1;
     const canBulkRegisterLink = selectedRows.length >= 2;
@@ -1156,6 +1164,15 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                         <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
                             {/* 주요 액션 버튼 */}
                             <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
+                                <button
+                                    onClick={() => setExcelUploadModalOpen(true)}
+                                    className="px-4 md:px-5 py-2.5 min-h-[44px] bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium text-sm md:text-base rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation flex items-center justify-center gap-2"
+                                    title="Excel 파일로 여러 업무를 한 번에 등록"
+                                >
+                                    <FileSpreadsheet size={18} />
+                                    <span className="hidden sm:inline">Excel 일괄등록</span>
+                                    <span className="sm:hidden">Excel</span>
+                                </button>
                                 <button
                                     onClick={() => setTopicModalOpen(true)}
                                     className="px-4 md:px-5 py-2.5 min-h-[44px] bg-gradient-to-r from-primary-600 to-primary-700 text-white font-medium text-sm md:text-base rounded-xl hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
@@ -2066,6 +2083,15 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     posts={selectedRows.map(id => filteredPosts.find(p => p.id === id) || posts.find(p => p.id === id)).filter(Boolean)}
                     onSave={handleBulkLinkSave}
                     onClose={() => setBulkLinkModalOpen(false)}
+                />
+            )}
+
+            {/* Excel 일괄 업무 등록 모달 */}
+            {isExcelUploadModalOpen && (
+                <ExcelUploadModal
+                    campaignId={campaignId}
+                    onClose={() => setExcelUploadModalOpen(false)}
+                    onSuccess={handleExcelUploadSuccess}
                 />
             )}
         </div>
