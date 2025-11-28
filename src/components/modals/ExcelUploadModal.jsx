@@ -178,12 +178,13 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
             // 각 행을 개별적으로 업로드
             for (let i = 0; i < apiData.length; i++) {
                 try {
-                    const response = await fetch('/api/v1/posts', {
+                    const token = localStorage.getItem('authToken');
+                    const response = await fetch(`${API_BASE_URL}/api/v1/posts`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
                         },
-                        credentials: 'include',
                         body: JSON.stringify(apiData[i])
                     });
 

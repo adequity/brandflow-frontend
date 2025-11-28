@@ -19,7 +19,9 @@
       "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/docs\")",
       "Bash(curl -s \"https://brandflow-backend-production-99ae.up.railway.app/health\")",
       "Bash(start \"C:\\Users\\User\\Desktop\\test_campaign_details.html\")",
-      "Bash(python add_color_column.py:*)"
+      "Bash(python add_color_column.py:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": [],
