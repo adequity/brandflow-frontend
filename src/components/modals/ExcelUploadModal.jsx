@@ -1,12 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Upload, FileSpreadsheet, AlertCircle, CheckCircle, Download } from 'lucide-react';
 import {
     downloadExcelTemplate,
     parseExcelFile,
     validateExcelData,
     convertToApiFormat,
-    EXCEL_COLUMNS
+    EXCEL_COLUMNS,
+    VALID_VALUES
 } from '../../utils/excelUtils';
+import { API_BASE_URL } from '../../api/client';
 
 const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
     const [file, setFile] = useState(null);
@@ -17,7 +19,58 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
     const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
     const [uploadResults, setUploadResults] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [products, setProducts] = useState([]); // 제품 목록 (원가 매칭용)
     const fileInputRef = useRef(null);
+
+    // 컴포넌트 마운트 시 업무 타입과 제품 목록 가져오기
+    useEffect(() => {
+        const fetchWorkTypes = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/work-types`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // VALID_VALUES.workType 배열을 동적으로 설정
+                    VALID_VALUES.workType = data.map(item => item.name);
+                    console.log('✅ 업무 타입 로드 완료:', VALID_VALUES.workType);
+                } else {
+                    console.error('❌ 업무 타입 로드 실패:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ 업무 타입 API 호출 오류:', error);
+            }
+        };
+
+        const fetchProducts = async () => {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    console.warn('⚠️ 인증 토큰이 없어 제품 목록을 가져올 수 없습니다.');
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE_URL}/api/products/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const productList = data.products || data;
+                    setProducts(productList);
+                    console.log('✅ 제품 목록 로드 완료:', productList.length, '개');
+                } else {
+                    console.error('❌ 제품 목록 로드 실패:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ 제품 API 호출 오류:', error);
+            }
+        };
+
+        fetchWorkTypes();
+        fetchProducts();
+    }, []);
 
     // 파일 선택 핸들러
     const handleFileChange = async (selectedFile) => {
@@ -117,8 +170,8 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
         };
 
         try {
-            // API 형식으로 변환
-            const apiData = convertToApiFormat(parsedData, campaignId);
+            // API 형식으로 변환 (제품 목록 전달하여 원가 자동 매칭)
+            const apiData = convertToApiFormat(parsedData, campaignId, products);
 
             // 각 행을 개별적으로 업로드
             for (let i = 0; i < apiData.length; i++) {

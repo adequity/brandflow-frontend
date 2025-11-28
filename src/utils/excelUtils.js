@@ -1,28 +1,30 @@
 import * as XLSX from 'xlsx';
 
-// Excel 컬럼 정의 (순서대로)
+// Excel 컬럼 정의 (순서대로) - 단순화된 7개 필수 컬럼
 export const EXCEL_COLUMNS = [
     { key: 'workType', label: '업무 타입', required: true },
     { key: 'productName', label: '제품명', required: true },
     { key: 'quantity', label: '수량', required: true },
-    { key: 'cost', label: '원가', required: true },
-    { key: 'title', label: '업무 내용', required: true },
     { key: 'startDate', label: '시작일', required: true },
     { key: 'dueDate', label: '마감일', required: true },
-    { key: 'topicStatus', label: '승인 상태', required: true },
-    { key: 'outline', label: '세부사항 검토', required: true },
-    { key: 'outlineStatus', label: '세부사항 승인 상태', required: true },
-    { key: 'rejectionReason', label: '반려 사유', required: true },
     { key: 'budget', label: '매출', required: true },
-    { key: 'financialStatus', label: '재무 상태', required: true },
-    { key: 'publishedUrl', label: '결과물 링크', required: true }
+    { key: 'financialStatus', label: '재무 상태', required: true }
 ];
 
-// 유효한 값 정의
+// 자동 설정되는 필드 (사용자 입력 불필요)
+export const AUTO_FIELDS = {
+    cost: 0, // 업무타입 + 제품명으로 자동 매칭
+    title: '', // 제품명을 title로 자동 설정
+    topicStatus: '미정', // 기본값
+    outline: '', // 빈 값
+    outlineStatus: '미정', // 기본값
+    rejectionReason: '', // 빈 값
+    publishedUrl: '' // 빈 값
+};
+
+// 유효한 값 정의 (동적으로 API에서 가져올 예정)
 export const VALID_VALUES = {
-    workType: ['블로그', '인스타그램', '유튜브', '기타'],
-    topicStatus: ['미정', '대기', '승인', '반려'],
-    outlineStatus: ['미정', '대기', '승인', '반려'],
+    workType: [], // API에서 동적으로 설정: /api/work-types
     financialStatus: ['미발행', '발행완료', '지급완료']
 };
 
@@ -36,28 +38,45 @@ export const downloadExcelTemplate = () => {
     // 헤더 행 생성
     const headers = EXCEL_COLUMNS.map(col => col.label);
 
-    // 예시 데이터 행 (선택 가능 값 표시)
-    const exampleRow = [
+    // 예시 데이터 행 1: 블로그
+    const exampleRow1 = [
         '블로그', // 업무 타입
-        '샘플 제품', // 제품명
+        '블로그 포스팅', // 제품명
         '1', // 수량
-        '100000', // 원가
-        '블로그 포스팅 작성', // 업무 내용
         '2025-01-01', // 시작일
         '2025-01-31', // 마감일
-        '미정', // 승인 상태
-        '샘플 세부사항', // 세부사항 검토
-        '미정', // 세부사항 승인 상태
-        '', // 반려 사유
         '200000', // 매출
-        '미발행', // 재무 상태
-        '' // 결과물 링크
+        '미발행' // 재무 상태
     ];
 
-    // 워크시트 데이터 생성
+    // 예시 데이터 행 2: SNS
+    const exampleRow2 = [
+        'SNS', // 업무 타입
+        '인스타그램 포스팅', // 제품명
+        '5', // 수량
+        '2025-02-01', // 시작일
+        '2025-02-28', // 마감일
+        '500000', // 매출
+        '미발행' // 재무 상태
+    ];
+
+    // 예시 데이터 행 3: 비디오
+    const exampleRow3 = [
+        '비디오', // 업무 타입
+        '유튜브 영상', // 제품명
+        '2', // 수량
+        '2025-03-01', // 시작일
+        '2025-03-15', // 마감일
+        '800000', // 매출
+        '발행완료' // 재무 상태
+    ];
+
+    // 워크시트 데이터 생성 (헤더 + 3개 예시)
     const wsData = [
         headers,
-        exampleRow
+        exampleRow1,
+        exampleRow2,
+        exampleRow3
     ];
 
     // 워크시트 생성
@@ -68,6 +87,60 @@ export const downloadExcelTemplate = () => {
 
     // 워크북에 워크시트 추가
     XLSX.utils.book_append_sheet(wb, ws, '캠페인 업무');
+
+    // 가이드 시트 생성
+    const guideData = [
+        ['📋 Excel 일괄 업무 등록 가이드'],
+        [],
+        ['1. 필수 입력 항목 (7개)'],
+        ['컬럼명', '설명', '입력 예시', '비고'],
+        ['업무 타입', '업무의 종류', '블로그, SNS, 비디오 등', '상품 관리에 등록된 업무 타입만 사용 가능'],
+        ['제품명', '제품 이름', '블로그 포스팅, 인스타그램 포스팅', '업무 타입에 맞는 제품명 입력'],
+        ['수량', '업무 수량', '1, 5, 10', '1 이상의 숫자'],
+        ['시작일', '업무 시작 날짜', '2025-01-01', 'YYYY-MM-DD 형식'],
+        ['마감일', '업무 마감 날짜', '2025-01-31', 'YYYY-MM-DD 형식'],
+        ['매출', '예상 매출 금액', '200000, 500000', '0 이상의 숫자 (원)'],
+        ['재무 상태', '세금계산서 발행 상태', '미발행, 발행완료, 지급완료', '3가지 중 하나 선택'],
+        [],
+        ['2. 자동 설정 항목'],
+        ['항목', '설명'],
+        ['원가 (cost)', '업무 타입 + 제품명으로 자동 매칭'],
+        ['업무 내용 (title)', '제품명으로 자동 설정'],
+        ['승인 상태', '기본값: 미정'],
+        ['세부사항 검토', '빈 값으로 설정'],
+        ['세부사항 승인 상태', '기본값: 미정'],
+        ['반려 사유', '빈 값으로 설정'],
+        ['결과물 링크', '빈 값으로 설정'],
+        [],
+        ['3. 업무 타입 안내'],
+        ['※ 상품 관리 메뉴에 등록된 업무 타입만 사용할 수 있습니다.'],
+        ['※ 업무 타입과 제품명이 상품 관리에 등록되어 있어야 원가가 자동으로 매칭됩니다.'],
+        [],
+        ['4. 재무 상태 설명'],
+        ['미발행', '세금계산서를 아직 발행하지 않음'],
+        ['발행완료', '세금계산서를 발행했으나 지급은 완료되지 않음'],
+        ['지급완료', '세금계산서를 발행하고 지급도 완료됨'],
+        [],
+        ['5. 주의사항'],
+        ['• 첫 번째 행(헤더)은 수정하지 마세요.'],
+        ['• 모든 7개 컬럼은 필수 입력 항목입니다.'],
+        ['• 날짜는 반드시 YYYY-MM-DD 형식으로 입력하세요.'],
+        ['• 숫자 항목(수량, 매출)에는 숫자만 입력하세요.'],
+        ['• 업무 타입과 제품명은 상품 관리에 등록된 것만 사용하세요.'],
+        ['• 잘못된 데이터는 업로드 시 오류 메시지가 표시됩니다.']
+    ];
+
+    const guideWs = XLSX.utils.aoa_to_sheet(guideData);
+
+    // 가이드 시트 컬럼 너비 설정
+    guideWs['!cols'] = [
+        { wch: 25 },  // 첫 번째 컬럼
+        { wch: 40 },  // 두 번째 컬럼
+        { wch: 30 },  // 세 번째 컬럼
+        { wch: 50 }   // 네 번째 컬럼
+    ];
+
+    XLSX.utils.book_append_sheet(wb, guideWs, '사용 가이드');
 
     // 파일 다운로드
     const fileName = `캠페인_업무_템플릿_${new Date().toISOString().split('T')[0]}.xlsx`;
@@ -161,24 +234,19 @@ export const validateExcelData = (rows) => {
             }
         });
 
-        // 업무 타입 검증
-        if (row.workType && !VALID_VALUES.workType.includes(row.workType)) {
-            rowErrors.push(`업무 타입은 ${VALID_VALUES.workType.join(', ')} 중 하나여야 합니다.`);
+        // 업무 타입 검증 (동적 검증은 ExcelUploadModal에서 수행)
+        if (row.workType && VALID_VALUES.workType.length > 0 && !VALID_VALUES.workType.includes(row.workType)) {
+            rowErrors.push(`업무 타입이 올바르지 않습니다. 가이드를 참고해주세요.`);
         }
 
-        // 수량 검증 (숫자)
-        if (row.quantity !== '' && isNaN(Number(row.quantity))) {
-            rowErrors.push('수량은 숫자여야 합니다.');
+        // 수량 검증 (양수)
+        if (row.quantity !== '' && (isNaN(Number(row.quantity)) || Number(row.quantity) <= 0)) {
+            rowErrors.push('수량은 1 이상의 숫자여야 합니다.');
         }
 
-        // 원가 검증 (숫자)
-        if (row.cost !== '' && isNaN(Number(row.cost))) {
-            rowErrors.push('원가는 숫자여야 합니다.');
-        }
-
-        // 매출 검증 (숫자)
-        if (row.budget !== '' && isNaN(Number(row.budget))) {
-            rowErrors.push('매출은 숫자여야 합니다.');
+        // 매출 검증 (0 이상 숫자)
+        if (row.budget !== '' && (isNaN(Number(row.budget)) || Number(row.budget) < 0)) {
+            rowErrors.push('매출은 0 이상의 숫자여야 합니다.');
         }
 
         // 날짜 검증
@@ -194,16 +262,6 @@ export const validateExcelData = (rows) => {
                 }
             }
         });
-
-        // 승인 상태 검증
-        if (row.topicStatus && !VALID_VALUES.topicStatus.includes(row.topicStatus)) {
-            rowErrors.push(`승인 상태는 ${VALID_VALUES.topicStatus.join(', ')} 중 하나여야 합니다.`);
-        }
-
-        // 세부사항 승인 상태 검증
-        if (row.outlineStatus && !VALID_VALUES.outlineStatus.includes(row.outlineStatus)) {
-            rowErrors.push(`세부사항 승인 상태는 ${VALID_VALUES.outlineStatus.join(', ')} 중 하나여야 합니다.`);
-        }
 
         // 재무 상태 검증
         if (row.financialStatus && !VALID_VALUES.financialStatus.includes(row.financialStatus)) {
@@ -257,34 +315,56 @@ export const convertExcelDate = (excelDate) => {
 };
 
 /**
+ * 업무 타입과 제품명으로 원가 찾기
+ * @param {string} workType - 업무 타입
+ * @param {string} productName - 제품명
+ * @param {Array} products - 제품 목록
+ * @returns {number} 매칭된 원가 (찾지 못하면 0)
+ */
+export const findProductCost = (workType, productName, products) => {
+    if (!products || products.length === 0) return 0;
+
+    // category(업무타입) + name(제품명) 매칭
+    const matchedProduct = products.find(
+        product => product.category === workType && product.name === productName
+    );
+
+    return matchedProduct?.costPrice || 0;
+};
+
+/**
  * Excel 데이터를 API 형식으로 변환
  * @param {Array} rows - 파싱된 데이터 배열
  * @param {number} campaignId - 캠페인 ID
+ * @param {Array} products - 제품 목록 (원가 자동 매칭용, optional)
  * @returns {Array} API 요청 형식 배열
  */
-export const convertToApiFormat = (rows, campaignId) => {
+export const convertToApiFormat = (rows, campaignId, products = []) => {
     return rows.map(row => {
         // 재무 상태 파싱
         const invoiceIssued = row.financialStatus === '발행완료' || row.financialStatus === '지급완료';
         const paymentCompleted = row.financialStatus === '지급완료';
+
+        // 업무타입 + 제품명으로 원가 자동 매칭
+        const matchedCost = findProductCost(row.workType, row.productName, products);
 
         return {
             campaignId,
             workType: row.workType,
             productName: row.productName,
             quantity: Number(row.quantity),
-            cost: Number(row.cost),
-            title: row.title,
+            cost: matchedCost, // 업무타입 + 제품명으로 자동 매칭된 원가
+            title: row.productName, // 제품명을 title로 자동 설정
             startDate: convertExcelDate(row.startDate),
             dueDate: convertExcelDate(row.dueDate),
-            topicStatus: row.topicStatus,
-            outline: row.outline,
-            outlineStatus: row.outlineStatus,
-            rejectionReason: row.rejectionReason || '',
+            topicStatus: AUTO_FIELDS.topicStatus,
+            outline: AUTO_FIELDS.outline,
+            outlineStatus: AUTO_FIELDS.outlineStatus,
+            rejectionReason: AUTO_FIELDS.rejectionReason,
             budget: Number(row.budget),
             invoiceIssued,
             paymentCompleted,
-            publishedUrl: row.publishedUrl || ''
+            publishedUrl: AUTO_FIELDS.publishedUrl
         };
     });
 };
