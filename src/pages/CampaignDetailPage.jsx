@@ -62,12 +62,30 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
     const [isBulkLinkModalOpen, setBulkLinkModalOpen] = useState(false);
     const [isExcelUploadModalOpen, setExcelUploadModalOpen] = useState(false);
 
+    // 백엔드 응답(snake_case)을 프론트엔드 형식(camelCase)으로 변환
+    const convertPostToFrontend = (post) => ({
+        ...post,
+        workType: post.work_type || post.workType,
+        productName: post.product_name || post.productName,
+        productId: post.product_id || post.productId,
+        topicStatus: post.topic_status || post.topicStatus,
+        outlineStatus: post.outline_status || post.outlineStatus,
+        publishedUrl: post.published_url || post.publishedUrl,
+        orderRequestStatus: post.order_request_status || post.orderRequestStatus,
+        orderRequestId: post.order_request_id || post.orderRequestId,
+        createdAt: post.created_at || post.createdAt,
+        startDate: post.start_date || post.startDate,
+        dueDate: post.due_date || post.dueDate,
+        campaignId: post.campaign_id || post.campaignId,
+        productCost: post.product_cost || post.productCost
+    });
+
     const fetchCampaignDetail = useCallback(async () => {
         setIsLoading(true);
         try {
             const token = localStorage.getItem('authToken');
             console.log('CampaignDetailPage: 토큰 상태:', token ? '존재' : '없음');
-            
+
             if (token) {
                 try {
                     // JWT 토큰 기반 보안 API 호출 (파라미터 없이 토큰만 사용)
@@ -80,7 +98,8 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     const postsData = postsResponse.data;
 
                     setCampaign(campaignData);
-                    setPosts(postsData || []);
+                    // ✅ 백엔드 응답을 프론트엔드 형식으로 변환
+                    setPosts((postsData || []).map(convertPostToFrontend));
                     console.log('CampaignDetailPage: 실제 API 데이터 로드 성공');
                     console.log('캠페인:', campaignData.name);
                     console.log('포스트:', (postsData || []).length, '개');
@@ -490,7 +509,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 startDate: updatedPost.start_date,
                 dueDate: updatedPost.due_date,
                 productId: updatedPost.product_id,
-                productName: updatedPost.productName,
+                productName: updatedPost.product_name,  // ✅ snake_case로 수정
                 quantity: updatedPost.quantity,
                 campaignId: updatedPost.campaign_id
             };
@@ -575,7 +594,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                 startDate: savedPost.start_date,
                 dueDate: savedPost.due_date,
                 productId: savedPost.product_id,
-                productName: savedPost.productName, // 백엔드에서 조인으로 가져온 제품명
+                productName: savedPost.product_name,  // ✅ snake_case로 수정 - 백엔드에서 조인으로 가져온 제품명
                 quantity: savedPost.quantity,
                 campaignId: savedPost.campaign_id
             };
