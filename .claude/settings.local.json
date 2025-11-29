@@ -21,7 +21,8 @@
       "Bash(start \"C:\\Users\\User\\Desktop\\test_campaign_details.html\")",
       "Bash(python add_color_column.py:*)",
       "Bash(npm uninstall:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": [],
