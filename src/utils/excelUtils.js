@@ -757,22 +757,22 @@ export const convertToApiFormat = (rows, campaignId, products = []) => {
 
         return {
             campaignId,
-            work_type: row.workType,           // ✅ snake_case로 변경
-            product_name: row.productName,      // ✅ snake_case로 변경
+            workType: row.workType,             // ✅ camelCase (백엔드가 이제 지원)
+            productName: row.productName,        // ✅ camelCase (백엔드가 이제 지원)
             quantity: Number(row.quantity),
-            cost: matchedCost,                  // 업무타입 + 제품명으로 자동 매칭된 원가
-            product_cost: matchedCost,          // ✅ 백엔드가 기대하는 필드 추가
-            title: row.title,                   // 업무내용 (사용자 입력)
-            start_date: convertExcelDate(row.startDate),    // ✅ snake_case로 변경
-            due_date: convertExcelDate(row.dueDate),        // ✅ snake_case로 변경
-            topic_status: AUTO_FIELDS.topicStatus,          // ✅ snake_case로 변경
+            cost: matchedCost,                   // 업무타입 + 제품명으로 자동 매칭된 원가
+            productCost: matchedCost,            // ✅ camelCase (백엔드가 이제 지원)
+            title: row.title,                    // 업무내용 (사용자 입력)
+            startDate: convertExcelDate(row.startDate),     // ✅ camelCase (백엔드가 이제 지원)
+            dueDate: convertExcelDate(row.dueDate),         // ✅ camelCase (백엔드가 이제 지원)
+            topicStatus: AUTO_FIELDS.topicStatus,           // ✅ camelCase (백엔드가 이제 지원)
             outline: AUTO_FIELDS.outline,
-            outline_status: AUTO_FIELDS.outlineStatus,      // ✅ snake_case로 변경
+            outlineStatus: AUTO_FIELDS.outlineStatus,       // ✅ camelCase (백엔드가 이제 지원)
             rejectionReason: AUTO_FIELDS.rejectionReason,
             budget: Number(row.budget),
             invoiceIssued,
             paymentCompleted,
-            published_url: AUTO_FIELDS.publishedUrl        // ✅ snake_case로 변경
+            publishedUrl: AUTO_FIELDS.publishedUrl          // ✅ camelCase (백엔드가 이제 지원)
         };
     });
 };
