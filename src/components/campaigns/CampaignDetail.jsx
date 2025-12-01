@@ -465,6 +465,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                   <input type="checkbox" onChange={handleSelectAll} />
                 </th>
                 <th className="p-2">업무 타입</th>
+                <th className="p-2">제품명</th>
                 <th className="p-2">업무 내용</th>
                 <th className="p-2">승인 상태</th>
                 <th className="p-2">세부사항 검토</th>
@@ -495,6 +496,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                         {post.workType || DEFAULT_VALUES.WORK_TYPE}
                       </span>
                     </td>
+                    <td className="p-2 text-sm text-gray-700">{post.productName || '-'}</td>
                     <td className="p-2 font-medium text-gray-900">{post.title}</td>
                     <td className="p-2">
                       <StatusBadge status={post.topicStatus} />
@@ -618,6 +620,11 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
                         </span>
                         <StatusBadge status={post.topicStatus} />
                       </div>
+                      {post.productName && (
+                        <div className="text-xs text-gray-600 mb-1">
+                          제품: <span className="font-medium text-gray-800">{post.productName}</span>
+                        </div>
+                      )}
                       <div className="font-medium text-gray-900 text-sm mb-2">{post.title}</div>
                     </div>
                   </div>
