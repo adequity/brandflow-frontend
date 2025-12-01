@@ -179,6 +179,13 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
             for (let i = 0; i < apiData.length; i++) {
                 try {
                     const token = localStorage.getItem('authToken');
+
+                    // 🔍 디버깅: API 요청 데이터 확인
+                    console.log('📤 Excel Upload API Request:', {
+                        rowNumber: parsedData[i].rowNumber,
+                        payload: apiData[i]
+                    });
+
                     const response = await fetch(`${API_BASE_URL}/api/campaigns/${campaignId}/posts/`, {
                         method: 'POST',
                         headers: {

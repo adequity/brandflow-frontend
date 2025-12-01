@@ -22,7 +22,8 @@
       "Bash(python add_color_column.py:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm install:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": [],
