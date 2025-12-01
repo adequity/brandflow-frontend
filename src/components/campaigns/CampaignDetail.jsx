@@ -44,6 +44,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setBulkDeleteModalOpen] = useState(false);
   const [isOutlineModalOpen, setOutlineModalOpen] = useState(false);
   const [isTopicModalOpen, setTopicModalOpen] = useState(false);
   const [isLinkModalOpen, setLinkModalOpen] = useState(false);
@@ -308,6 +309,41 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
     }
   };
 
+  // 일괄 삭제
+  const handleBulkDeleteClick = () => {
+    if (selectedRows.length === 0) {
+      showError('삭제할 항목을 선택해주세요');
+      return;
+    }
+    setBulkDeleteModalOpen(true);
+  };
+
+  const handleConfirmBulkDelete = async () => {
+    if (selectedRows.length === 0) return;
+
+    try {
+      // 선택된 모든 항목 삭제 요청
+      await Promise.all(
+        selectedRows.map(postId =>
+          api.delete(`/api/campaigns/${campaign.id}/posts/${postId}`)
+        )
+      );
+
+      // 삭제된 항목 제외한 posts 업데이트
+      const next = posts.filter((p) => !selectedRows.includes(p.id));
+      setPosts(next);
+      updateParentCampaign(next);
+
+      // 선택 초기화
+      setSelectedRows([]);
+    } catch (err) {
+      console.error(err);
+      showError('일괄 삭제 실패');
+    } finally {
+      setBulkDeleteModalOpen(false);
+    }
+  };
+
   // Excel 일괄 업로드 성공 핸들러
   const handleExcelUploadSuccess = async () => {
     try {
@@ -424,6 +460,16 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
 
           {/* 액션 버튼 - 모바일에서 세로 스택 */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+            {selectedRows.length > 0 && (
+              <button
+                onClick={handleBulkDeleteClick}
+                className="px-3 py-2.5 min-h-[44px] bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 touch-manipulation flex items-center justify-center gap-2"
+                title="선택한 항목을 일괄 삭제합니다"
+              >
+                <Trash2 size={18} />
+                <span>선택 삭제 ({selectedRows.length})</span>
+              </button>
+            )}
             <button
               onClick={() => setExcelUploadModalOpen(true)}
               className="px-3 py-2.5 min-h-[44px] bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-blue-700 touch-manipulation flex items-center justify-center gap-2"
@@ -788,6 +834,13 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
         itemName={selectedPost?.title}
         onConfirm={handleConfirmDelete}
         onClose={() => setDeleteModalOpen(false)}
+      />
+      <DeleteModal
+        isOpen={isBulkDeleteModalOpen}
+        itemType="콘텐츠"
+        itemName={`${selectedRows.length}개 항목`}
+        onConfirm={handleConfirmBulkDelete}
+        onClose={() => setBulkDeleteModalOpen(false)}
       />
       {isOutlineModalOpen && <OutlineRegisterModal onSave={handleRegisterOutline} onClose={() => setOutlineModalOpen(false)} />}
       {isTopicModalOpen && (
