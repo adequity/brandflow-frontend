@@ -179,7 +179,7 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
 
   /* ---------- Handlers ---------- */
   const handleRowSelect = (id) => {
-    setSelectedRows((prev) => (prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [id])); // 단일 선택
+    setSelectedRows((prev) => (prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id])); // 다중 선택
   };
   const handleSelectAll = (e) => setSelectedRows(e.target.checked ? filteredPosts.map((p) => p.id) : []);
   const openEditModal = (post, type) => { setSelectedPost(post); setModalType(type); setEditModalOpen(true); };
