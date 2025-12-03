@@ -249,9 +249,9 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
         const costPrice = getProductCost(post);
         const quantity = post.quantity || 1;
 
-        // Post별 매출(budget) 사용
+        // Post별 매출(budget) 사용 - 수량과 무관하게 고정 금액
         const budget = post.budget || 0;
-        const supplyAmount = budget * quantity;
+        const supplyAmount = budget;  // 매출은 고정 금액 (수량 곱하지 않음!)
         const taxAmount = Math.floor(supplyAmount * 0.1); // 10% 부가세
 
         // 제품명과 업무 타입을 모두 포함하는 품목명 생성
@@ -262,11 +262,11 @@ export const transformCampaignToDocument = (campaign, posts, selectedPostIds = n
             startDate: post.startDate || '-',
             dueDate: post.dueDate || '-',
             itemName: itemDescription,
-            cost: costPrice,  // 원가
-            quantity: quantity,
-            budget: budget,  // 매출 (단가)
+            cost: costPrice,  // 원가 (항목 * 수량으로 계산, 발주 요청용)
+            quantity: quantity,  // 수량 (참고용, 매출 계산에는 미사용)
+            budget: budget,  // 매출 (고정 금액)
             unitPrice: budget,  // 공급 단가 = 매출
-            supplyAmount: supplyAmount,  // 공급가액 = 매출 * 수량
+            supplyAmount: supplyAmount,  // 공급가액 = 매출 (수량 곱하지 않음!)
             taxAmount: taxAmount
         };
     });
