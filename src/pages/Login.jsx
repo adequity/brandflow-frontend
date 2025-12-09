@@ -75,9 +75,6 @@ const Login = ({ onLogin, userType = 'admin' }) => {
             <div className="flex justify-center mb-6">
               <LogoDisplay size="large" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">
-              BrandFlow에 오신 것을 환영합니다
-            </h1>
             <p className="mt-3 text-neutral-600 font-medium">
               {userType === 'admin' ? '관리자' : '클라이언트'} 계정으로 로그인하세요
             </p>
