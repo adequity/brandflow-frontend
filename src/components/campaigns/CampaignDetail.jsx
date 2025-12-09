@@ -460,16 +460,15 @@ const CampaignDetail = ({ campaign, onBack, setCampaigns, loggedInUser }) => {
 
           {/* 액션 버튼 - 모바일에서 세로 스택 */}
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
-            {selectedRows.length > 0 && (
-              <button
-                onClick={handleBulkDeleteClick}
-                className="px-3 py-2.5 min-h-[44px] bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 touch-manipulation flex items-center justify-center gap-2"
-                title="선택한 항목을 일괄 삭제합니다"
-              >
-                <Trash2 size={18} />
-                <span>선택 삭제 ({selectedRows.length})</span>
-              </button>
-            )}
+            <button
+              onClick={handleBulkDeleteClick}
+              disabled={selectedRows.length === 0}
+              className={`px-3 py-2.5 min-h-[44px] text-sm font-semibold rounded-lg touch-manipulation flex items-center justify-center gap-2 transition-colors ${selectedRows.length === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'}`}
+              title={selectedRows.length === 0 ? '삭제할 항목을 선택해주세요' : `선택한 ${selectedRows.length}개 항목을 일괄 삭제합니다`}
+            >
+              <Trash2 size={18} />
+              <span>선택 삭제{selectedRows.length > 0 ? ` (${selectedRows.length})` : ''}</span>
+            </button>
             <button
               onClick={() => setExcelUploadModalOpen(true)}
               className="px-3 py-2.5 min-h-[44px] bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold rounded-lg hover:from-purple-700 hover:to-blue-700 touch-manipulation flex items-center justify-center gap-2"
