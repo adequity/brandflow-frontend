@@ -23,7 +23,9 @@
       "Bash(npm uninstall:*)",
       "Bash(npm install:*)",
       "Bash(curl:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(railway up)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": [],
