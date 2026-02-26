@@ -728,15 +728,18 @@ export const convertExcelDate = (excelDate) => {
  * @param {Array} products - 제품 목록
  * @returns {number} 매칭된 원가 (찾지 못하면 0)
  */
-export const findProductCost = (workType, productName, products) => {
-    if (!products || products.length === 0) return 0;
+export const findProduct = (workType, productName, products) => {
+    if (!products || products.length === 0) return null;
 
     // category(업무타입) + name(제품명) 매칭
-    const matchedProduct = products.find(
+    return products.find(
         product => product.category === workType && product.name === productName
-    );
+    ) || null;
+};
 
-    return matchedProduct?.costPrice || 0;
+export const findProductCost = (workType, productName, products) => {
+    const matched = findProduct(workType, productName, products);
+    return matched?.costPrice || 0;
 };
 
 /**
@@ -752,13 +755,15 @@ export const convertToApiFormat = (rows, campaignId, products = []) => {
         const invoiceIssued = row.financialStatus === '발행완료' || row.financialStatus === '지급완료';
         const paymentCompleted = row.financialStatus === '지급완료';
 
-        // 업무타입 + 제품명으로 원가 자동 매칭
-        const matchedCost = findProductCost(row.workType, row.productName, products);
+        // 업무타입 + 제품명으로 제품 매칭
+        const matchedProduct = findProduct(row.workType, row.productName, products);
+        const matchedCost = matchedProduct?.costPrice || 0;
 
         return {
             campaignId,
             workType: row.workType,             // ✅ camelCase (백엔드가 이제 지원)
             productName: row.productName,        // ✅ camelCase (백엔드가 이제 지원)
+            productId: matchedProduct?.id || null, // ✅ 제품 ID 연동 (발주 원가 계산용)
             quantity: Number(row.quantity),
             cost: matchedCost,                   // 업무타입 + 제품명으로 자동 매칭된 원가
             productCost: matchedCost,            // ✅ camelCase (백엔드가 이제 지원)
