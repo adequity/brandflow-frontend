@@ -99,9 +99,10 @@ const OrderManagement = ({ loggedInUser }) => {
     const pendingOrders = orderRequests.filter(o => o.status === '대기').length;
     const approvedOrders = orderRequests.filter(o => o.status === '승인').length;
     const rejectedOrders = orderRequests.filter(o => o.status === '거부').length;
+    const getOrderCost = (order) => Number(order.total_cost) || Number(order.cost_price) || 0;
     const totalAmount = orderRequests
       .filter(order => order.status === '승인')
-      .reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
+      .reduce((sum, order) => sum + getOrderCost(order), 0);
 
     const thisMonth = new Date();
     const thisMonthApprovedOrders = orderRequests.filter(order => {
@@ -110,7 +111,7 @@ const OrderManagement = ({ loggedInUser }) => {
              orderDate.getMonth() === thisMonth.getMonth() &&
              orderDate.getFullYear() === thisMonth.getFullYear();
     });
-    const thisMonthAmount = thisMonthApprovedOrders.reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
+    const thisMonthAmount = thisMonthApprovedOrders.reduce((sum, order) => sum + getOrderCost(order), 0);
     
     setStats({
       totalOrders,
@@ -427,7 +428,7 @@ const OrderManagement = ({ loggedInUser }) => {
                   </td>
                   <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">
                     <div className="break-all min-w-[70px]">
-                      {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
+                      {(Number(order.total_cost) || Number(order.cost_price) || 0).toLocaleString()}원
                     </div>
                     {order.product_cost && order.quantity && (
                       <div className="text-xs text-gray-500 mt-1 hidden lg:block">
