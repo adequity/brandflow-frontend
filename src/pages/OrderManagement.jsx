@@ -101,7 +101,7 @@ const OrderManagement = ({ loggedInUser }) => {
     const rejectedOrders = orderRequests.filter(o => o.status === '거부').length;
     const totalAmount = orderRequests
       .filter(order => order.status === '승인')
-      .reduce((sum, order) => sum + (Number(order.cost_price) || 0), 0);
+      .reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
 
     const thisMonth = new Date();
     const thisMonthApprovedOrders = orderRequests.filter(order => {
@@ -110,7 +110,7 @@ const OrderManagement = ({ loggedInUser }) => {
              orderDate.getMonth() === thisMonth.getMonth() &&
              orderDate.getFullYear() === thisMonth.getFullYear();
     });
-    const thisMonthAmount = thisMonthApprovedOrders.reduce((sum, order) => sum + (Number(order.cost_price) || 0), 0);
+    const thisMonthAmount = thisMonthApprovedOrders.reduce((sum, order) => sum + (Number(order.total_cost) || 0), 0);
     
     setStats({
       totalOrders,
