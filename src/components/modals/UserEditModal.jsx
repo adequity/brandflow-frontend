@@ -70,7 +70,8 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                 // 팀 정보 초기값
                 teamName: '',
                 teamLeaderId: null,
-                assignedStaffId: null,
+                // STAFF가 CLIENT 생성 시 본인을 담당자로 자동 할당
+                assignedStaffId: (loggedInUser?.role === 'STAFF' && defaultRole === 'CLIENT') ? loggedInUser.id : null,
                 // 클라이언트 실제 회사 정보 초기값
                 clientCompanyName: '',
                 clientBusinessNumber: '',
@@ -546,7 +547,17 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                 <label htmlFor="assignedStaffId" className="block text-sm font-medium text-gray-700 mb-1">
                                     담당 STAFF/팀 리더 {(loggedInUser?.role === 'AGENCY_ADMIN' || loggedInUser?.role === 'SUPER_ADMIN') && <span className="text-gray-500">(변경 가능)</span>}
                                 </label>
-                                {isLoadingStaff ? (
+                                {/* STAFF 계정이 CLIENT 생성 시: 본인 자동 할당 (고정 표시) */}
+                                {loggedInUser?.role === 'STAFF' ? (
+                                    <>
+                                        <div className="w-full px-4 py-3 border border-green-300 bg-green-50 rounded-lg text-green-800 font-medium">
+                                            {loggedInUser.name} (본인 - 자동 할당)
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            직원 계정으로 클라이언트 생성 시 본인이 담당자로 자동 할당됩니다.
+                                        </p>
+                                    </>
+                                ) : isLoadingStaff ? (
                                     <div className="w-full px-4 py-3 border border-gray-300 bg-gray-50 rounded-lg text-gray-500">
                                         담당자 목록 로딩 중...
                                     </div>
@@ -558,7 +569,6 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                             value={formData.assignedStaffId || ''}
                                             onChange={handleChange}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                            disabled={loggedInUser?.role === 'STAFF'}
                                         >
                                             <option value="">담당자를 선택하세요...</option>
                                             {staffMembers.map((staff) => (
@@ -569,7 +579,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                             ))}
                                         </select>
                                         <p className="text-xs text-gray-500 mt-1">
-                                            💡 이 클라이언트를 담당할 STAFF 또는 팀 리더를 선택하세요. {loggedInUser?.role === 'STAFF' ? '(STAFF가 생성 시 자동 할당됨)' : '(ADMIN은 변경 가능)'}
+                                            이 클라이언트를 담당할 STAFF 또는 팀 리더를 선택하세요.
                                         </p>
 
                                         {/* 선택한 STAFF의 팀 정보 표시 */}
@@ -578,12 +588,12 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                             if (selectedStaff && (selectedStaff.team_name || selectedStaff.teamName)) {
                                                 return (
                                                     <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                                        <p className="text-xs text-blue-800 font-medium mb-1">👔 소속 팀 정보</p>
+                                                        <p className="text-xs text-blue-800 font-medium mb-1">소속 팀 정보</p>
                                                         <p className="text-sm text-blue-700">
                                                             <span className="font-medium">{selectedStaff.team_name || selectedStaff.teamName}</span>
                                                         </p>
                                                         <p className="text-xs text-blue-600 mt-1">
-                                                            ℹ️ 이 클라이언트는 담당 STAFF를 통해 자동으로 팀과 연결됩니다.
+                                                            이 클라이언트는 담당 STAFF를 통해 자동으로 팀과 연결됩니다.
                                                         </p>
                                                     </div>
                                                 );
@@ -593,7 +603,7 @@ const UserEditModal = ({ user, onSave, onClose, loggedInUser }) => {
                                     </>
                                 ) : (
                                     <div className="w-full px-4 py-3 border border-yellow-300 bg-yellow-50 rounded-lg text-yellow-700">
-                                        <p className="font-medium">⚠️ STAFF가 없습니다</p>
+                                        <p className="font-medium">STAFF가 없습니다</p>
                                         <p className="text-xs mt-1">해당 회사에 STAFF 역할의 사용자를 먼저 생성해주세요.</p>
                                     </div>
                                 )}
