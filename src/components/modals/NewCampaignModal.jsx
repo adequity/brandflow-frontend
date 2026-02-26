@@ -39,9 +39,7 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 const { data } = await apiEndpoints.users.list({
                     params: {
                         viewerId: currentUser?.id || 1,
-                        viewerRole: currentUser?.role === 'SUPER_ADMIN' ? 'super_admin' :
-                                   currentUser?.role === 'AGENCY_ADMIN' ? 'agency_admin' :
-                                   currentUser?.role === 'STAFF' ? 'staff' : 'client'
+                        viewerRole: currentUser?.role || 'CLIENT'
                     }
                 });
                 setAllUsers(Array.isArray(data) ? data : (data?.results || []));
@@ -71,27 +69,22 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
     console.log('All users:', allUsers);
     console.log('Current user:', currentUser);
     
+    const STAFF_ROLES = ['STAFF', 'TEAM_LEADER', 'AGENCY_ADMIN'];
     const staffUsers = allUsers.filter(u => {
-        console.log('Checking user:', u, 'role:', u.role);
-        // Express에서 온 role을 한글로 매핑 (이미 한글인 경우 그대로 사용)
-        const mappedRole = ROLE_MAPPING[u.role] || u.role;
-        console.log('Mapped role:', mappedRole);
-        
-        // 직원 또는 대행사 어드민 역할만 선택 가능 (한글 role도 지원)
-        if (mappedRole !== ROLES.EMPLOYEE && mappedRole !== ROLES.AGENCY_ADMIN && 
-            u.role !== 'STAFF' && u.role !== 'AGENCY_ADMIN') return false;
-        
-        // 권한 체크를 위해 매핑된 role로 객체 생성
-        const userWithMappedRole = { 
-            ...u, 
-            role: mappedRole,
-            // Express API 형식에서는 name 필드를 first_name과 last_name으로 대체
-            first_name: u.name || u.first_name || '',
-            last_name: u.last_name || ''
-        };
-        return canSelectEmployee(currentUser, userWithMappedRole);
+        // STAFF, TEAM_LEADER, AGENCY_ADMIN 역할만 직원 선택 가능
+        if (!STAFF_ROLES.includes(u.role)) return false;
+
+        // SUPER_ADMIN은 모든 직원 선택 가능
+        if (currentUser?.role === 'SUPER_ADMIN') return true;
+
+        // AGENCY_ADMIN은 같은 회사 직원 선택 가능 (백엔드에서 이미 같은 회사만 반환)
+        if (currentUser?.role === 'AGENCY_ADMIN') return true;
+
+        // STAFF는 본인만 선택 가능
+        if (currentUser?.role === 'STAFF') return u.id === currentUser.id;
+
+        return false;
     })
-    // Express API 형식에 맞게 데이터 변환
     .map(u => ({
         ...u,
         first_name: u.name || u.first_name || '',
@@ -132,87 +125,23 @@ const NewCampaignModal = ({ users, onSave, onClose }) => {
                 const response = await apiEndpoints.users.list({
                     params: {
                         viewerId: currentUser?.id || 1,
-                        viewerRole: currentUser?.role === 'SUPER_ADMIN' ? 'super_admin' :
-                                   currentUser?.role === 'AGENCY_ADMIN' ? 'agency_admin' :
-                                   currentUser?.role === 'STAFF' ? 'staff' : 'client'
+                        viewerRole: currentUser?.role || 'CLIENT'
                     },
                     signal: abortController.signal
                 });
-                
-                console.log('📡 API Response:', response);
-                console.log('📡 Response status:', response.status);
-                console.log('📡 Response headers:', response.headers);
+
                 const data = response.data;
-                console.log('📋 Client data received:', data);
-                console.log('📋 Data type:', typeof data, 'isArray:', Array.isArray(data));
-                if (data?.results) {
-                    console.log('📋 Results data:', data.results, 'length:', data.results.length);
-                }
-                
-                // Express API에서 오는 데이터 형식에 맞게 수정
-                // 🚨 임시: 전체 사용자에서 클라이언트만 필터링
-                const allUsers = Array.isArray(data) ? data : (data?.results || []);
-                console.log('👥 전체 사용자 데이터:', allUsers, '개수:', allUsers.length);
-                
-                const clientsOnly = allUsers.filter(user => {
-                    const isClient = user.role === 'CLIENT' || user.role === 'client' || 
-                                    ROLE_MAPPING[user.role] === 'client';
-                    console.log('🔍 사용자 role 체크:', {
-                        name: user.name,
-                        role: user.role,
-                        mappedRole: ROLE_MAPPING[user.role],
-                        isClient: isClient
-                    });
-                    return isClient;
-                });
-                console.log('👤 클라이언트만 필터링 결과:', clientsOnly, '개수:', clientsOnly.length);
-                
-                const availableClients = clientsOnly
-                    .map(client => ({
-                        ...client,
-                        // Express API 형식에서는 name 필드를 first_name과 last_name으로 대체  
-                        first_name: client.name || client.first_name || '',
-                        last_name: client.last_name || '',
-                        // 권한 체크를 위해 role 정규화
-                        role: ROLE_MAPPING[client.role] || client.role
-                    }))
-                    .filter(client => {
-                        const canSelect = canSelectClient(currentUser, client);
-                        console.log('🔍 Checking canSelectClient for:', {
-                            currentUser: {
-                                id: currentUser?.id,
-                                role: currentUser?.role,
-                                company: currentUser?.company,
-                                full: currentUser
-                            },
-                            client: {
-                                id: client.id,
-                                role: client.role,
-                                company: client.company,
-                                name: client.name,
-                                full: client
-                            },
-                            canSelect: canSelect,
-                            isSameCompanyDirect: currentUser?.company && client.company && currentUser.company === client.company,
-                            roleMatch: client.role === 'CLIENT' || client.role === 'client',
-                            mappedRole: ROLE_MAPPING[client.role] || client.role
-                        });
-                        
-                        // 🚨 임시 해결책: 모든 권한 체크 우회 (디버깅용)
-                        console.log('🚨 권한 체크 완전 우회 - 모든 클라이언트 표시');
-                        return true;
-                        
-                        // 기존 로직 (주석 처리)
-                        // if (currentUser?.role === '슈퍼 어드민' || currentUser?.role === '대행사 어드민') {
-                        //     console.log('Admin user - allowing all clients');
-                        //     return true;
-                        // }
-                        // return canSelect;
-                    });
-                    
-                console.log('Available clients after permission check:', availableClients);
-                console.log('Available clients count:', availableClients.length);
-                console.log('Setting clientUsers to:', availableClients);
+                const allUsersData = Array.isArray(data) ? data : (data?.results || []);
+
+                // CLIENT 역할만 필터링
+                const clientsOnly = allUsersData.filter(user => user.role === 'CLIENT');
+
+                const availableClients = clientsOnly.map(client => ({
+                    ...client,
+                    first_name: client.name || client.first_name || '',
+                    last_name: client.last_name || ''
+                }));
+
                 setClientUsers(availableClients);
             } catch (error) {
                 if (error.name !== 'AbortError') {

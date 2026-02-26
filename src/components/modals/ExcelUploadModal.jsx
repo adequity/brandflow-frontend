@@ -8,7 +8,7 @@ import {
     EXCEL_COLUMNS,
     VALID_VALUES
 } from '../../utils/excelUtils';
-import { API_BASE_URL } from '../../api/client';
+import api, { API_BASE_URL } from '../../api/client';
 
 const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
     const [file, setFile] = useState(null);
@@ -44,27 +44,11 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
 
         const fetchProducts = async () => {
             try {
-                const token = localStorage.getItem('authToken');
-                if (!token) {
-                    console.warn('⚠️ 인증 토큰이 없어 제품 목록을 가져올 수 없습니다.');
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE_URL}/api/products/`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const productList = data.products || data;
-                    setProducts(productList);
-                    console.log('✅ 제품 목록 로드 완료:', productList.length, '개');
-                } else {
-                    console.error('❌ 제품 목록 로드 실패:', response.status);
-                }
+                const response = await api.get('/api/products/');
+                const data = response.data;
+                const productList = data.products || data;
+                setProducts(productList);
+                console.log('✅ 제품 목록 로드 완료:', productList.length, '개');
             } catch (error) {
                 console.error('❌ 제품 API 호출 오류:', error);
             }
@@ -175,51 +159,30 @@ const ExcelUploadModal = ({ campaignId, onClose, onSuccess }) => {
             // API 형식으로 변환 (제품 목록 전달하여 원가 자동 매칭)
             const apiData = convertToApiFormat(parsedData, campaignId, products);
 
-            // 각 행을 개별적으로 업로드
+            // 각 행을 개별적으로 업로드 (api 클라이언트 사용으로 인증 자동 처리)
             for (let i = 0; i < apiData.length; i++) {
                 try {
-                    const token = localStorage.getItem('authToken');
-
                     // 🔍 디버깅: API 요청 데이터 확인
                     console.log('📤 Excel Upload API Request:', {
                         rowNumber: parsedData[i].rowNumber,
                         payload: apiData[i]
                     });
 
-                    const response = await fetch(`${API_BASE_URL}/api/campaigns/${campaignId}/posts/`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(apiData[i])
-                    });
+                    const response = await api.post(`/api/campaigns/${campaignId}/posts/`, apiData[i]);
 
-                    if (response.ok) {
-                        results.success.push({
-                            rowNumber: parsedData[i].rowNumber,
-                            title: parsedData[i].title
-                        });
-                    } else {
-                        let errorMessage = '업로드 실패';
-                        try {
-                            const errorData = await response.json();
-                            errorMessage = errorData.detail || errorData.message || JSON.stringify(errorData);
-                        } catch (e) {
-                            const errorText = await response.text();
-                            errorMessage = `HTTP ${response.status}: ${errorText.substring(0, 100)}`;
-                        }
-                        results.failed.push({
-                            rowNumber: parsedData[i].rowNumber,
-                            title: parsedData[i].title,
-                            error: errorMessage
-                        });
-                    }
+                    results.success.push({
+                        rowNumber: parsedData[i].rowNumber,
+                        title: parsedData[i].title
+                    });
                 } catch (error) {
+                    const errorMessage = error?.response?.data?.detail ||
+                                        error?.response?.data?.message ||
+                                        error?.message ||
+                                        '업로드 실패';
                     results.failed.push({
                         rowNumber: parsedData[i].rowNumber,
                         title: parsedData[i].title,
-                        error: error.message
+                        error: errorMessage
                     });
                 }
 

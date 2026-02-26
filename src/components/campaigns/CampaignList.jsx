@@ -494,10 +494,12 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
               const totalCount = posts.length || campaign.post_count || 0;
               const salesData = campaignSales[campaign.id] || { totalSales: 0, totalRevenue: 0, totalMargin: 0, totalCost: 0 };
 
+              const isCancelled = campaign.status === '취소';
+
               return (
                 <tr
                   key={campaign.id}
-                  className="bg-white border-b hover:bg-gray-50 touch-manipulation"
+                  className={`border-b hover:bg-gray-50 touch-manipulation ${isCancelled ? 'bg-red-50' : 'bg-white'}`}
                 >
                   <th
                     scope="row"
@@ -505,7 +507,10 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     <div>
-                      <div className="font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none">{campaign.name}</div>
+                      <div className={`font-medium text-xs md:text-sm truncate max-w-[120px] md:max-w-none ${isCancelled ? 'text-red-600' : ''}`}>
+                        {isCancelled && <span className="inline-block bg-red-100 text-red-700 text-[10px] px-1.5 py-0.5 rounded mr-1">취소</span>}
+                        {campaign.name}
+                      </div>
                       {campaign.memo && (
                         <div className="text-xs text-gray-500 mt-1 hidden md:block">
                           특이사항: {campaign.memo}
@@ -549,11 +554,14 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                     onClick={() => onSelectCampaign(campaign.id)}
                   >
                     <div className="text-xs md:text-sm">
-                      <div className="font-medium text-blue-600 break-all">
+                      <div className={`font-medium break-all ${isCancelled ? 'text-red-400 line-through' : 'text-blue-600'}`}>
                         {safeFormatCurrency(campaign.budget || 0)}
-                        {console.log(`[CAMPAIGN-DEBUG] Campaign ${campaign.id} budget:`, campaign.budget, typeof campaign.budget)}
                       </div>
-                      {/* 간단화: budget만 표시 */}
+                      {isCancelled && campaign.refund_amount > 0 && (
+                        <div className="text-[10px] text-red-500 mt-0.5">
+                          환불: {safeFormatCurrency(campaign.refund_amount)}
+                        </div>
+                      )}
                     </div>
                   </td>
 
@@ -700,16 +708,21 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
             const totalCount = posts.length || campaign.post_count || 0;
             const salesData = campaignSales[campaign.id] || { totalSales: 0, totalRevenue: 0, totalMargin: 0, totalCost: 0 };
 
+            const isCancelled = campaign.status === '취소';
+
             return (
               <div
                 key={campaign.id}
-                className="p-4 hover:bg-gray-50 transition-colors touch-manipulation"
+                className={`p-4 hover:bg-gray-50 transition-colors touch-manipulation ${isCancelled ? 'bg-red-50' : ''}`}
                 onClick={() => onSelectCampaign(campaign.id)}
               >
                 {/* 캠페인 기본 정보 */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm mb-1 truncate">{campaign.name}</div>
+                    <div className={`font-medium text-sm mb-1 truncate ${isCancelled ? 'text-red-600' : 'text-gray-900'}`}>
+                      {isCancelled && <span className="inline-block bg-red-100 text-red-700 text-[10px] px-1.5 py-0.5 rounded mr-1">취소</span>}
+                      {campaign.name}
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
                       <span>👤 {getClientDisplayName(campaign.client_company || campaign.client)}</span>
                       <span>•</span>
@@ -734,9 +747,12 @@ const CampaignList = ({ campaigns, setCampaigns, campaignSales = {}, users, onSe
                   </div>
                   <div className="bg-gray-50 p-2 rounded-lg">
                     <div className="text-xs text-gray-600 mb-1">예산</div>
-                    <div className="font-medium text-sm text-blue-600 break-all">
+                    <div className={`font-medium text-sm break-all ${isCancelled ? 'text-red-400 line-through' : 'text-blue-600'}`}>
                       {safeFormatCurrency(campaign.budget || 0)}
                     </div>
+                    {isCancelled && campaign.refund_amount > 0 && (
+                      <div className="text-[10px] text-red-500">환불: {safeFormatCurrency(campaign.refund_amount)}</div>
+                    )}
                   </div>
                 </div>
 

@@ -1089,10 +1089,20 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
 
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4 md:mb-6 gap-3">
                         <div className="flex-1 min-w-0">
-                            <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-700 to-primary-900 bg-clip-text text-transparent">
-                                {campaign.name}
-                            </h1>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-700 to-primary-900 bg-clip-text text-transparent">
+                                    {campaign.name}
+                                </h1>
+                                {campaign.status === '취소' && (
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                                        취소됨
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-neutral-600 mt-2 text-sm md:text-lg">담당자: {campaign.creator_name || campaign.staff_name || campaign.User?.name || '지정되지 않음'}</p>
+                            {campaign.status === '취소' && campaign.cancellation_reason && (
+                                <p className="text-red-600 mt-1 text-xs md:text-sm">취소 사유: {campaign.cancellation_reason}</p>
+                            )}
                         </div>
                         <button
                             onClick={handleCampaignEdit}
@@ -1154,9 +1164,12 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                                 </div>
                                 <div className="ml-2 md:ml-4 min-w-0">
                                     <p className="text-xs md:text-sm font-medium text-neutral-500">총 매출</p>
-                                    <p className="text-lg md:text-2xl font-bold text-neutral-900 truncate">
+                                    <p className={`text-lg md:text-2xl font-bold truncate ${campaign.status === '취소' ? 'text-red-400 line-through' : 'text-neutral-900'}`}>
                                         {(campaign?.budget || 0).toLocaleString()}원
                                     </p>
+                                    {campaign.status === '취소' && campaign.refund_amount > 0 && (
+                                        <p className="text-xs text-red-500">환불: {Number(campaign.refund_amount).toLocaleString()}원</p>
+                                    )}
                                 </div>
                             </div>
                         </div>

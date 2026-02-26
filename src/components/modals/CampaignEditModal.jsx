@@ -4,10 +4,12 @@ import { useToast } from '../../contexts/ToastContext';
 import { formatNumberWithCommas, removeCommas } from '../../utils/dataUtils';
 import { canEditCampaign } from '../../utils/permissions';
 import { Copy } from 'lucide-react';
+import CampaignCancelModal from './CampaignCancelModal';
 
 
 const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate }) => {
   const { showSuccess, showError } = useToast();
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -73,6 +75,15 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
   // 초기값 설정
   useEffect(() => {
     if (campaign) {
+      console.log('[CAMPAIGN-EDIT] Campaign data received:', {
+        id: campaign.id,
+        staff_id: campaign.staff_id,
+        start_date: campaign.start_date,
+        end_date: campaign.end_date,
+        invoiceIssued: campaign.invoiceIssued,
+        invoice_issued: campaign.invoice_issued,
+      });
+
       // Helper function to format date - ONLY use actual data, no defaults
       const formatDateForEdit = (dateValue) => {
         if (!dateValue || dateValue === 'null' || dateValue === null) {
@@ -103,13 +114,23 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
         start_date: formatDateForEdit(campaign.start_date),
         end_date: formatDateForEdit(campaign.end_date),
         status: campaign.status || '초안',
-        invoice_issued: campaign.invoice_issued || false,
-        payment_completed: campaign.payment_completed || false,
-        UserId: defaultStaffId
+        // 백엔드 camelCase/snake_case 모두 지원
+        invoice_issued: campaign.invoiceIssued ?? campaign.invoice_issued ?? false,
+        payment_completed: campaign.paymentCompleted ?? campaign.payment_completed ?? false,
+        UserId: String(defaultStaffId)
       };
+
+      console.log('[CAMPAIGN-EDIT] Formatted form data:', {
+        start_date: formattedData.start_date,
+        end_date: formattedData.end_date,
+        UserId: formattedData.UserId,
+        invoice_issued: formattedData.invoice_issued,
+        payment_completed: formattedData.payment_completed,
+      });
+
       setFormData(formattedData);
     }
-  }, [campaign]);
+  }, [campaign, currentUser]);
 
   // 직원 목록과 클라이언트 목록 불러오기
   useEffect(() => {
@@ -139,13 +160,19 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // 권한 재검증
     if (!canEditCampaign(currentUser, campaign)) {
       showError('이 캠페인을 수정할 권한이 없습니다.');
       return;
     }
-    
+
+    // 상태를 "취소"로 변경 시 → CampaignCancelModal 열기
+    if (formData.status === '취소' && campaign.status !== '취소') {
+      setShowCancelModal(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -206,12 +233,35 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
     }
   };
 
+  // 취소 모달 확인 후 처리
+  const handleCancelConfirm = () => {
+    setShowCancelModal(false);
+    onSave(); // 목록 새로고침
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
         <h3 className="text-xl font-bold mb-4">캠페인 수정 - {campaign?.name}</h3>
-        
+
+        {/* 이미 취소된 캠페인 안내 */}
+        {campaign?.status === '취소' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-red-600 text-lg">&#x26A0;</span>
+              <div>
+                <h4 className="text-sm font-medium text-red-800">취소된 캠페인</h4>
+                <p className="text-sm text-red-600 mt-1">
+                  이 캠페인은 취소되었습니다.
+                  {campaign.cancellation_reason && ` 사유: ${campaign.cancellation_reason}`}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 성공 안내 메시지 */}
+        {campaign?.status !== '취소' && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -227,9 +277,10 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
             </div>
           </div>
         </div>
-        
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* 캠페인명 */}
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -316,7 +367,7 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
               >
                 <option value="">담당 직원을 선택하세요</option>
                 {staffMembers.map((staff) => (
-                  <option key={staff.id} value={staff.id}>
+                  <option key={staff.id} value={String(staff.id)}>
                     {staff.name} ({staff.email})
                   </option>
                 ))}
@@ -484,6 +535,16 @@ const CampaignEditModal = ({ campaign, onSave, onClose, currentUser, onDuplicate
           </div>
         </form>
       </div>
+
+      {/* 캠페인 취소 모달 */}
+      {showCancelModal && (
+        <CampaignCancelModal
+          campaign={campaign}
+          onConfirm={handleCancelConfirm}
+          onClose={() => setShowCancelModal(false)}
+          currentUser={currentUser}
+        />
+      )}
     </div>
   );
 };

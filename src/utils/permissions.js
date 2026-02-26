@@ -243,10 +243,10 @@ export const canSelectEmployee = (user, employee) => {
   // SUPER_ADMIN은 모든 STAFF 선택 가능
   if (user.role === ROLES.SUPER_ADMIN) return true;
   
-  // AGENCY_ADMIN은 같은 회사 STAFF만 선택 가능
+  // AGENCY_ADMIN은 같은 회사 STAFF, TEAM_LEADER, AGENCY_ADMIN 선택 가능
   if (user.role === ROLES.AGENCY_ADMIN) {
-    return isSameCompany(user, employee) && 
-           (employee.role === ROLES.EMPLOYEE || employee.role === ROLES.AGENCY_ADMIN);
+    return isSameCompany(user, employee) &&
+           (employee.role === ROLES.EMPLOYEE || employee.role === ROLES.TEAM_LEADER || employee.role === ROLES.AGENCY_ADMIN);
   }
   
   // STAFF는 본인만 선택 가능
