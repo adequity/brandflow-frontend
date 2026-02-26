@@ -178,7 +178,8 @@ const OrderManagement = ({ loggedInUser }) => {
 
   // 발주요청 승인
   const handleApproveOrder = (orderId) => {
-    setApproveConfirm({ isOpen: true, orderId });
+    const order = orderRequests.find(o => o.id === orderId);
+    setApproveConfirm({ isOpen: true, orderId, order });
   };
 
   const confirmApproveOrder = async () => {
@@ -514,7 +515,19 @@ const OrderManagement = ({ loggedInUser }) => {
         onClose={() => setApproveConfirm({ isOpen: false, orderId: null })}
         onConfirm={confirmApproveOrder}
         title="발주요청 승인"
-        message="이 발주요청을 승인하시겠습니까?\n승인 시 본사 지출에 반영됩니다."
+        message={
+          <div>
+            <p>이 발주요청을 승인하시겠습니까?</p>
+            {approveConfirm.order && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm space-y-1">
+                <p><span className="font-medium">제목:</span> {approveConfirm.order.title}</p>
+                <p><span className="font-medium">금액:</span> {(Number(approveConfirm.order.cost_price) || 0).toLocaleString()}원</p>
+                <p><span className="font-medium">요청자:</span> {approveConfirm.order.requester_name}</p>
+              </div>
+            )}
+            <p className="mt-2 text-gray-500 text-xs">승인 시 본사 지출에 반영됩니다.</p>
+          </div>
+        }
         type="info"
         confirmText="승인"
         cancelText="취소"
