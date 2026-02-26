@@ -194,7 +194,7 @@ const OrderManagement = ({ loggedInUser }) => {
       const success = await updateOrderStatus(orderId, '승인', '발주 승인 완료');
 
       if (success) {
-        showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${orderToApprove?.total_cost ? Number(orderToApprove.total_cost).toLocaleString() : '0'}원`);
+        showSuccess(`발주요청이 승인되었습니다!\n\n발주번호: ${orderToApprove?.orderNumber || `ORD-${orderId.toString().padStart(6, '0')}`}\n제목: ${orderToApprove?.title}\n금액: ${(Number(orderToApprove?.total_cost) || Number(orderToApprove?.cost_price) || 0).toLocaleString()}원`);
         setApproveConfirm({ isOpen: false, orderId: null });
       }
 
@@ -570,7 +570,7 @@ const OrderDetailModal = ({ order, isOpen, onClose, onApprove, onReject }) => {
                 <p className="mt-1 text-gray-700">{order.description}</p>
               </div>
               <div>
-                <span className="font-medium">금액:</span> {order.total_cost ? Number(order.total_cost).toLocaleString() : '0'}원
+                <span className="font-medium">금액:</span> {(Number(order.total_cost) || Number(order.cost_price) || 0).toLocaleString()}원
                 {order.product_cost && order.quantity && (
                   <span className="text-xs md:text-sm text-gray-500 ml-2">
                     ({Number(order.product_cost).toLocaleString()}원 × {order.quantity}개)
