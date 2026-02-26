@@ -270,18 +270,19 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         return null;
     };
 
-    // 업무타입별 원가 정보 조회 함수 (상품관리에서 가져옴)
-    const getProductCostByWorkType = (workType) => {
-        const productPrices = {
-            '블로그': 500000,
-            '인스타그램': 300000,
-            '페이스북': 400000,
-            '유튜브': 1200000,
-            '디자인': 700000,
-            '마케팅': 2000000,
-            '영상 편집': 450000
-        };
-        return productPrices[workType] || 0;
+    // 업무의 원가 조회 함수 (포스트에 저장된 실제 원가 우선 사용)
+    const getPostCost = (post) => {
+        // 1순위: 포스트에 저장된 제품 원가 (상품관리 DB 연동)
+        if (post.productCost && post.productCost > 0) return post.productCost;
+        if (post.product_cost && post.product_cost > 0) return post.product_cost;
+        // 2순위: 포스트별 작업 단가
+        if (post.cost && post.cost > 0) return post.cost;
+        return 0;
+    };
+    // 하위 호환: workType 기반 호출도 post 객체 기반으로 전환
+    const getProductCostByWorkType = (workType, post) => {
+        if (post) return getPostCost(post);
+        return 0;
     };
 
     // 필터링 로직
@@ -682,10 +683,10 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         if (!orderRequestConfirm.post) return;
 
         const post = orderRequestConfirm.post;
-        const costPrice = getProductCostByWorkType(post.workType);
+        const costPrice = getPostCost(post);
 
         try {
-            console.log('발주 요청 시작:', post.title);
+            console.log('발주 요청 시작:', post.title, '원가:', costPrice);
 
             // JWT 기반 백엔드 API 호출
             const orderData = {
@@ -722,10 +723,10 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         if (!reorderRequestConfirm.post) return;
 
         const post = reorderRequestConfirm.post;
-        const costPrice = getProductCostByWorkType(post.workType);
+        const costPrice = getPostCost(post);
 
         try {
-            console.log('발주 재요청 시작:', post.title);
+            console.log('발주 재요청 시작:', post.title, '원가:', costPrice);
 
             // JWT 기반 백엔드 API 호출 (새 발주요청 생성)
             const orderData = {
@@ -1843,7 +1844,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     <div>
                         <p>"{orderRequestConfirm.post.title}" 업무에 대한 발주를 요청하시겠습니까?</p>
                         <p className="mt-2 text-sm text-gray-600">
-                            예상 원가: {getProductCostByWorkType(orderRequestConfirm.post.workType).toLocaleString()}원
+                            예상 원가: {getPostCost(orderRequestConfirm.post).toLocaleString()}원
                         </p>
                     </div>
                 )}
@@ -1862,7 +1863,7 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
                     <div>
                         <p>"{reorderRequestConfirm.post.title}" 업무에 대한 발주를 재요청하시겠습니까?</p>
                         <p className="mt-2 text-sm text-gray-600">
-                            예상 원가: {getProductCostByWorkType(reorderRequestConfirm.post.workType).toLocaleString()}원
+                            예상 원가: {getPostCost(reorderRequestConfirm.post).toLocaleString()}원
                         </p>
                     </div>
                 )}
