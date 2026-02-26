@@ -270,14 +270,11 @@ const CampaignDetailPage = ({ campaigns, setCampaigns }) => {
         return null;
     };
 
-    // 업무의 원가 조회 함수 (포스트에 저장된 실제 원가 우선 사용)
+    // 업무의 총 원가 조회 함수 (제품 단가 × 수량)
     const getPostCost = (post) => {
-        // 1순위: 포스트에 저장된 제품 원가 (상품관리 DB 연동)
-        if (post.productCost && post.productCost > 0) return post.productCost;
-        if (post.product_cost && post.product_cost > 0) return post.product_cost;
-        // 2순위: 포스트별 작업 단가
-        if (post.cost && post.cost > 0) return post.cost;
-        return 0;
+        const unitCost = post.productCost || post.product_cost || post.cost || 0;
+        const qty = post.quantity || 1;
+        return unitCost * qty;
     };
     // 하위 호환: workType 기반 호출도 post 객체 기반으로 전환
     const getProductCostByWorkType = (workType, post) => {
